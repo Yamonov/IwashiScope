@@ -1,12 +1,43 @@
-<?xml version="1.0" encoding="utf-8"?>
-<rss
-    version="2.0"
-    xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
->
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>IwashiScope Updates</title>
         <link>https://yamonov.github.io/IwashiScope/</link>
         <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
+        <item>
+            <title>0.9</title>
+            <pubDate>Thu, 23 Jul 2026 22:38:44 +0900</pubDate>
+            <link>https://yamonov.github.io/IwashiScope/</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v0.9</sparkle:fullReleaseNotesLink>
+            <sparkle:version>18</sparkle:version>
+            <sparkle:shortVersionString>0.9</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# IwashiScope 0.9
+
+IwashiScopeの初回公開版です。
+
+- 反射原稿、環境光、発光の分光・測色、測定履歴、画像・CSV・ASE書き出し
+- ArgyllCMS 3.5.0を基にした改変版 `iwashiscope-spotread` とJSON Lines v3通信
+- CRIおよびIES TM-30-15の評価・グラフ表示
+- Intel MacとAppleシリコンMacに対応するUniversal Binary
+- macOS 14.6以降に対応
+
+アプリはDeveloper IDで署名し、Appleの公証を完了しています。
+
+このReleaseには、配布バイナリと正確に対応する完全なソース一式を含めています。ライセンス、第三者著作物、ArgyllCMSからの変更内容は、ソースZIP内の `LICENSE`、`NOTICE`、`THIRD_PARTY_NOTICES.md`、`ARGYLL_CHANGES.md`を参照してください。
+
+## SHA-256
+
+- `IwashiScope-0.9.zip`: `9e85216135a0975872c64603ae4e944954ec4362eba0d71fafa7362d3f1f924b`
+- `IwashiScope-0.9-source.zip`: `d894f74a50e70f7ad94ca2699d572fcfd1423118a1471443d6ff080084fb86b4`
+]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v0.9/IwashiScope-0.9.zip"
+                length="10503153"
+                type="application/octet-stream"
+                sparkle:edSignature="Fw1N74dUSpqKP4qjh/dHfmAzknt7WO62S48+OW7e4V0oixue2BulNyQRiBcJY39gdlUUC5I2jkhMAWvzyqW5Cw=="
+            />
+        </item>
     </channel>
 </rss>

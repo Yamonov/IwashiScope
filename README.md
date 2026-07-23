@@ -6,7 +6,7 @@
 macOS上でArgyllCMS 3.5.0を改変した同梱コマンド`iwashiscope-spotread`を対話操作し、スペクトルと測色・光源評価値を表示するSwiftUIアプリです。
 
 > [!IMPORTANT]
-> 現在は初回リリース前のソース公開版です。公開されているソースからアプリをビルドできますが、署名・公証済みバイナリはまだ配布していません。
+> 署名・公証済みのIwashiScope 0.9は[GitHub Releases](https://github.com/Yamonov/IwashiScope/releases/tag/v0.9)からダウンロードできます。配布バイナリに正確に対応する完全なソース一式も、同じReleaseで公開しています。
 
 ## 現在の実装
 

@@ -24,6 +24,16 @@
       color: color-mix(in srgb, CanvasText 70%, Canvas);
     }
     a { color: #0a84ff; }
+    .download {
+      display: inline-block;
+      margin: 20px 0 4px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      color: white;
+      background: #0a84ff;
+      font-weight: 600;
+      text-decoration: none;
+    }
     .note {
       margin-top: 32px;
       padding: 16px 18px;
@@ -39,8 +49,11 @@
     <p class="ja-name">分光・測色ツール</p>
     <p>ArgyllCMS 3.5.0を改変したiwashiscope-spotreadを使用する、macOS用の分光・測色ツールです。</p>
     <p>IwashiScope本体はGNU AGPLバージョン3のみで公開しています。CIE標準光源データから生成したSwift適応物はGNU GPLバージョン3のみで、両ライセンスの第13条に基づいて結合しています。</p>
+    <p><a class="download" href="https://github.com/Yamonov/IwashiScope/releases/download/v0.9/IwashiScope-0.9.zip">IwashiScope 0.9をダウンロード</a></p>
     <p>
       <a href="https://github.com/Yamonov/IwashiScope">ソースコード</a>
+      ・
+      <a href="https://github.com/Yamonov/IwashiScope/releases/tag/v0.9">対応ソースとチェックサム</a>
       ・
       <a href="https://github.com/Yamonov/IwashiScope/blob/main/LICENSE">AGPLv3</a>
       ・
@@ -48,7 +61,7 @@
       ・
       <a href="https://github.com/Yamonov/IwashiScope/blob/main/PRIVACY.md">プライバシー</a>
     </p>
-    <p class="note">署名・公証済みの初回バイナリは、まだ公開していません。</p>
+    <p class="note">macOS 14.6以降に対応。Intel MacとAppleシリコンMacの両方で動作するUniversal Binaryです。Developer ID署名とAppleの公証を完了しています。</p>
   </main>
 </body>
 </html>
