@@ -38,14 +38,16 @@ for relative_path in $required_bundle_files; do
 		|| fail "required license or notice is missing from app: $relative_path"
 done
 
-grep -F 'GNU Affero General Public License version 3' \
-	"$application_path/Contents/Resources/NOTICE.txt" >/dev/null \
+normalized_notice=$(tr '\n' ' ' \
+	<"$application_path/Contents/Resources/NOTICE.txt")
+printf '%s\n' "$normalized_notice" |
+	grep -F 'GNU Affero General Public License version 3' >/dev/null \
 	|| fail "application notice does not identify AGPL version 3"
-grep -F 'GPL version 3 only' \
-	"$application_path/Contents/Resources/NOTICE.txt" >/dev/null \
+printf '%s\n' "$normalized_notice" |
+	grep -F 'GPL version 3 only' >/dev/null \
 	|| fail "application notice does not identify the CIE GPL-3.0-only adaptation"
-grep -F 'section 13 of GPLv3 and AGPLv3' \
-	"$application_path/Contents/Resources/NOTICE.txt" >/dev/null \
+printf '%s\n' "$normalized_notice" |
+	grep -F 'section 13 of GPLv3 and AGPLv3' >/dev/null \
 	|| fail "application notice does not identify the section 13 combination"
 
 bundle_version=$(/usr/libexec/PlistBuddy \
