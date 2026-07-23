@@ -1,8 +1,7 @@
 # IwashiScope
 
 *Spectral & Color Measurement*
-
-日本語表記：分光・測色ツール
+分光・測色ツール
 
 macOS上で同梱版ArgyllCMS `spotread`を対話操作し、スペクトルと測色・光源評価値を表示するSwiftUIアプリです。
 
