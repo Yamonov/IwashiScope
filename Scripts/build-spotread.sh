@@ -16,7 +16,7 @@ if [ -z "$jam_tool" ] && [ -x /usr/local/bin/jam ]; then
 	jam_tool=/usr/local/bin/jam
 fi
 if [ -z "$jam_tool" ]; then
-	printf '%s\n' "error: Jam is required to build the bundled SpectraMate spotread." >&2
+	printf '%s\n' "error: Jam is required to build the bundled IwashiScope spotread." >&2
 	printf '%s\n' "Install Jam or set JAM to its executable path." >&2
 	exit 1
 fi
@@ -30,8 +30,8 @@ unset OS
 # architecture or reproducibility of the helper executable.
 "$jam_tool" -q -fJambase \
 	-sBUILTIN_SSL=true \
-	-sSPECTRAMATE_ONLY=true \
-	spectramate_spotread
+	-sIWASHISCOPE_ONLY=true \
+	iwashiscope_spotread
 
 if [ ! -x "$argyll_root/spectro/spotread" ]; then
 	printf '%s\n' "error: ArgyllCMS completed without producing spectro/spotread." >&2

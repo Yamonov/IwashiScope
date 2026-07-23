@@ -1,7 +1,7 @@
 
 # Top level Argyll Jamfile.
 #
-# Modified for SpectraMate by Yamonov on 2026-07-23:
+# Modified for IwashiScope by Yamonov on 2026-07-23:
 # allow the app build to load only spotread's required subprojects.
 
 # Overall optization state and configuration. Overrides sub-Jamfiles
@@ -34,9 +34,9 @@ if $(NEED_COMPILE_DATE) = true && [ GLOB $(PATH) : awk awk.exe ] {
 	}
 }
 
-# Include only spotread's dependency graph for SpectraMate. The original,
+# Include only spotread's dependency graph for IwashiScope. The original,
 # complete ArgyllCMS build remains available when this flag is not set.
-if $(SPECTRAMATE_ONLY) = true {
+if $(IWASHISCOPE_ONLY) = true {
 	SubInclude numlib ;
 	SubInclude plot ;
 	SubInclude icc ;

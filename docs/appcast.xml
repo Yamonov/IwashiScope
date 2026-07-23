@@ -4,9 +4,9 @@
     xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
 >
     <channel>
-        <title>SpectraMate Updates</title>
-        <link>https://yamonov.github.io/SpectraMate/</link>
-        <description>SpectraMateの署名済みアップデート情報</description>
+        <title>IwashiScope Updates</title>
+        <link>https://yamonov.github.io/IwashiScope/</link>
+        <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
     </channel>
 </rss>

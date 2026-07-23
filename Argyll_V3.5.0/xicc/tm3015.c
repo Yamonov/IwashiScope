@@ -10,7 +10,7 @@
  * This material is licenced under the GNU GENERAL PUBLIC LICENSE Version 2 or later :-
  * see the License2.txt file for licencing details.
  *
- * Modified for SpectraMate by Yamonov on 2026-07-23:
+ * Modified for IwashiScope by Yamonov on 2026-07-23:
  * exposed the 99 reference/test Jab sample pairs to the caller.
  *
  * Based on icx_CIE1995_CRI() and icx_EBU2012_TLCI()

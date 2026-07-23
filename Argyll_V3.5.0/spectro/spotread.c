@@ -15,7 +15,7 @@
  * This material is licenced under the GNU GENERAL PUBLIC LICENSE Version 2 or later :-
  * see the License2.txt file for licencing details.
  *
- * Modified for SpectraMate by Yamonov on 2026-07-23:
+ * Modified for IwashiScope by Yamonov on 2026-07-23:
  * added the -J JSON Lines protocol, structured state/error/calibration events,
  * and TM-30 measurement details for a robust GUI integration.
  */
@@ -91,7 +91,7 @@ static int g_jsonl_measurement_started = 0;
 
 static void jsonl_check(int result) {
 	if (result != 0)
-		error("Writing SpectraMate JSON Lines output failed");
+		error("Writing IwashiScope JSON Lines output failed");
 }
 
 static void jsonl_emit_measurement_started(void) {
@@ -584,7 +584,7 @@ usage(char *diag, ...) {
 	fprintf(stderr," -v                   Verbose mode\n");
 	fprintf(stderr," -s                   Print spectrum for each reading\n");
 #ifndef SALONEINSTLIB
-	fprintf(stderr," -J                   Emit SpectraMate JSON Lines on stdout; human output on stderr\n");
+	fprintf(stderr," -J                   Emit IwashiScope JSON Lines on stdout; human output on stderr\n");
 #endif
 #ifndef SALONEINSTLIB
 	fprintf(stderr," -S                   Plot spectrum for each reading\n");
@@ -708,7 +708,7 @@ int main(int argc, char *argv[]) {
 									/* 2 = Plot out the spectrum for each reading */
 	int refwr = 0;					/* Reflection mode white relative mode */
 #ifndef SALONEINSTLIB
-	int jsonl = 0;					/* SpectraMate machine-readable protocol */
+	int jsonl = 0;					/* IwashiScope machine-readable protocol */
 	spotread_jsonl *protocol = NULL;
 #endif
 	int trans = 0;					/* Use transmissioin mode */
@@ -1288,7 +1288,7 @@ int main(int argc, char *argv[]) {
 	if (jsonl) {
 		protocol = spotread_jsonl_open();
 		if (protocol == NULL) {
-			fprintf(stderr, "Unable to initialise SpectraMate JSON Lines output\n");
+			fprintf(stderr, "Unable to initialise IwashiScope JSON Lines output\n");
 			return -1;
 		}
 		g_jsonl = protocol;

@@ -1,6 +1,6 @@
 # ArgyllCMS 3.5.0の改変
 
-SpectraMateは、ArgyllCMS 3.5.0の`spotread`をGUIから安全に制御するため、機械処理用のJSON Linesプロトコルを追加しています。
+IwashiScopeは、ArgyllCMS 3.5.0の`spotread`をGUIから安全に制御するため、機械処理用のJSON Linesプロトコルを追加しています。
 
 - 上流版: ArgyllCMS 3.5.0
 - 上流サイト: <https://www.argyllcms.com/>
@@ -11,8 +11,8 @@ SpectraMateは、ArgyllCMS 3.5.0の`spotread`をGUIから安全に制御する�
 
 | ファイル | 改変内容 |
 | --- | --- |
-| `Jamfile` | SpectraMateのビルド時に、`spotread`へ必要なサブプロジェクトだけを読み込む分岐を追加 |
-| `spectro/Jamfile` | JSON Lines実装を`spotread`へ追加し、SpectraMate専用ビルドターゲットを定義 |
+| `Jamfile` | IwashiScopeのビルド時に、`spotread`へ必要なサブプロジェクトだけを読み込む分岐を追加 |
+| `spectro/Jamfile` | JSON Lines実装を`spotread`へ追加し、IwashiScope専用ビルドターゲットを定義 |
 | `spectro/instappsup.c` | 既存APIを維持したまま、校正状態を通知する任意コールバックを追加 |
 | `spectro/instappsup.h` | 校正イベントとコールバックAPIを宣言 |
 | `spectro/spotread.c` | `-J`、JSON Lines v2、測定・校正・エラー状態、CRI/TM-30出力を追加 |

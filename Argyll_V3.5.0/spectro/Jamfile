@@ -1,4 +1,4 @@
-# Modified for SpectraMate by Yamonov on 2026-07-23:
+# Modified for IwashiScope by Yamonov on 2026-07-23:
 # add the JSON Lines source and a dedicated spotread build target.
 
 #PREF_CCFLAGS 	+= $(CCOPTFLAG) ;		# Turn optimisation on
@@ -196,11 +196,11 @@ Main chartread : chartread.c ../target/alphix.c : : : ../target : : ;
 # Illuminant measurement
 Main illumread : illumread.c : : : ../target : : ;
 
-# Printed target spot reader utility. SpectraMate's JSON Lines protocol is
+# Printed target spot reader utility. IwashiScope's JSON Lines protocol is
 # isolated in spotread_jsonl.c and uses the YAJL library already linked here.
 Main spotread : spotread.c spotread_jsonl.c : : : ../yajl : : ;
-NotFile spectramate_spotread ;
-Depends spectramate_spotread : <spectro>spotread ;
+NotFile iwashiscope_spotread ;
+Depends iwashiscope_spotread : <spectro>spotread ;
 
 echo "HOME = " $(HOME) ;
 echo "PWD = " $(PWD) ;

@@ -13,7 +13,7 @@
  * This material is licenced under the GNU GENERAL PUBLIC LICENSE Version 2 or later :-
  * see the License2.txt file for licencing details.
  *
- * Modified for SpectraMate by Yamonov on 2026-07-23:
+ * Modified for IwashiScope by Yamonov on 2026-07-23:
  * added optional calibration event callbacks while preserving the original API.
  */
 

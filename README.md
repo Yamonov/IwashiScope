@@ -1,4 +1,8 @@
-# SpectraMate
+# IwashiScope
+
+*Spectral & Color Measurement*
+
+日本語表記：分光・測色ツール
 
 macOS上で同梱版ArgyllCMS `spotread`を対話操作し、スペクトルと測色・光源評価値を表示するSwiftUIアプリです。
 
@@ -8,7 +12,7 @@ macOS上で同梱版ArgyllCMS `spotread`を対話操作し、スペクトルと�
 ## 現在の実装
 
 - 起動時に「反射原稿」「環境光」「発光」から測定モードを選択
-- 選択したモードで、SpectraMate用JSONプロトコルを追加したArgyllCMS 3.5.0 `spotread`を高解像度・スペクトル出力付きで起動
+- 選択したモードで、IwashiScope用JSONプロトコルを追加したArgyllCMS 3.5.0 `spotread`を高解像度・スペクトル出力付きで起動
 - `spotread`が標準出力へ送るJSON Linesを解析し、機種に応じたキャリブレーション手順、待機中、完了をGUIに表示
 - `state`イベントで待機、測定開始、保存済み測定値の確認を判定し、接続・キャリブレーション・測定・復旧中は操作を遮る大きな円形待機画面を表示
 - GUIのボタンからキャリブレーション、続行、任意校正のスキップ、測定、エラー種別に応じた復旧を入力
@@ -47,12 +51,12 @@ D50とD65の比較曲線は、CIEが公開する1 nm間隔の公式データか�
 
 ## spotread実行ファイル
 
-1. `SPECTRAMATE_SPOTREAD_PATH`環境変数
+1. `IWASHISCOPE_SPOTREAD_PATH`環境変数
 2. App Bundle内の補助実行ファイルまたはResources
 
 一般のHomebrew版や`PATH`上の`spotread`はJSONプロトコルを備えていないため使用しません。通常のXcodeビルドでは`Scripts/build-spotread.sh`が必要な依存関係だけをビルドし、生成した`spotread`をApp Bundleへ格納します。
 
-測定器番号は既定で`-c 1`です。変更する場合は`SPECTRAMATE_INSTRUMENT_INDEX`を指定します。
+測定器番号は既定で`-c 1`です。変更する場合は`IWASHISCOPE_INSTRUMENT_INDEX`を指定します。
 
 | モード | 引数 |
 | --- | --- |
@@ -67,36 +71,36 @@ D50とD65の比較曲線は、CIEが公開する1 nm間隔の公式データか�
 ## プロジェクト構成
 
 ```text
-SpectraMate/
-├── Argyll_V3.5.0/                    # 同梱するArgyllCMSソースとSpectraMate用の最小改変
+IwashiScope/
+├── Argyll_V3.5.0/                    # 同梱するArgyllCMSソースとIwashiScope用の最小改変
 ├── Scripts/build-spotread.sh         # spotreadだけをビルドするJamターゲット
-├── SpectraMate.xcodeproj              # App shell
-├── SpectraMate/                       # App entry point / assets
-└── SpectraMatePackage/
-    └── Sources/SpectraMateFeature/    # UI、プロセス制御、パーサー
+├── IwashiScope.xcodeproj              # App shell
+├── IwashiScope/                       # App entry point / assets
+└── IwashiScopePackage/
+    └── Sources/IwashiScopeFeature/    # UI、プロセス制御、パーサー
 ```
 
 開発に使用するテストと内部資料は公開リポジトリへ含めていません。`Package.swift`はローカルにテストが存在する場合だけテストターゲットを追加します。
 
 ## ビルド
 
-必要な環境と手順は[BUILDING.md](BUILDING.md)を参照してください。Xcodeでは`SpectraMate.xcworkspace`を開きます。初回ビルド時にSparkle 2.9.4を取得し、`Scripts/build-spotread.sh`が同梱ソースから`spotread`を作成します。
+必要な環境と手順は[BUILDING.md](BUILDING.md)を参照してください。Xcodeでは`IwashiScope.xcworkspace`を開きます。初回ビルド時にSparkle 2.9.4を取得し、`Scripts/build-spotread.sh`が同梱ソースから`spotread`を作成します。
 
 ## Sandboxと配布
 
 測定器へのアクセスと補助プロセス実行のため、App Sandboxは有効にしていません。配布物には、同じソースからビルドして署名した`spotread`をApp Bundle内の補助実行ファイルとして同梱します。
 
-ArgyllCMSソースとSpectraMate側の改変ソースを同じリポジトリで提供し、生成したオブジェクト、静的ライブラリ、`spotread`バイナリはコミット対象から除外します。再配布時はArgyllCMSのライセンス文書とAGPLv3の条件を確認してください。
+ArgyllCMSソースとIwashiScope側の改変ソースを同じリポジトリで提供し、生成したオブジェクト、静的ライブラリ、`spotread`バイナリはコミット対象から除外します。再配布時はArgyllCMSのライセンス文書とAGPLv3の条件を確認してください。
 
 ## ライセンスとソースコード
 
 Copyright © 2026 Yamonov.
 
-SpectraMateの独自部分は、特記のない限り[GNU Affero General Public Licenseバージョン3以降](LICENSE)で公開します。このソフトウェアには一切の保証がありません。
+IwashiScopeの独自部分は、特記のない限り[GNU Affero General Public Licenseバージョン3以降](LICENSE)で公開します。このソフトウェアには一切の保証がありません。
 
 - ArgyllCMS 3.5.0の原著作権と個別ライセンスは維持されています。
-- SpectraMateによるArgyllCMSの改変内容は[ARGYLL_CHANGES.md](ARGYLL_CHANGES.md)に記録しています。
+- IwashiScopeによるArgyllCMSの改変内容は[ARGYLL_CHANGES.md](ARGYLL_CHANGES.md)に記録しています。
 - Sparkle、CIE標準光源データ、ArgyllCMS内の各構成要素は[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)を参照してください。
 - バイナリの作成・署名・公証・Sparkle配信は[RELEASING.md](RELEASING.md)を参照してください。
 
-SpectraMateおよび改変版`spotread`の対応ソースは、このリポジトリの各リリースタグから取得できます。
+IwashiScopeおよび改変版`spotread`の対応ソースは、このリポジトリの各リリースタグから取得できます。

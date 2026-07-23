@@ -1,4 +1,4 @@
-# SpectraMateのビルド
+# IwashiScopeのビルド
 
 ## 必要な環境
 
@@ -13,8 +13,8 @@
 ## 取得
 
 ```sh
-git clone https://github.com/Yamonov/SpectraMate.git
-cd SpectraMate
+git clone https://github.com/Yamonov/IwashiScope.git
+cd IwashiScope
 ```
 
 ## Jam
@@ -30,20 +30,20 @@ jam -v
 ```sh
 JAM=/absolute/path/to/jam \
   xcodebuild \
-  -workspace SpectraMate.xcworkspace \
-  -scheme SpectraMate \
+  -workspace IwashiScope.xcworkspace \
+  -scheme IwashiScope \
   -configuration Debug \
   build
 ```
 
 ## Xcode
 
-`SpectraMate.xcworkspace`を開き、`SpectraMate`スキームを選択してビルドします。コマンドラインでは次のように実行できます。
+`IwashiScope.xcworkspace`を開き、`IwashiScope`スキームを選択してビルドします。コマンドラインでは次のように実行できます。
 
 ```sh
 xcodebuild \
-  -workspace SpectraMate.xcworkspace \
-  -scheme SpectraMate \
+  -workspace IwashiScope.xcworkspace \
+  -scheme IwashiScope \
   -configuration Debug \
   build
 ```
@@ -56,8 +56,8 @@ xcodebuild \
 
 ```sh
 xcodebuild \
-  -workspace SpectraMate.xcworkspace \
-  -scheme SpectraMate \
+  -workspace IwashiScope.xcworkspace \
+  -scheme IwashiScope \
   -configuration Release \
   CODE_SIGNING_ALLOWED=NO \
   build

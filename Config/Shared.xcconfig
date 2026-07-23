@@ -6,11 +6,11 @@
 // ==========================================
 // Project Identity
 // ==========================================
-PRODUCT_NAME = SpectraMate
-PRODUCT_DISPLAY_NAME = SpectraMate
-PRODUCT_BUNDLE_IDENTIFIER = com.yamonov.SpectraMate
+PRODUCT_NAME = IwashiScope
+PRODUCT_DISPLAY_NAME = IwashiScope
+PRODUCT_BUNDLE_IDENTIFIER = com.yamonov.IwashiScope
 MARKETING_VERSION = 0.9
-CURRENT_PROJECT_VERSION = 15
+CURRENT_PROJECT_VERSION = 18
 
 // ==========================================
 // Platform Configuration
@@ -35,10 +35,10 @@ ENABLE_USER_SCRIPT_SANDBOXING = NO
 // Info PLIST
 // ==========================================
 GENERATE_INFOPLIST_FILE = NO
-INFOPLIST_FILE = SpectraMate/Info.plist
+INFOPLIST_FILE = IwashiScope/Info.plist
 
 // ==========================================
 // Entitlements
 // ==========================================
-// AI agents can modify Config/SpectraMate.entitlements to add capabilities
-CODE_SIGN_ENTITLEMENTS = Config/SpectraMate.entitlements
+// AI agents can modify Config/IwashiScope.entitlements to add capabilities
+CODE_SIGN_ENTITLEMENTS = Config/IwashiScope.entitlements

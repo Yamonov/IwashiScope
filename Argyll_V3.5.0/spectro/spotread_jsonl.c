@@ -1,5 +1,5 @@
 /*
- * SpectraMate machine-readable output for ArgyllCMS spotread.
+ * IwashiScope machine-readable output for ArgyllCMS spotread.
  * Copyright (C) 2026 Yamonov
  *
  * This file is free software: you can redistribute it and/or modify it
