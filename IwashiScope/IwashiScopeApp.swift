@@ -38,7 +38,7 @@ struct IwashiScopeApp: App {
         ) {
             LicenseInformationView()
         }
-        .defaultSize(width: 520, height: 470)
+        .defaultSize(width: 560, height: 560)
         .windowResizability(.contentSize)
     }
 }

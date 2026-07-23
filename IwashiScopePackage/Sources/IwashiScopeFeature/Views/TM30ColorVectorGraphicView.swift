@@ -1,3 +1,17 @@
+/*
+ The color-vector geometry is adapted from ArgyllCMS 3.5.0 xicc/tm3015.c,
+ function tm3015_plot(), written by Graeme W. Gill, Copyright (C) 2019.
+ The original portions are licensed under GPL-2.0-or-later; see
+ Argyll_V3.5.0/License2.txt.
+
+ Adapted for IwashiScope by Yamonov on 2026-07-23: converted polar
+ normalization and four-step contour interpolation to Swift, added explicit
+ 16-sector geometry and displacement arrows, and implemented the SwiftUI
+ presentation. IwashiScope's modifications are licensed under
+ AGPL-3.0-only. The combined IwashiScope distribution is provided under
+ AGPL-3.0-only.
+*/
+
 import SwiftUI
 
 struct TM30ColorVectorPoint: Equatable, Sendable {

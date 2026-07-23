@@ -71,6 +71,10 @@ fastlane/test_output
 # Finder
 .DS_Store
 
+# Private design working files. IwashiScope.icon contains the editable public
+# source used to build the shipped application icon.
+/材料/
+
 # Local development and agent state
 .claude/
 .codex/
@@ -101,6 +105,8 @@ Argyll_V3.5.0/**/*.a
 Argyll_V3.5.0/**/*.dylib
 Argyll_V3.5.0/**/*.so
 Argyll_V3.5.0/spectro/spotread
+Argyll_V3.5.0/spectro/iwashiscope-spotread
+Argyll_V3.5.0/.iwashiscope-build-config
 
 # Upstream ArgyllCMS projects and release tooling outside IwashiScope's
 # spotread dependency graph. The retained subset is selected by

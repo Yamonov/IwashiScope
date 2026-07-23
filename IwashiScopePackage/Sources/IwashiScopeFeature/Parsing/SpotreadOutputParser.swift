@@ -16,11 +16,15 @@ enum SpotreadEvent: Equatable {
 }
 
 struct SpotreadOutputParser {
-    private static let protocolVersion = 2
+    private static let protocolVersion = 3
+    private static let implementation = "IwashiScope spot reader"
+    private static let implementationVersion = 1
+    private static let argyllVersion = "3.5.0"
 
     private let mode: MeasurementMode
     private var buffer = ""
     private var hasFinished = false
+    private var hasAcceptedHello = false
 
     init(mode: MeasurementMode) {
         self.mode = mode
@@ -56,7 +60,7 @@ struct SpotreadOutputParser {
         return decode(finalLine)
     }
 
-    private func decode(_ line: String) -> [SpotreadEvent] {
+    private mutating func decode(_ line: String) -> [SpotreadEvent] {
         guard line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
             return []
         }
@@ -72,6 +76,35 @@ struct SpotreadOutputParser {
                     )
                 ]
             }
+            if record.event == "hello" {
+                guard hasAcceptedHello == false else {
+                    return [
+                        .fatalIssue(
+                            .fatal(rawText: "iwashiscope-spotread sent a duplicate hello event")
+                        )
+                    ]
+                }
+                guard record.implementation == Self.implementation,
+                      record.implementationVersion == Self.implementationVersion,
+                      record.argyllVersion == Self.argyllVersion else {
+                    return [
+                        .fatalIssue(
+                            .fatal(
+                                rawText: "The measurement command is not the supported IwashiScope spot reader"
+                            )
+                        )
+                    ]
+                }
+                hasAcceptedHello = true
+                return []
+            }
+            guard hasAcceptedHello else {
+                return [
+                    .fatalIssue(
+                        .fatal(rawText: "iwashiscope-spotread did not send its hello event first")
+                    )
+                ]
+            }
             return try events(from: record, rawText: line)
         } catch {
             return [.configurationIssue(.outputParsingFailure(rawText: line))]
@@ -83,9 +116,6 @@ struct SpotreadOutputParser {
         rawText: String
     ) throws -> [SpotreadEvent] {
         switch record.event {
-        case "hello":
-            return []
-
         case "instrument":
             return [
                 .instrumentIdentity(
@@ -488,6 +518,8 @@ struct SpotreadOutputParser {
 private struct ProtocolRecord: Decodable {
     let protocolVersion: Int
     let event: String
+    let implementation: String?
+    let implementationVersion: Int?
     let argyllVersion: String?
     let name: String?
     let serialNumber: String?

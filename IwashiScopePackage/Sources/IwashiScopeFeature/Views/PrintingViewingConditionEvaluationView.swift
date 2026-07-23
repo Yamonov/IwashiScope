@@ -154,7 +154,7 @@ enum PrintingViewingConditionSummaryText {
            summaryStatus != .unavailable {
             switch evaluation.illuminanceClassification {
             case .tooDark:
-                return "数値基準外（労働安全衛生規則に不適）"
+                return "数値基準外（事務所衛生基準規則第10条に不適）"
             case .displayComparison, .generalOffice, .tooBright:
                 return "数値基準外（印刷物同士の比較に不適）"
             case .printComparison, .unavailable:
@@ -164,7 +164,7 @@ enum PrintingViewingConditionSummaryText {
 
         return switch (evaluation.mode, summaryStatus) {
         case (.ambient, .meets):
-            "数値基準に適合"
+            "測定した数値項目が基準範囲内"
         case (.ambient, .caution),
              (.ambient, .doesNotMeet),
              (.ambient, .fails):
@@ -172,7 +172,7 @@ enum PrintingViewingConditionSummaryText {
         case (.ambient, .unavailable):
             "数値基準を判定できません"
         case (.emissive, .meets):
-            "光源の数値基準に適合"
+            "光源の測定した数値項目が基準範囲内"
         case (.emissive, .caution),
              (.emissive, .doesNotMeet),
              (.emissive, .fails):
@@ -182,6 +182,115 @@ enum PrintingViewingConditionSummaryText {
         case (.reflectance, _):
             "数値基準を判定できません"
         }
+    }
+}
+
+struct ISO3664NumericEvaluationView: View {
+    private let evaluation: ISO3664NumericEvaluation
+
+    init(measurement: SpotMeasurement) {
+        evaluation = ISO3664NumericEvaluator.evaluate(measurement)
+    }
+
+    var body: some View {
+        GroupBox("ISO 3664:2025（測定可能な数値項目）") {
+            VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label(summaryTitle, systemImage: evaluation.summaryStatus.systemImage)
+                        .font(.headline)
+                        .foregroundStyle(evaluation.summaryStatus.color)
+
+                    Text(summaryDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityElement(children: .combine)
+
+                Divider()
+
+                PrintingCriterionRow(
+                    label: "TM-30-15 Rf",
+                    value: formattedFidelityIndex,
+                    requirement: "基準 ≥ \(format(ISO3664NumericEvaluator.minimumFidelityIndex, digits: 1))",
+                    status: evaluation.fidelityStatus
+                )
+                PrintingCriterionRow(
+                    label: "平均演色評価数 Ra",
+                    value: formattedAverageColorRenderingIndex,
+                    requirement: "基準 > \(format(ISO3664NumericEvaluator.minimumAverageColorRenderingIndexExclusive, digits: 1))",
+                    status: evaluation.averageColorRenderingStatus
+                )
+                PrintingCriterionRow(
+                    label: "P1・P2観察条件",
+                    value: "判定しない",
+                    requirement: "UV条件を測定できないため",
+                    status: nil
+                )
+                PrintingCriterionRow(
+                    label: "P3・P4観察条件",
+                    value: formattedIlluminanceCondition,
+                    requirement: "P3 1,500〜2,500 lx／P4 375〜625 lx（照度のみ）",
+                    status: evaluation.illuminanceStatus
+                )
+            }
+            .padding(.top, 4)
+        }
+    }
+
+    private var summaryTitle: String {
+        let prefix = evaluation.mode == .ambient ? "測定した数値項目" : "演色性の測定項目"
+        return switch evaluation.summaryStatus {
+        case .meets:
+            "\(prefix)が基準範囲内"
+        case .caution, .doesNotMeet, .fails:
+            "\(prefix)が基準範囲外"
+        case .unavailable:
+            "\(prefix)を判定できません"
+        }
+    }
+
+    private var summaryDetail: String {
+        if evaluation.requiresAmbientIlluminanceMeasurement {
+            "RfとRaを評価しています。P3・P4の照度は環境光モードで測定してください。完全な規格適合判定ではありません。"
+        } else {
+            "Rf、RaとP3・P4の照度範囲のみを評価しています。完全な規格適合判定ではありません。"
+        }
+    }
+
+    private var formattedFidelityIndex: String {
+        guard let value = evaluation.fidelityIndex else {
+            return "データなし"
+        }
+        return format(value, digits: 1)
+    }
+
+    private var formattedAverageColorRenderingIndex: String {
+        guard let value = evaluation.averageColorRenderingIndex else {
+            return "データなし"
+        }
+        return format(value, digits: 1)
+    }
+
+    private var formattedIlluminanceCondition: String {
+        let measuredValue = evaluation.illuminance.map {
+            "（\(format($0, digits: 0)) lx）"
+        } ?? ""
+        return switch evaluation.illuminanceCondition {
+        case .p3:
+            "P3照度範囲\(measuredValue)"
+        case .p4:
+            "P4照度範囲\(measuredValue)"
+        case .outside:
+            "P3・P4照度範囲外\(measuredValue)"
+        case .unavailable:
+            evaluation.requiresAmbientIlluminanceMeasurement
+                ? "環境光モードで測定"
+                : "データなし"
+        }
+    }
+
+    private func format(_ value: Double, digits: Int) -> String {
+        value.formatted(.number.precision(.fractionLength(digits)))
     }
 }
 

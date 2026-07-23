@@ -2,7 +2,7 @@
  * IwashiScope machine-readable output for ArgyllCMS spotread.
  * Copyright (C) 2026 Yamonov
  *
- * Licensed under GNU AGPL version 3 or later. This file is distributed
+ * Licensed under GNU AGPL version 3 only. This file is distributed
  * without any warranty; see ../../LICENSE and ../../NOTICE for details.
  */
 

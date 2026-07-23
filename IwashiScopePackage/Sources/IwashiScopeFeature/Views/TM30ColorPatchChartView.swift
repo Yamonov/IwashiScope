@@ -1,3 +1,15 @@
+/*
+ The per-sample fidelity calculation is adapted from ArgyllCMS 3.5.0
+ xicc/tm3015.c, function icx_IES_TM_30_15(), written by Graeme W. Gill,
+ Copyright (C) 2019. The original portions are licensed under
+ GPL-2.0-or-later; see Argyll_V3.5.0/License2.txt.
+
+ Adapted for IwashiScope by Yamonov on 2026-07-23: exposed the calculation as
+ Swift value types and rendered all 99 CES results as a Swift Charts graphic.
+ IwashiScope's modifications are licensed under AGPL-3.0-only. The combined
+ IwashiScope distribution is provided under AGPL-3.0-only.
+*/
+
 import Charts
 import Foundation
 import SwiftUI

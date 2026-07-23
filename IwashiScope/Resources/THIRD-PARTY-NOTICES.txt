@@ -33,6 +33,11 @@ Sparkleが使用するbsdiff、sais-lite、Ed25519実装などの通知も、同
 - D50 DOI: `10.25039/CIE.DS.etgmuqt5`
 - D65: <https://www.cie.co.at/datatable/cie-standard-illuminant-d65>
 - D65 DOI: `10.25039/CIE.DS.hjfjmt59`
-- ライセンス: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+- 原データのライセンス: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+- Swift適応物のライセンス: GNU GPLバージョン3のみ（GPL-3.0-only）
 
-IwashiScopeはCIEの1 nm間隔データから380〜730 nmの5 nm位置を収録し、表示時に線形補間します。収録値は`IwashiScopePackage/Sources/IwashiScopeFeature/Models/CIEStandardIlluminantSpectrum.swift`にあります。
+公式CSV、公式メタデータ、検証用チェックサム、変換内容は`ThirdParty/CIE/`に収録しています。`Scripts/generate-cie-standard-illuminants.swift`は、1 nm間隔の公式CSVから380〜730 nmの5 nm位置を数値補間せずに抽出し、`CIEStandardIlluminantData.generated.swift`を生成します。グラフ表示時は、生成した5 nmデータの点間を線形補間します。
+
+生成されたSwiftファイルは、CC BY-SA 4.0データの適応物です。CIEの原データにはCC BY-SA 4.0が引き続き適用され、Yamonovによる適応への寄与は、Creative CommonsがCC BY-SA 4.0の一方向互換ライセンスとして指定したGPL-3.0-onlyで提供されます。CC BY-SA 4.0とGPL-3.0-onlyの双方が適用されます。
+
+このGPL-3.0-only適応物は、GPLv3およびAGPLv3の第13条に基づき、AGPL-3.0-onlyのIwashiScope本体と結合されます。GPL-3.0-onlyは適応物部分に、AGPL-3.0-onlyはIwashiScope部分に引き続き適用されます。完全な帰属、変更表示、チェックサム、再生成方法は公開ソースの`ThirdParty/CIE/README.md`を参照してください。GPLv3本文は`GPL-3.0-only.txt`、AGPLv3本文は`ArgyllCMS-AGPL-3.0.txt`にあります。

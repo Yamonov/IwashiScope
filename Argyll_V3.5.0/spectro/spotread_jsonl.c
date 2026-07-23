@@ -4,8 +4,7 @@
  *
  * This file is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * the Free Software Foundation, version 3 of the License.
  *
  * This file is distributed without any warranty; see ../../LICENSE and
  * ../../NOTICE for details.
@@ -38,7 +37,9 @@
 #endif
 #include "yajl_gen.h"
 
-#define SPOTREAD_JSONL_PROTOCOL_VERSION 2
+#define SPOTREAD_JSONL_PROTOCOL_VERSION 3
+#define IWASHISCOPE_IMPLEMENTATION "IwashiScope spot reader"
+#define IWASHISCOPE_IMPLEMENTATION_VERSION 1
 
 struct _spotread_jsonl {
 	FILE *stream;
@@ -282,6 +283,10 @@ int spotread_jsonl_emit_hello(spotread_jsonl *p, const char *argyll_version) {
 	if (p == NULL)
 		return 0;
 	writer = begin_event("hello");
+	json_key(&writer, "implementation");
+	json_string(&writer, IWASHISCOPE_IMPLEMENTATION);
+	json_key(&writer, "implementationVersion");
+	json_integer(&writer, IWASHISCOPE_IMPLEMENTATION_VERSION);
 	json_key(&writer, "argyllVersion");
 	json_string(&writer, argyll_version);
 	return finish_event(p, &writer);

@@ -15,6 +15,19 @@ PREF_LINKFLAGS	+= $(LINKDEBUGFLAG) ;	# Link debugging flags
 #PREF_CCFLAGS 	+= $(CCPROFFLAG) ;		# Profile flags
 #PREF_LINKFLAGS	+= $(LINKPROFFLAG) ;    # Profile flags
 
+if $(IWASHISCOPE_UNIVERSAL) = true {
+	if ! $(IWASHISCOPE_DEPLOYMENT_TARGET) {
+		IWASHISCOPE_DEPLOYMENT_TARGET = 14.6 ;
+	}
+	IWASHISCOPE_ARCH_FLAGS =
+		-arch arm64
+		-arch x86_64
+		-mmacosx-version-min=$(IWASHISCOPE_DEPLOYMENT_TARGET) ;
+	PREF_CCFLAGS += $(IWASHISCOPE_ARCH_FLAGS) ;
+	PREF_C++FLAGS += $(IWASHISCOPE_ARCH_FLAGS) ;
+	PREF_LINKFLAGS += $(IWASHISCOPE_ARCH_FLAGS) ;
+}
+
 if [ GLOB . : thirdparty_licenses.txt ] {
 	ExeDoc = thirdparty_licenses.txt ;
 	InstallFile bin : $(ExeDoc) ;

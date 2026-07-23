@@ -198,9 +198,15 @@ Main illumread : illumread.c : : : ../target : : ;
 
 # Printed target spot reader utility. IwashiScope's JSON Lines protocol is
 # isolated in spotread_jsonl.c and uses the YAJL library already linked here.
-Main spotread : spotread.c spotread_jsonl.c : : : ../yajl : : ;
-NotFile iwashiscope_spotread ;
-Depends iwashiscope_spotread : <spectro>spotread ;
+# The app build uses a distinct executable name so it cannot be mistaken for
+# the unmodified upstream utility.
+if $(IWASHISCOPE_ONLY) = true {
+	Main iwashiscope-spotread : spotread.c spotread_jsonl.c : : : ../yajl : : ;
+	NotFile iwashiscope_spotread ;
+	Depends iwashiscope_spotread : <spectro>iwashiscope-spotread ;
+} else {
+	Main spotread : spotread.c spotread_jsonl.c : : : ../yajl : : ;
+}
 
 echo "HOME = " $(HOME) ;
 echo "PWD = " $(PWD) ;

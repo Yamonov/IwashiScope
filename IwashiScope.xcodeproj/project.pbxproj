@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		8B90D1482DEDD44A00FBD189 /* IwashiScopeFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 8B90D1472DEDD44A00FBD189 /* IwashiScopeFeature */; };
 		8BAA00012F23A00000C0DE01 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 8BAA00032F23A00000C0DE01 /* Sparkle */; };
-		8BAA00102F23A00000C0DE01 /* Argyll_V3.5.0/spectro/spotread in Embed spotread */ = {isa = PBXBuildFile; fileRef = 8BAA00112F23A00000C0DE01 /* Argyll_V3.5.0/spectro/spotread */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		8BAA00102F23A00000C0DE01 /* $(DERIVED_FILE_DIR)/iwashiscope-spotread in Embed iwashiscope-spotread */ = {isa = PBXBuildFile; fileRef = 8BAA00112F23A00000C0DE01 /* $(DERIVED_FILE_DIR)/iwashiscope-spotread */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -23,21 +23,21 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		8BAA00122F23A00000C0DE01 /* Embed spotread */ = {
+		8BAA00122F23A00000C0DE01 /* Embed iwashiscope-spotread */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
-				8BAA00102F23A00000C0DE01 /* Argyll_V3.5.0/spectro/spotread in Embed spotread */,
+				8BAA00102F23A00000C0DE01 /* $(DERIVED_FILE_DIR)/iwashiscope-spotread in Embed iwashiscope-spotread */,
 			);
-			name = "Embed spotread";
+			name = "Embed iwashiscope-spotread";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		8BAA00112F23A00000C0DE01 /* Argyll_V3.5.0/spectro/spotread */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = Argyll_V3.5.0/spectro/spotread; sourceTree = SOURCE_ROOT; };
+		8BAA00112F23A00000C0DE01 /* $(DERIVED_FILE_DIR)/iwashiscope-spotread */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = "$(DERIVED_FILE_DIR)/iwashiscope-spotread"; sourceTree = "<absolute>"; };
 		8BC2655C2DEDD3F400F279A4 /* IwashiScope.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IwashiScope.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8BC265742DEDD3F500F279A4 /* IwashiScope.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IwashiScope.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -47,6 +47,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				IwashiScope.xctestplan,
 			);
 			target = 8BC2655B2DEDD3F400F279A4 /* IwashiScope */;
 		};
@@ -106,6 +107,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2FC6ECFD301246D100F9CCC5 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				8BAA00112F23A00000C0DE01 /* $(DERIVED_FILE_DIR)/iwashiscope-spotread */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		8B90D1462DEDD44A00FBD189 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -116,12 +125,12 @@
 		8BC265532DEDD3F400F279A4 = {
 			isa = PBXGroup;
 			children = (
-				8BAA00112F23A00000C0DE01 /* Argyll_V3.5.0/spectro/spotread */,
 				8B90D1BC2DEE373300FBD189 /* Config */,
 				8BC2655E2DEDD3F400F279A4 /* IwashiScope */,
 				8BC265772DEDD3F500F279A4 /* IwashiScopeUITests */,
 				8B90D1462DEDD44A00FBD189 /* Frameworks */,
 				8BC2655D2DEDD3F400F279A4 /* Products */,
+				2FC6ECFD301246D100F9CCC5 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -144,8 +153,8 @@
 				8BC265582DEDD3F400F279A4 /* Sources */,
 				8BC265592DEDD3F400F279A4 /* Frameworks */,
 				8BC2655A2DEDD3F400F279A4 /* Resources */,
-				8BAA00132F23A00000C0DE01 /* Build spotread */,
-				8BAA00122F23A00000C0DE01 /* Embed spotread */,
+				8BAA00132F23A00000C0DE01 /* Build iwashiscope-spotread */,
+				8BAA00122F23A00000C0DE01 /* Embed iwashiscope-spotread */,
 			);
 			buildRules = (
 			);
@@ -249,7 +258,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		8BAA00132F23A00000C0DE01 /* Build spotread */ = {
+		8BAA00132F23A00000C0DE01 /* Build iwashiscope-spotread */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -260,11 +269,11 @@
 			inputPaths = (
 				"$(SRCROOT)/Scripts/build-spotread.sh",
 			);
-			name = "Build spotread";
+			name = "Build iwashiscope-spotread";
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(SRCROOT)/Argyll_V3.5.0/spectro/spotread",
+				"$(DERIVED_FILE_DIR)/iwashiscope-spotread",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -382,6 +391,7 @@
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				DEAD_CODE_STRIPPING = YES;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 5NFE273M7M;
 				INFOPLIST_KEY_CFBundleDisplayName = "$(PRODUCT_DISPLAY_NAME)";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
@@ -397,6 +407,7 @@
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				DEAD_CODE_STRIPPING = YES;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 5NFE273M7M;
 				INFOPLIST_KEY_CFBundleDisplayName = "$(PRODUCT_DISPLAY_NAME)";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;

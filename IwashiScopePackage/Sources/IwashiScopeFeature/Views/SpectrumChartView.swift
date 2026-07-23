@@ -84,16 +84,16 @@ struct SpectrumChartView: View {
                 .foregroundStyle(.secondary)
 
             Toggle(isOn: $showsD50Reference) {
-                ReferenceSpectrumToggleLabel(title: "ISO 3664 D50", color: .orange)
+                ReferenceSpectrumToggleLabel(title: "CIE D50（ISO 3664参照）", color: .orange)
             }
             .toggleStyle(.checkbox)
-            .help("ISO 3664の観察条件で用いるCIE標準光源D50を重ねます")
+            .help("ISO 3664で参照されるCIE標準光源D50を重ねます")
 
             Toggle(isOn: $showsD65Reference) {
-                ReferenceSpectrumToggleLabel(title: "ISO 3668 D65", color: .blue)
+                ReferenceSpectrumToggleLabel(title: "CIE D65（ISO 3668参照）", color: .blue)
             }
             .toggleStyle(.checkbox)
-            .help("ISO 3668の標準ブースで用いるCIE標準光源D65を重ねます")
+            .help("ISO 3668で参照されるCIE標準光源D65を重ねます")
 
             Spacer(minLength: 8)
 
@@ -114,13 +114,13 @@ struct SpectrumChartView: View {
 
             if showsD50Reference {
                 ReferenceSpectrumToggleLabel(
-                    title: "ISO 3664 D50",
+                    title: "CIE D50（ISO 3664参照）",
                     color: .orange
                 )
             }
             if showsD65Reference {
                 ReferenceSpectrumToggleLabel(
-                    title: "ISO 3668 D65",
+                    title: "CIE D65（ISO 3668参照）",
                     color: .blue
                 )
             }
@@ -158,7 +158,7 @@ struct SpectrumChartView: View {
                 LineMark(
                     x: .value("波長（nm）", sample.wavelength),
                     y: .value("D50基準分光分布", sample.value),
-                    series: .value("系列", "ISO 3664 D50")
+                    series: .value("系列", "CIE D50（ISO 3664参照）")
                 )
                 .interpolationMethod(.linear)
                 .lineStyle(.init(lineWidth: 2, lineCap: .round, lineJoin: .round))
@@ -169,7 +169,7 @@ struct SpectrumChartView: View {
                 LineMark(
                     x: .value("波長（nm）", sample.wavelength),
                     y: .value("D65基準分光分布", sample.value),
-                    series: .value("系列", "ISO 3668 D65")
+                    series: .value("系列", "CIE D65（ISO 3668参照）")
                 )
                 .interpolationMethod(.linear)
                 .lineStyle(.init(lineWidth: 2, lineCap: .round, lineJoin: .round, dash: [6, 4]))

@@ -1,0 +1,4 @@
+# Preserve the byte-for-byte CIE source files so their published checksums
+# remain valid regardless of a contributor's line-ending configuration.
+ThirdParty/CIE/*.csv -text
+ThirdParty/CIE/*.json -text

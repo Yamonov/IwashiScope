@@ -1,3 +1,16 @@
+/*
+ Portions of the reference tables are adapted from ArgyllCMS 3.5.0
+ xicc/xspect.c, written by Graeme W. Gill, Copyright (C) 2000–2006.
+ The original portions are licensed under GPL-2.0-or-later; see
+ Argyll_V3.5.0/License2.txt.
+
+ Adapted for IwashiScope by Yamonov on 2026-07-23: selected the observer,
+ daylight-basis, and TCS15 tables required by the Swift R15 calculation,
+ converted them to immutable Swift arrays, and documented their sampling.
+ IwashiScope's modifications are licensed under AGPL-3.0-only. The combined
+ IwashiScope distribution is provided under AGPL-3.0-only.
+*/
+
 import Foundation
 
 /// 5 nm reference tables used by the CIE 13.3 color-rendering calculation.

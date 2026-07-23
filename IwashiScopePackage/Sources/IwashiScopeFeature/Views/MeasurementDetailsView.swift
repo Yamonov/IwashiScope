@@ -17,6 +17,7 @@ struct MeasurementDetailsView: View {
 
                     if measurement.mode != .reflectance {
                         PrintingViewingConditionEvaluationView(measurement: measurement)
+                        ISO3664NumericEvaluationView(measurement: measurement)
                     }
 
                     if measurement.cri != nil || measurement.tlci != nil {

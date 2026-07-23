@@ -4,5 +4,12 @@
 
 #include "Shared.xcconfig"
 
+// Match the Scripta release workflow: create the Archive with automatic
+// Apple Development signing, then use Xcode Organizer to distribute and
+// notarize it with Developer ID Application.
+CODE_SIGN_IDENTITY = Apple Development
+CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO
+PROVISIONING_PROFILE_SPECIFIER =
+
 // Developer ID distribution and notarization require the hardened runtime.
 ENABLE_HARDENED_RUNTIME = YES

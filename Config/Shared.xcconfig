@@ -11,12 +11,28 @@ PRODUCT_DISPLAY_NAME = IwashiScope
 PRODUCT_BUNDLE_IDENTIFIER = com.yamonov.IwashiScope
 MARKETING_VERSION = 0.9
 CURRENT_PROJECT_VERSION = 18
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+
+// ==========================================
+// Code Signing
+// ==========================================
+// Official builds use the same Apple Developer team and automatic signing
+// workflow as Scripta. Contributors can override DEVELOPMENT_TEAM from Xcode
+// or the xcodebuild command line.
+DEVELOPMENT_TEAM = 5NFE273M7M
+CODE_SIGN_STYLE = Automatic
+
+// IwashiScope launches the bundled measurement helper and accesses measurement
+// hardware directly, so the App Sandbox is intentionally disabled.
+ENABLE_APP_SANDBOX = NO
 
 // ==========================================
 // Platform Configuration
 // ==========================================
 MACOSX_DEPLOYMENT_TARGET = 14.6
 ALWAYS_SEARCH_USER_PATHS = NO
+ARCHS = arm64 x86_64
+ONLY_ACTIVE_ARCH = NO
 
 // Compile all app and test targets in Swift 6 language mode with complete
 // concurrency checking. The installed Xcode selects the concrete Swift 6.x

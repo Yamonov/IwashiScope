@@ -7,30 +7,80 @@
 1. `Config/Shared.xcconfig`の`MARKETING_VERSION`と`CURRENT_PROJECT_VERSION`を更新します。
 2. `CHANGELOG.md`へ利用者向け変更点を記載します。
 3. アプリアイコンが全サイズ登録されていることを確認します。
-4. Apple Silicon専用かUniversal Binaryかを確定します。Universal配布では、同梱`spotread`にもarm64とx86_64の両方が含まれることを確認します。
+4. `Scripts/audit-source.sh`を実行し、必須ソースがGit管理下にあること、ライセンス表記、改変表示、メーカー固有データの混入がないことを確認します。
 5. `main`のソースからDebug/Releaseビルドが成功することを確認します。
 6. 実機で、対応する各測定モード、校正、連続測定、測定中の終了、ワークスペース保存・復帰、画像・CSV・ASE書き出しを確認します。
 7. `git status --ignored`で、秘密鍵や生成物が追跡対象に入っていないことを確認します。
 
+IwashiScopeの配布形式はUniversal Binaryです。アプリ本体、改変版`iwashiscope-spotread`、App Bundle内の実行可能な第三者バイナリにarm64とx86_64の両方が必要です。
+
 ## 2. Archive、署名、公証
 
-Xcode Organizerから`IwashiScope`をArchiveし、Developer ID Applicationで配布します。Release構成はHardened Runtimeを有効にしています。
+Scripta!と同じ署名・公証手順を使用します。公式ビルドはApple Developerチーム`5NFE273M7M`の自動署名を使用し、Release ArchiveをApple Developmentで署名します。Xcode Organizerから`IwashiScope`を`Any Mac (Apple Silicon, Intel)`宛先でArchiveした後、`Distribute App`の`Developer ID`を選択してAppleへアップロードし、表示が`Ready to distribute`になるまで待ちます。
 
-書き出したアプリについて、アプリ本体、Sparkle、同梱`spotread`を検証します。
+コマンドラインでArchiveする場合は、宛先、チーム、アーキテクチャを明示します。
 
 ```sh
-codesign --verify --deep --strict --verbose=2 IwashiScope.app
-spctl --assess --type execute --verbose=2 IwashiScope.app
-xcrun stapler validate IwashiScope.app
+xcodebuild archive \
+  -workspace IwashiScope.xcworkspace \
+  -scheme IwashiScope \
+  -configuration Release \
+  -destination 'generic/platform=macOS' \
+  DEVELOPMENT_TEAM=5NFE273M7M \
+  ARCHS='arm64 x86_64' \
+  ONLY_ACTIVE_ARCH=NO \
+  -archivePath IwashiScope.xcarchive
 ```
 
-署名済みApp Bundleの中身を後から置き換えないでください。修正が必要な場合は、ソースからArchiveを作り直します。
+公証が完了したArchiveの`Info.plist`を確認します。
+
+```sh
+IWASHISCOPE_ARCHIVE="/Users/yamo/Library/Developer/Xcode/Archives/YYYY-MM-DD/IwashiScope YYYY-MM-DD, HH.MM.xcarchive"
+plutil -p "$IWASHISCOPE_ARCHIVE/Info.plist"
+```
+
+次を確認します。
+
+- `CFBundleShortVersionString`と`CFBundleVersion`がリリース対象と一致する
+- `ApplicationProperties`の`Architectures`に`arm64`と`x86_64`がある
+- `ApplicationProperties`の`Team`が`5NFE273M7M`
+- `Distributions`の`uploadDestination`が`Developer ID`
+- `processingCompletedEvent`が成功し、`Ready to distribute`になっている
+
+公証済みArchiveから一時フォルダへアプリを書き出します。XcodeBuildMCPには`-exportNotarizedApp`相当がないため、この工程だけはXcode標準の`xcodebuild`を使用します。
+
+```sh
+IWASHISCOPE_EXPORT_ROOT="$(mktemp -d /tmp/iwashiscope-notarized-export.XXXXXX)"
+xcodebuild -exportNotarizedApp \
+  -archivePath "$IWASHISCOPE_ARCHIVE" \
+  -exportPath "$IWASHISCOPE_EXPORT_ROOT/Export"
+
+IWASHISCOPE_EXPORTED_APP="$IWASHISCOPE_EXPORT_ROOT/Export/IwashiScope.app"
+```
+
+この公証済みアプリを配布元とします。署名済みApp Bundleの中身を後から上書き、追加、削除しないでください。修正が必要な場合は、ソースからArchiveを作り直し、再度Developer ID配布と公証を行います。
+
+書き出したアプリについて、アプリ本体、Sparkle、同梱`iwashiscope-spotread`を検証します。
+
+```sh
+codesign --verify --deep --strict --verbose=4 "$IWASHISCOPE_EXPORTED_APP"
+spctl --assess --type execute --verbose=4 "$IWASHISCOPE_EXPORTED_APP"
+xcrun stapler validate "$IWASHISCOPE_EXPORTED_APP"
+```
+
+公証済みアプリを用意した後、次の監査を実行します。
+
+```sh
+Scripts/audit-release.sh "$IWASHISCOPE_EXPORTED_APP"
+```
+
+この監査は、Universal Binary、Developer ID署名、Hardened Runtime、secure timestamp、`get-task-allow`の不在、公証チケット、メーカー固有データの不在を確認します。
 
 ## 3. ZIPとSparkle署名
 
 ```sh
 ditto -c -k --sequesterRsrc --keepParent \
-  IwashiScope.app \
+  "$IWASHISCOPE_EXPORTED_APP" \
   IwashiScope-VERSION.zip
 ```
 
@@ -46,11 +96,28 @@ Sparkle 2の`sign_update`を、`Info.plist`の`SUPublicEDKey`に対応する秘�
 
 1. バイナリと一致するソースを`main`へ反映します。
 2. 版と同じ名前のタグ`vVERSION`を作成します。
-3. GitHub Releaseへ`IwashiScope-VERSION.zip`を登録します。
-4. Release本文から同じタグのソースへリンクします。
-5. GitHubが生成するSource codeアーカイブに加え、タグからビルドできることを確認します。
+3. `Scripts/audit-source.sh --release vVERSION`を実行します。
+4. `Scripts/package-source.sh VERSION`で`IwashiScope-VERSION-source.zip`を作成します。
+5. GitHub Releaseへ`IwashiScope-VERSION.zip`と`IwashiScope-VERSION-source.zip`を登録します。
+6. Release本文から同じタグのソースへリンクします。
+7. タグを新規cloneし、CIE生成データの検証とUniversal Releaseビルドが成功することを確認します。
 
-配布バイナリと対応ソースのタグを一致させることが、改変版ArgyllCMSを含む配布の前提です。
+配布バイナリとソースのタグを一致させることが、改変版ArgyllCMSを含む配布の前提です。
+
+対応ソースには、IwashiScope全ソース、実際にリンクするArgyllCMSソース、ビルドスクリプト、Xcodeプロジェクト、固定済みSwift Package情報、CIE公式CSV・メタデータ・生成スクリプト・生成済みSwift適応物、編集可能なアイコン原稿、ライセンスと改変記録を含めます。署名鍵、notarytool資格情報、Sparkle秘密鍵は含めません。
+
+CIEの公式CSVはCC BY-SA 4.0のまま収録し、生成されたSwift適応物はGPL-3.0-onlyとして提供します。この適応物とAGPL-3.0-onlyのIwashiScope部分は、GPLv3・AGPLv3双方の第13条に基づいて結合します。`ThirdParty/CIE/README.md`、`THIRD_PARTY_NOTICES.md`、生成済みSwiftファイルの表示をリリースごとに維持します。
+
+アプリZIPとソースZIPを配置した後、同じファイルを対象にチェックサム一覧を作成します。
+
+```sh
+shasum -a 256 \
+  IwashiScope-VERSION.zip \
+  Release/IwashiScope-VERSION-source.zip \
+  > SHA256SUMS.txt
+```
+
+Spyder 2の`spyd2PLD.bin`、Spyder 4/5の`spyd4cal.bin`、メーカー配布のEDR・CCSS・CCMXなど、再配布許諾を確認できないメーカー固有ファイルは、リポジトリとApp Bundleへ含めません。必要な機器では利用者自身が正規入手したファイルを使用します。
 
 ## 5. appcastとGitHub Pages
 

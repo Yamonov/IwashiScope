@@ -153,11 +153,10 @@ enum PrintingViewingConditionEvaluator {
         if displayComparisonIlluminanceRange.contains(illuminance) {
             return .displayComparison
         }
-        if illuminance > illuminanceRange.lowerBound,
-           illuminance < illuminanceRange.upperBound {
+        if illuminanceRange.contains(illuminance) {
             return .printComparison
         }
-        if illuminance >= illuminanceRange.upperBound {
+        if illuminance > illuminanceRange.upperBound {
             return .tooBright
         }
         return .generalOffice
@@ -207,5 +206,125 @@ enum PrintingViewingConditionEvaluator {
             return .meets
         }
         return .unavailable
+    }
+}
+
+struct ISO3664NumericEvaluation: Equatable, Sendable {
+    enum IlluminanceCondition: Equatable, Sendable {
+        case p3
+        case p4
+        case outside
+        case unavailable
+    }
+
+    let mode: MeasurementMode
+    let fidelityIndex: Double?
+    let fidelityStatus: PrintingViewingConditionEvaluation.Status
+    let averageColorRenderingIndex: Double?
+    let averageColorRenderingStatus: PrintingViewingConditionEvaluation.Status
+    let illuminance: Double?
+    let illuminanceCondition: IlluminanceCondition
+    let illuminanceStatus: PrintingViewingConditionEvaluation.Status
+    let renderingStatus: PrintingViewingConditionEvaluation.Status
+    let summaryStatus: PrintingViewingConditionEvaluation.Status
+
+    var requiresAmbientIlluminanceMeasurement: Bool {
+        mode == .emissive
+    }
+}
+
+enum ISO3664NumericEvaluator {
+    static let standardName = "ISO 3664:2025"
+    static let minimumFidelityIndex = 95.0
+    static let minimumAverageColorRenderingIndexExclusive = 90.0
+    static let p3IlluminanceRange = 1_500.0 ... 2_500.0
+    static let p4IlluminanceRange = 375.0 ... 625.0
+
+    static func evaluate(_ measurement: SpotMeasurement) -> ISO3664NumericEvaluation {
+        let fidelityIndex = measurement.tm30?.fidelityIndex
+        let fidelityStatus = status(
+            for: fidelityIndex,
+            satisfies: { $0 >= minimumFidelityIndex }
+        )
+        let averageColorRenderingIndex = measurement.cri?.ra
+        let averageColorRenderingStatus = status(
+            for: averageColorRenderingIndex,
+            satisfies: { $0 > minimumAverageColorRenderingIndexExclusive }
+        )
+        let renderingStatus = aggregate([
+            fidelityStatus,
+            averageColorRenderingStatus,
+        ])
+
+        let illuminanceCondition = measurement.mode == .ambient
+            ? classifyIlluminance(measurement.lux)
+            : ISO3664NumericEvaluation.IlluminanceCondition.unavailable
+        let illuminanceStatus: PrintingViewingConditionEvaluation.Status = switch illuminanceCondition {
+        case .p3, .p4:
+            .meets
+        case .outside:
+            .doesNotMeet
+        case .unavailable:
+            .unavailable
+        }
+        let summaryStatus = measurement.mode == .ambient
+            ? aggregate([renderingStatus, illuminanceStatus])
+            : renderingStatus
+
+        return ISO3664NumericEvaluation(
+            mode: measurement.mode,
+            fidelityIndex: fidelityIndex,
+            fidelityStatus: fidelityStatus,
+            averageColorRenderingIndex: averageColorRenderingIndex,
+            averageColorRenderingStatus: averageColorRenderingStatus,
+            illuminance: measurement.lux,
+            illuminanceCondition: illuminanceCondition,
+            illuminanceStatus: illuminanceStatus,
+            renderingStatus: renderingStatus,
+            summaryStatus: summaryStatus
+        )
+    }
+
+    private static func classifyIlluminance(
+        _ illuminance: Double?
+    ) -> ISO3664NumericEvaluation.IlluminanceCondition {
+        guard let illuminance, illuminance.isFinite else {
+            return .unavailable
+        }
+        if p3IlluminanceRange.contains(illuminance) {
+            return .p3
+        }
+        if p4IlluminanceRange.contains(illuminance) {
+            return .p4
+        }
+        return .outside
+    }
+
+    private static func status(
+        for value: Double?,
+        satisfies: (Double) -> Bool
+    ) -> PrintingViewingConditionEvaluation.Status {
+        guard let value, value.isFinite else {
+            return .unavailable
+        }
+        return satisfies(value) ? .meets : .doesNotMeet
+    }
+
+    private static func aggregate(
+        _ statuses: [PrintingViewingConditionEvaluation.Status]
+    ) -> PrintingViewingConditionEvaluation.Status {
+        if statuses.contains(.fails) {
+            return .fails
+        }
+        if statuses.contains(.doesNotMeet) {
+            return .doesNotMeet
+        }
+        if statuses.contains(.unavailable) {
+            return .unavailable
+        }
+        if statuses.contains(.caution) {
+            return .caution
+        }
+        return statuses.allSatisfy { $0 == .meets } ? .meets : .unavailable
     }
 }

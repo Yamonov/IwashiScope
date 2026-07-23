@@ -33,8 +33,22 @@ JAM=/absolute/path/to/jam \
   -workspace IwashiScope.xcworkspace \
   -scheme IwashiScope \
   -configuration Debug \
+  -destination 'generic/platform=macOS' \
+  ARCHS='arm64 x86_64' \
+  ONLY_ACTIVE_ARCH=NO \
   build
 ```
+
+## CIE標準光源データの再生成
+
+公開ソースには、CIEの公式CSVとメタデータ、チェックサムを検証する生成スクリプト、生成済みSwift適応物を含めます。通常のビルドでは再生成は不要です。データ生成部分を変更した場合は、次を実行します。
+
+```sh
+Scripts/generate-cie-standard-illuminants.swift
+Scripts/generate-cie-standard-illuminants.swift --check
+```
+
+原データはCC BY-SA 4.0、生成されたSwift適応物はGPL-3.0-onlyです。AGPL-3.0-onlyのIwashiScope部分とはGPLv3・AGPLv3双方の第13条に基づいて結合されます。詳細は`ThirdParty/CIE/README.md`を参照してください。
 
 ## Xcode
 
@@ -45,12 +59,17 @@ xcodebuild \
   -workspace IwashiScope.xcworkspace \
   -scheme IwashiScope \
   -configuration Debug \
+  -destination 'generic/platform=macOS' \
+  ARCHS='arm64 x86_64' \
+  ONLY_ACTIVE_ARCH=NO \
   build
 ```
 
-ビルドフェーズは`Scripts/build-spotread.sh`を実行し、`Argyll_V3.5.0/spectro/spotread`を生成してApp Bundleの補助実行ファイルへ格納します。
+公式ビルドはScripta!と同じApple Developerチーム`5NFE273M7M`とXcodeの自動署名を使用します。別の開発者が署名してビルドする場合は、XcodeのSigning & Capabilitiesで自分のチームを選ぶか、コマンドラインで`DEVELOPMENT_TEAM`を上書きしてください。署名を行わずにビルドを確認する場合は、後述の`CODE_SIGNING_ALLOWED=NO`を使用できます。
 
-現行のスクリプトは、ビルドを実行したMacのCPUアーキテクチャ向けに`spotread`を生成します。署名済み配布物をUniversal Binaryにする場合は、アプリ本体だけでなく`spotread`もarm64とx86_64の両方を含むようにしてからArchiveしてください。
+ビルドフェーズは`Scripts/build-spotread.sh`を実行して改変版helperを構築し、Xcodeが管理する`DERIVED_FILE_DIR`へコピーしてからApp Bundleへ格納します。ソースフォルダ内の実行ファイルをXcodeのビルド出力にはしません。
+
+アプリ本体と`iwashiscope-spotread`は、macOS 14.6を最低要件とするarm64・x86_64のUniversal Binaryとしてビルドされます。ビルドスクリプトは構成が変わった場合にArgyllCMSの生成物を消去してから再構築し、完成した補助実行ファイルに両方のアーキテクチャがあることを`lipo`で検証します。
 
 署名なしのReleaseビルドを確認する場合は、次を使用できます。
 
@@ -59,17 +78,34 @@ xcodebuild \
   -workspace IwashiScope.xcworkspace \
   -scheme IwashiScope \
   -configuration Release \
+  -destination 'generic/platform=macOS' \
+  ARCHS='arm64 x86_64' \
+  ONLY_ACTIVE_ARCH=NO \
   CODE_SIGNING_ALLOWED=NO \
   build
 ```
+
+`My Mac`を宛先にすると実行中のMacのアーキテクチャだけが生成される場合があります。Universal Binaryの確認には`generic/platform=macOS`を使用してください。
 
 ## 生成物
 
 次のファイルはソースではないためGitへ登録しません。
 
 - ArgyllCMSのオブジェクト、静的ライブラリ、生成ヘッダ
-- `spotread`実行ファイル
+- `iwashiscope-spotread`実行ファイル
 - DerivedData、Archive、App、ZIP
 - 署名・公証・Sparkleの秘密鍵
 
-公開リポジトリのタグには、その版のアプリと同梱`spotread`を再構築するためのソース、ビルドスクリプト、固定済みSwift Package情報を含めます。
+公開リポジトリのタグには、その版のアプリと同梱`iwashiscope-spotread`を再構築するためのソース、ビルドスクリプト、固定済みSwift Package情報を含めます。
+
+公開前のソース監査は次で実行します。
+
+```sh
+Scripts/audit-source.sh
+```
+
+リリースタグを作成した後は、クリーンな作業ツリーとタグ一致も含めて確認します。
+
+```sh
+Scripts/audit-source.sh --release vVERSION
+```

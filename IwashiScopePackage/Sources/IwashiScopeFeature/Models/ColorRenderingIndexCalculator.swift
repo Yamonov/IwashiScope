@@ -1,3 +1,16 @@
+/*
+ The CIE 1995 CRI calculation in this file is adapted from ArgyllCMS 3.5.0
+ xicc/xspect.c, function icx_CIE1995_CRI(), written by Graeme W. Gill,
+ Copyright (C) 2000–2006. The original portions are licensed under
+ GPL-2.0-or-later; see Argyll_V3.5.0/License2.txt.
+
+ Adapted for IwashiScope by Yamonov on 2026-07-23: limited the calculation to
+ R15, converted it to Swift value types, resampled measured spectra to 5 nm,
+ and added finite-value and wavelength-range validation. IwashiScope's
+ modifications are licensed under AGPL-3.0-only. The combined IwashiScope
+ distribution is provided under AGPL-3.0-only.
+*/
+
 import Foundation
 
 /// Computes the special color rendering index R15 from a measured illuminant.

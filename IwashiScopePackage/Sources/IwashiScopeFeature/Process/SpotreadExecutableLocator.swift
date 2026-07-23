@@ -12,17 +12,19 @@ enum SpotreadExecutableLocator {
             candidates.append(URL(fileURLWithPath: override))
         }
 
-        if let auxiliaryExecutable = bundle.url(forAuxiliaryExecutable: "spotread") {
+        if let auxiliaryExecutable = bundle.url(forAuxiliaryExecutable: "iwashiscope-spotread") {
             candidates.append(auxiliaryExecutable)
         }
 
         if let executableDirectory = bundle.executableURL?.deletingLastPathComponent() {
-            candidates.append(executableDirectory.appendingPathComponent("spotread"))
+            candidates.append(executableDirectory.appendingPathComponent("iwashiscope-spotread"))
         }
 
         if let resourceURL = bundle.resourceURL {
-            candidates.append(resourceURL.appendingPathComponent("spotread"))
-            candidates.append(resourceURL.appendingPathComponent("ArgyllCMS/bin/spotread"))
+            candidates.append(resourceURL.appendingPathComponent("iwashiscope-spotread"))
+            candidates.append(
+                resourceURL.appendingPathComponent("ArgyllCMS/bin/iwashiscope-spotread")
+            )
         }
 
         var visited = Set<String>()

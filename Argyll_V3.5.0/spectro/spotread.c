@@ -570,7 +570,8 @@ usage(char *diag, ...) {
 	int i;
 	icompaths *icmps;
 	inst2_capability cap2 = 0;
-	fprintf(stderr,"Measure spot values, Version %s\n",ARGYLL_VERSION_STR);
+	fprintf(stderr,"IwashiScope spot reader, patch version 1\n");
+	fprintf(stderr,"Based on ArgyllCMS spotread, Version %s\n",ARGYLL_VERSION_STR);
 	fprintf(stderr,"Author: Graeme W. Gill, licensed under the AGPL Version 3\n");
 	if (diag != NULL) {
 		va_list args;
@@ -580,7 +581,7 @@ usage(char *diag, ...) {
 		va_end(args);
 		fprintf(stderr,"\n");
 	}
-	fprintf(stderr,"usage: spotread [-options] [logfile]\n");
+	fprintf(stderr,"usage: iwashiscope-spotread [-options] [logfile]\n");
 	fprintf(stderr," -v                   Verbose mode\n");
 	fprintf(stderr," -s                   Print spectrum for each reading\n");
 #ifndef SALONEINSTLIB
@@ -1293,6 +1294,11 @@ int main(int argc, char *argv[]) {
 		}
 		g_jsonl = protocol;
 		jsonl_check(spotread_jsonl_emit_hello(protocol, ARGYLL_VERSION_STR));
+		fprintf(
+			stderr,
+			"IwashiScope spot reader patch 1, based on ArgyllCMS spotread %s\n",
+			ARGYLL_VERSION_STR
+		);
 	}
 #endif
 
