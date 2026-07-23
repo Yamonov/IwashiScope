@@ -1,0 +1,24 @@
+SpectraMate
+Copyright (C) 2026 Yamonov
+
+SpectraMate is free software. Except where otherwise noted, you may
+redistribute it and/or modify it under the terms of the GNU Affero General
+Public License as published by the Free Software Foundation, either version 3
+of the License, or (at your option) any later version.
+
+SpectraMate is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See LICENSE for the complete terms.
+
+Corresponding source:
+https://github.com/Yamonov/SpectraMate
+
+This distribution includes a modified copy of ArgyllCMS 3.5.0.
+ArgyllCMS is Copyright (C) Graeme W. Gill and other contributors. The
+original copyright and license notices remain in Argyll_V3.5.0. SpectraMate's
+changes are identified in ARGYLL_CHANGES.md and in the modified source files.
+SpectraMate is not an official ArgyllCMS project and is not endorsed by its
+original authors.
+
+This distribution also uses Sparkle and CIE standard illuminant data.
+See THIRD_PARTY_NOTICES.md and the license files bundled with the application.

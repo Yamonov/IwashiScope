@@ -1,0 +1,496 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		8B90D1482DEDD44A00FBD189 /* SpectraMateFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 8B90D1472DEDD44A00FBD189 /* SpectraMateFeature */; };
+		8BAA00012F23A00000C0DE01 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 8BAA00032F23A00000C0DE01 /* Sparkle */; };
+		8BAA00102F23A00000C0DE01 /* Argyll_V3.5.0/spectro/spotread in Embed spotread */ = {isa = PBXBuildFile; fileRef = 8BAA00112F23A00000C0DE01 /* Argyll_V3.5.0/spectro/spotread */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		8BC265752DEDD3F500F279A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8BC265542DEDD3F400F279A4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8BC2655B2DEDD3F400F279A4;
+			remoteInfo = SpectraMate;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8BAA00122F23A00000C0DE01 /* Embed spotread */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				8BAA00102F23A00000C0DE01 /* Argyll_V3.5.0/spectro/spotread in Embed spotread */,
+			);
+			name = "Embed spotread";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		8BAA00112F23A00000C0DE01 /* Argyll_V3.5.0/spectro/spotread */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; path = Argyll_V3.5.0/spectro/spotread; sourceTree = SOURCE_ROOT; };
+		8BC2655C2DEDD3F400F279A4 /* SpectraMate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpectraMate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8BC265742DEDD3F500F279A4 /* SpectraMate.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpectraMate.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8B5A9C012F21A00000C0DE01 /* Exceptions for "SpectraMate" folder in "SpectraMate" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 8BC2655B2DEDD3F400F279A4 /* SpectraMate */;
+		};
+		8BD71C1E2DEE424400CEDD92 /* Exceptions for "Config" folder in "SpectraMate" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Debug.xcconfig,
+				Release.xcconfig,
+				Shared.xcconfig,
+				Tests.xcconfig,
+			);
+			target = 8BC2655B2DEDD3F400F279A4 /* SpectraMate */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		8B90D1BC2DEE373300FBD189 /* Config */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8BD71C1E2DEE424400CEDD92 /* Exceptions for "Config" folder in "SpectraMate" target */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		8BC2655E2DEDD3F400F279A4 /* SpectraMate */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8B5A9C012F21A00000C0DE01 /* Exceptions for "SpectraMate" folder in "SpectraMate" target */,
+			);
+			path = SpectraMate;
+			sourceTree = "<group>";
+		};
+		8BC265772DEDD3F500F279A4 /* SpectraMateUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SpectraMateUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8BC265592DEDD3F400F279A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8BAA00012F23A00000C0DE01 /* Sparkle in Frameworks */,
+				8B90D1482DEDD44A00FBD189 /* SpectraMateFeature in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8BC265712DEDD3F500F279A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		8B90D1462DEDD44A00FBD189 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		8BC265532DEDD3F400F279A4 = {
+			isa = PBXGroup;
+			children = (
+				8BAA00112F23A00000C0DE01 /* Argyll_V3.5.0/spectro/spotread */,
+				8B90D1BC2DEE373300FBD189 /* Config */,
+				8BC2655E2DEDD3F400F279A4 /* SpectraMate */,
+				8BC265772DEDD3F500F279A4 /* SpectraMateUITests */,
+				8B90D1462DEDD44A00FBD189 /* Frameworks */,
+				8BC2655D2DEDD3F400F279A4 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		8BC2655D2DEDD3F400F279A4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8BC2655C2DEDD3F400F279A4 /* SpectraMate.app */,
+				8BC265742DEDD3F500F279A4 /* SpectraMate.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8BC2655B2DEDD3F400F279A4 /* SpectraMate */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8BC2657E2DEDD3F500F279A4 /* Build configuration list for PBXNativeTarget "SpectraMate" */;
+			buildPhases = (
+				8BC265582DEDD3F400F279A4 /* Sources */,
+				8BC265592DEDD3F400F279A4 /* Frameworks */,
+				8BC2655A2DEDD3F400F279A4 /* Resources */,
+				8BAA00132F23A00000C0DE01 /* Build spotread */,
+				8BAA00122F23A00000C0DE01 /* Embed spotread */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				8B90D1BC2DEE373300FBD189 /* Config */,
+				8BC2655E2DEDD3F400F279A4 /* SpectraMate */,
+			);
+			name = SpectraMate;
+			packageProductDependencies = (
+				8BAA00032F23A00000C0DE01 /* Sparkle */,
+				8B90D1472DEDD44A00FBD189 /* SpectraMateFeature */,
+			);
+			productName = SpectraMate;
+			productReference = 8BC2655C2DEDD3F400F279A4 /* SpectraMate.app */;
+			productType = "com.apple.product-type.application";
+		};
+		8BC265732DEDD3F500F279A4 /* SpectraMateUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8BC265842DEDD3F500F279A4 /* Build configuration list for PBXNativeTarget "SpectraMateUITests" */;
+			buildPhases = (
+				8BC265702DEDD3F500F279A4 /* Sources */,
+				8BC265712DEDD3F500F279A4 /* Frameworks */,
+				8BC265722DEDD3F500F279A4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8BC265762DEDD3F500F279A4 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				8BC265772DEDD3F500F279A4 /* SpectraMateUITests */,
+			);
+			name = SpectraMateUITests;
+			packageProductDependencies = (
+			);
+			productName = SpectraMateUITests;
+			productReference = 8BC265742DEDD3F500F279A4 /* SpectraMate.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8BC265542DEDD3F400F279A4 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1630;
+				LastUpgradeCheck = 2660;
+				ORGANIZATIONNAME = "$(ORGANIZATION_NAME)";
+				TargetAttributes = {
+					8BC2655B2DEDD3F400F279A4 = {
+						CreatedOnToolsVersion = 16.3;
+					};
+					8BC265732DEDD3F500F279A4 = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 8BC2655B2DEDD3F400F279A4;
+					};
+				};
+			};
+			buildConfigurationList = 8BC265572DEDD3F400F279A4 /* Build configuration list for PBXProject "SpectraMate" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 8BC265532DEDD3F400F279A4;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8BAA00022F23A00000C0DE01 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				8B62D7812F20D40000C0DE01 /* XCLocalSwiftPackageReference "SpectraMatePackage" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 8BC2655D2DEDD3F400F279A4 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8BC2655B2DEDD3F400F279A4 /* SpectraMate */,
+				8BC265732DEDD3F500F279A4 /* SpectraMateUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8BC2655A2DEDD3F400F279A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8BC265722DEDD3F500F279A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		8BAA00132F23A00000C0DE01 /* Build spotread */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Scripts/build-spotread.sh",
+			);
+			name = "Build spotread";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/Argyll_V3.5.0/spectro/spotread",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/bin/sh \"$SRCROOT/Scripts/build-spotread.sh\"";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8BC265582DEDD3F400F279A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8BC265702DEDD3F500F279A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		8BC265762DEDD3F500F279A4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8BC2655B2DEDD3F400F279A4 /* SpectraMate */;
+			targetProxy = 8BC265752DEDD3F500F279A4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		8BC2657C2DEDD3F500F279A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		8BC2657D2DEDD3F500F279A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		8BC2657F2DEDD3F500F279A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 8B90D1BC2DEE373300FBD189 /* Config */;
+			baseConfigurationReferenceRelativePath = Debug.xcconfig;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				DEAD_CODE_STRIPPING = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(PRODUCT_DISPLAY_NAME)";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		8BC265802DEDD3F500F279A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 8B90D1BC2DEE373300FBD189 /* Config */;
+			baseConfigurationReferenceRelativePath = Release.xcconfig;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				DEAD_CODE_STRIPPING = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "$(PRODUCT_DISPLAY_NAME)";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		8BC265852DEDD3F500F279A4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 8B90D1BC2DEE373300FBD189 /* Config */;
+			baseConfigurationReferenceRelativePath = Tests.xcconfig;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				DEAD_CODE_STRIPPING = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		8BC265862DEDD3F500F279A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 8B90D1BC2DEE373300FBD189 /* Config */;
+			baseConfigurationReferenceRelativePath = Tests.xcconfig;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				DEAD_CODE_STRIPPING = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		8BC265572DEDD3F400F279A4 /* Build configuration list for PBXProject "SpectraMate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8BC2657C2DEDD3F500F279A4 /* Debug */,
+				8BC2657D2DEDD3F500F279A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8BC2657E2DEDD3F500F279A4 /* Build configuration list for PBXNativeTarget "SpectraMate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8BC2657F2DEDD3F500F279A4 /* Debug */,
+				8BC265802DEDD3F500F279A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8BC265842DEDD3F500F279A4 /* Build configuration list for PBXNativeTarget "SpectraMateUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8BC265852DEDD3F500F279A4 /* Debug */,
+				8BC265862DEDD3F500F279A4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		8B62D7812F20D40000C0DE01 /* XCLocalSwiftPackageReference "SpectraMatePackage" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = SpectraMatePackage;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8BAA00022F23A00000C0DE01 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.9.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8B90D1472DEDD44A00FBD189 /* SpectraMateFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8B62D7812F20D40000C0DE01 /* XCLocalSwiftPackageReference "SpectraMatePackage" */;
+			productName = SpectraMateFeature;
+		};
+		8BAA00032F23A00000C0DE01 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8BAA00022F23A00000C0DE01 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 8BC265542DEDD3F400F279A4 /* Project object */;
+}

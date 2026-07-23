@@ -1,0 +1,179 @@
+# Xcode
+#
+# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+
+## User settings
+xcuserdata/
+
+## Obj-C/Swift specific
+*.hmap
+
+## App packaging
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+#
+# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
+# Packages/
+# Package.pins
+# Package.resolved
+# *.xcodeproj
+#
+# Xcode automatically generates this directory with a .xcworkspacedata file and xcuserdata
+# hence it is not needed unless you have added a package configuration file to your project
+# .swiftpm
+
+.build/
+
+# Local-only development tests. The public source package conditionally adds
+# its test target when these files are present.
+/SpectraMatePackage/Tests/
+/SpectraMateUITests/
+/SpectraMate/SpectraMate.xctestplan
+/Config/Tests.xcconfig
+
+# CocoaPods
+#
+# We recommend against adding the Pods directory to your .gitignore. However
+# you should judge for yourself, the pros and cons are mentioned at:
+# https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
+#
+# Pods/
+#
+# Add this line if you want to avoid checking in source code from the Xcode workspace
+# *.xcworkspace
+
+# Carthage
+#
+# Add this line if you want to avoid checking in source code from Carthage dependencies.
+# Carthage/Checkouts
+
+Carthage/Build/
+
+# fastlane
+#
+# It is recommended to not store the screenshots in the git repo.
+# Instead, use fastlane to re-generate the screenshots whenever they are needed.
+# For more information about the recommended setup visit:
+# https://docs.fastlane.tools/best-practices/source-control/#source-control
+
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Finder
+.DS_Store
+
+# Local development and agent state
+.claude/
+.codex/
+.agents/
+.xcodebuildmcp/
+
+# Local build, archive, and release products
+/build/
+/DerivedData/
+/Archives/
+/Release/
+*.xcarchive
+*.app
+*.zip
+
+# Signing and notarization secrets must never enter source control.
+.env
+.env.*
+*.p12
+*.provisionprofile
+*.mobileprovision
+sparkle_private_key*
+notarytool-profile*
+
+# ArgyllCMS in-tree build products. Source files remain tracked.
+Argyll_V3.5.0/**/*.o
+Argyll_V3.5.0/**/*.a
+Argyll_V3.5.0/**/*.dylib
+Argyll_V3.5.0/**/*.so
+Argyll_V3.5.0/spectro/spotread
+
+# Upstream ArgyllCMS projects and release tooling outside SpectraMate's
+# spotread dependency graph. The retained subset is selected by
+# SPECTRAMATE_ONLY in Argyll_V3.5.0/Jamfile.
+/Argyll_V3.5.0/doc/
+/Argyll_V3.5.0/imdi/
+/Argyll_V3.5.0/jcnf/
+/Argyll_V3.5.0/lib/
+/Argyll_V3.5.0/link/
+/Argyll_V3.5.0/namedc/
+/Argyll_V3.5.0/profile/
+/Argyll_V3.5.0/ref/
+/Argyll_V3.5.0/render/
+/Argyll_V3.5.0/scanin/
+/Argyll_V3.5.0/target/
+/Argyll_V3.5.0/tweak/
+/Argyll_V3.5.0/ucmm/
+/Argyll_V3.5.0/usb/
+/Argyll_V3.5.0/xml/
+/Argyll_V3.5.0/Makefile
+/Argyll_V3.5.0/ReadMe.txt
+/Argyll_V3.5.0/adirs
+/Argyll_V3.5.0/afiles
+/Argyll_V3.5.0/binfiles
+/Argyll_V3.5.0/blddirs
+/Argyll_V3.5.0/com.argyllcms.metainfo.xml
+/Argyll_V3.5.0/gfiles
+/Argyll_V3.5.0/install.bat
+/Argyll_V3.5.0/jam.patch
+/Argyll_V3.5.0/log.txt
+/Argyll_V3.5.0/makeall.bat
+/Argyll_V3.5.0/makeall.sh
+/Argyll_V3.5.0/makeinstall.sh
+/Argyll_V3.5.0/makepackagebin.sh
+
+# Sample and documentation binaries from retained dependency subprojects.
+# They are not read by the SpectraMate spotread build.
+/Argyll_V3.5.0/icc/*.icm
+/Argyll_V3.5.0/jpeg/testimg.bmp
+/Argyll_V3.5.0/jpeg/testimg.jpg
+/Argyll_V3.5.0/jpeg/testimg.ppm
+/Argyll_V3.5.0/jpeg/testimgp.jpg
+/Argyll_V3.5.0/jpeg/testorig.jpg
+/Argyll_V3.5.0/jpeg/testprog.jpg
+/Argyll_V3.5.0/png/pngbar.jpg
+/Argyll_V3.5.0/png/pngbar.png
+/Argyll_V3.5.0/png/pngnow.png
+/Argyll_V3.5.0/png/pngtest.png
+/Argyll_V3.5.0/tiff/contrib/iptcutil/test.iptc
+/Argyll_V3.5.0/zlib/zlib.3.pdf
+
+# Generated configuration files for ArgyllCMS' bundled TIFF/JPEG dependencies.
+Argyll_V3.5.0/tiff/Makefile
+Argyll_V3.5.0/tiff/**/Makefile
+Argyll_V3.5.0/tiff/config.log
+Argyll_V3.5.0/tiff/config.status
+Argyll_V3.5.0/tiff/libtool
+Argyll_V3.5.0/tiff/libtiff-4.pc
+Argyll_V3.5.0/tiff/**/stamp-h*
+Argyll_V3.5.0/tiff/libtiff/tif_config.h
+Argyll_V3.5.0/tiff/libtiff/tif_fax3sm.c
+Argyll_V3.5.0/tiff/libtiff/tiffconf.h
+Argyll_V3.5.0/tiff/mkg3states
+Argyll_V3.5.0/tiff/tiff.h
+Argyll_V3.5.0/tiff/tiffconf.h
+Argyll_V3.5.0/tiff/tiffio.h
+Argyll_V3.5.0/tiff/tiffvers.h
+Argyll_V3.5.0/tiff/**/.deps/
+Argyll_V3.5.0/jpeg/Makefile
+Argyll_V3.5.0/jpeg/config.log
+Argyll_V3.5.0/jpeg/config.status
+Argyll_V3.5.0/jpeg/jconfig.h
+Argyll_V3.5.0/jpeg/libtool
+Argyll_V3.5.0/jpeg/stamp-h1
+Argyll_V3.5.0/jpeg/.deps/
+Argyll_V3.5.0/imdi/imdi_k.c

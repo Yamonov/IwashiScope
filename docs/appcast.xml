@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss
+    version="2.0"
+    xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
+>
+    <channel>
+        <title>SpectraMate Updates</title>
+        <link>https://yamonov.github.io/SpectraMate/</link>
+        <description>SpectraMateの署名済みアップデート情報</description>
+        <language>ja</language>
+    </channel>
+</rss>

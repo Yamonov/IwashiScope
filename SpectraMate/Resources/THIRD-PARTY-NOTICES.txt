@@ -1,0 +1,38 @@
+# 第三者著作物とライセンス
+
+この文書は便宜上の一覧です。各ライセンス本文とソースファイル内の著作権表示が優先されます。
+
+## ArgyllCMS 3.5.0
+
+- プロジェクト: <https://www.argyllcms.com/>
+- 主な著作権者: Graeme W. Gillおよび各構成要素の著作権者
+- ソース: `Argyll_V3.5.0/`
+- 主ライセンス: GNU Affero General Public Licenseバージョン3
+- ライセンス本文:
+  - `Argyll_V3.5.0/License.txt`
+  - `Argyll_V3.5.0/License2.txt`
+  - `Argyll_V3.5.0/License3.txt`
+  - 各サブディレクトリの`License*`、`COPYING`、`COPYRIGHT`
+
+ArgyllCMSにはGPL、LGPL、MIT、BSD系など、個別条件を持つ構成要素が含まれます。元の通知とライセンスファイルは削除していません。SpectraMateの改変は[ARGYLL_CHANGES.md](ARGYLL_CHANGES.md)に記録しています。
+
+アプリには主ライセンスに加え、直接使用するCGATSおよびICC構成要素のMIT Licenseも同梱します。
+
+## Sparkle 2.9.4
+
+- プロジェクト: <https://github.com/sparkle-project/Sparkle>
+- ライセンス: MIT Licenseを中心とする許諾ライセンス
+- 固定版: `SpectraMate.xcworkspace/xcshareddata/swiftpm/Package.resolved`
+- バイナリ同梱ライセンス: `SpectraMate/Resources/Licenses/Sparkle-LICENSE.txt`
+
+Sparkleが使用するbsdiff、sais-lite、Ed25519実装などの通知も、同梱するSparkleライセンス本文に含まれます。
+
+## CIE標準光源D50・D65データ
+
+- D50: <https://www.cie.co.at/datatable/cie-standard-illuminant-d50>
+- D50 DOI: `10.25039/CIE.DS.etgmuqt5`
+- D65: <https://www.cie.co.at/datatable/cie-standard-illuminant-d65>
+- D65 DOI: `10.25039/CIE.DS.hjfjmt59`
+- ライセンス: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+
+SpectraMateはCIEの1 nm間隔データから380〜730 nmの5 nm位置を収録し、表示時に線形補間します。収録値は`SpectraMatePackage/Sources/SpectraMateFeature/Models/CIEStandardIlluminantSpectrum.swift`にあります。
