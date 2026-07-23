@@ -6,6 +6,43 @@
         <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
         <item>
+            <title>0.9.1</title>
+            <pubDate>Thu, 23 Jul 2026 22:57:21 +0900</pubDate>
+            <link>https://yamonov.github.io/IwashiScope/</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.1</sparkle:fullReleaseNotesLink>
+            <sparkle:version>19</sparkle:version>
+            <sparkle:shortVersionString>0.9.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# IwashiScope 0.9.1
+
+起動時の重大な不具合を修正した更新です。
+
+- 配布アプリがSparkle.frameworkを見つけられず、起動直後に終了する問題を修正
+- Sparkle.frameworkの配置と実行時検索パスをRelease監査へ追加
+- Intel MacとAppleシリコンMacに対応するUniversal Binary
+- macOS 14.6以降に対応
+
+## Version 0.9をダウンロードした方へ
+
+Version 0.9は起動できないため、アプリ内の更新機能を使用できません。Version 0.9.1をこのReleaseから手動でダウンロードし、Version 0.9と置き換えてください。
+
+アプリはDeveloper IDで署名し、Appleの公証を完了しています。
+
+このReleaseには、配布バイナリと正確に対応する完全なソース一式を含めています。ライセンス、第三者著作物、ArgyllCMSからの変更内容は、ソースZIP内の `LICENSE`、`NOTICE`、`THIRD_PARTY_NOTICES.md`、`ARGYLL_CHANGES.md`を参照してください。
+
+## SHA-256
+
+- `IwashiScope-0.9.1.zip`: `6c300cc95fdee4a1f4fc7bf8398fb8ccb416d852e1e2058d59751078e82b5b97`
+- `IwashiScope-0.9.1-source.zip`: `3296d2d78d82d4f2f9989ce775303ca938eabad982f8283323ab716c5014236d`
+]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v0.9.1/IwashiScope-0.9.1.zip"
+                length="10503319"
+                type="application/octet-stream"
+                sparkle:edSignature="e8u8rid+vR16XtkkF13zWa4gfs/pbVbHrk0dwNyrVC8qFvOG94gH8YZCPfCle93Oxl1jqXSVWnG5lZbvXvuDDg=="
+            />
+        </item>
+        <item>
             <title>0.9</title>
             <pubDate>Thu, 23 Jul 2026 22:38:44 +0900</pubDate>
             <link>https://yamonov.github.io/IwashiScope/</link>
