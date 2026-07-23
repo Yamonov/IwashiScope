@@ -93,7 +93,7 @@ ArgyllCMSソースとIwashiScope側の改変ソースを同じリポジトリで
 
 ## ライセンスとソースコード
 
-Copyright © 2026 Yamonov.
+Copyright © 2026 Murakami Yoshiteru
 
 IwashiScopeの独自部分は、特記のない限り[GNU Affero General Public Licenseバージョン3以降](LICENSE)で公開します。このソフトウェアには一切の保証がありません。
 
