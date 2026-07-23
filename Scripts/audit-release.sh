@@ -19,8 +19,26 @@ fail() {
 
 main_executable="$application_path/Contents/MacOS/IwashiScope"
 measurement_helper="$application_path/Contents/MacOS/iwashiscope-spotread"
+sparkle_executable="$application_path/Contents/Frameworks/Sparkle.framework/Versions/B/Sparkle"
 [ -x "$main_executable" ] || fail "main executable is missing"
 [ -x "$measurement_helper" ] || fail "iwashiscope-spotread is missing"
+[ -x "$sparkle_executable" ] || fail "Sparkle.framework is missing"
+
+main_dependencies=$(/usr/bin/otool -L "$main_executable")
+printf '%s\n' "$main_dependencies" |
+	grep -F '@rpath/Sparkle.framework/Versions/B/Sparkle' >/dev/null \
+	|| fail "main executable does not link the bundled Sparkle.framework"
+
+main_runpaths=$(/usr/bin/otool -l "$main_executable" | awk '
+	$1 == "cmd" && $2 == "LC_RPATH" {
+		getline
+		getline
+		print $2
+	}
+')
+printf '%s\n' "$main_runpaths" |
+	grep -Fx '@executable_path/../Frameworks' >/dev/null \
+	|| fail "main executable cannot resolve frameworks from Contents/Frameworks"
 
 required_bundle_files="
 Contents/Resources/NOTICE.txt
