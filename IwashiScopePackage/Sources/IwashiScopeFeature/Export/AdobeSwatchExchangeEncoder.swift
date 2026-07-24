@@ -16,13 +16,13 @@ extension AdobeSwatchExchangeEncodingError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .tooManySwatches:
-            "選択されたスウォッチ数がASE形式の上限を超えています。"
+            String(localized: "選択されたスウォッチ数がASE形式の上限を超えています。")
         case .swatchNameTooLong(let name):
-            "スウォッチ名が長すぎます：\(name)"
+            String(localized: "スウォッチ名が長すぎます：\(name)")
         case .invalidLabValue(let swatchName):
-            "有限値ではないLab値が含まれています：\(swatchName)"
+            String(localized: "有限値ではないLab値が含まれています：\(swatchName)")
         case .blockTooLarge:
-            "ASEデータブロックが形式の上限を超えています。"
+            String(localized: "ASEデータブロックが形式の上限を超えています。")
         }
     }
 }

@@ -3,14 +3,15 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum MeasurementHistoryCardMetrics {
-    static let size = CGSize(width: 164, height: 164)
-    static let colorAreaHeight = 116.0
+    static let size = CGSize(width: 110, height: 110)
+    static let colorAreaHeight = 75.0
 }
 
 struct MeasurementHistoryView: View {
     private static let cardWidth = MeasurementHistoryCardMetrics.size.width
     private static let cardSpacing = 16.0
     private static let dropZoneWidth = 12.0
+    private static let trailingDropExtension = 64.0
     private static let cardItemWidth = cardWidth + dropZoneWidth * 2
 
     @State private var dragState: MeasurementHistoryDragState?
@@ -47,7 +48,7 @@ struct MeasurementHistoryView: View {
                 .frame(maxWidth: .infinity, minHeight: 150)
             } else {
                 LazyVGrid(columns: columns, alignment: .leading, spacing: Self.cardSpacing) {
-                    ForEach(entries) { entry in
+                    ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
                         historyCard(entry)
                             .padding(.horizontal, Self.dropZoneWidth)
                             .contextMenu {
@@ -69,22 +70,23 @@ struct MeasurementHistoryView: View {
                                 }
                                 .disabled(canExportSwatch(from: entry) == false)
                             }
-                            .overlay(alignment: .leading) {
-                                insertionDropZone(
-                                    entryID: entry.id,
-                                    placement: .before,
-                                    width: Self.dropZoneWidth
+                            .overlay {
+                                insertionIndicator(
+                                    itemIndex: index,
+                                    itemWidth: Self.cardItemWidth
                                 )
                             }
-                            .overlay(alignment: .trailing) {
-                                insertionDropZone(
-                                    entryID: entry.id,
-                                    placement: .after,
-                                    width: Self.dropZoneWidth
+                            .contentShape(Rectangle())
+                            .background(alignment: .leading) {
+                                dropArea(
+                                    itemIndex: index,
+                                    itemCount: entries.count,
+                                    itemWidth: Self.cardItemWidth
                                 )
                             }
                     }
                 }
+                .padding(.horizontal, Self.dropZoneWidth)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 4)
                 .animation(.snappy(duration: 0.28), value: entries.map(\.id))
@@ -237,12 +239,11 @@ struct MeasurementHistoryView: View {
         }
         focusHistory()
 
-        dragState = MeasurementHistoryDragState(
-            entryIDs: historyStore.selectedEntryIDs(for: .reflectance)
-        )
+        let selectedEntryIDs = historyStore.selectedEntryIDs(for: .reflectance)
+        dragState = MeasurementHistoryDragState(entryIDs: selectedEntryIDs)
         let selectedEntries = historyStore.selectedEntries(for: .reflectance)
         return MeasurementHistoryDragItemProvider.make(
-            internalIdentifier: entryID.uuidString,
+            entryIDs: selectedEntryIDs,
             swatches: [],
             exportRequest: MeasurementHistoryDragExportRequest(
                 mode: .reflectance,
@@ -252,37 +253,55 @@ struct MeasurementHistoryView: View {
         )
     }
 
-    private func insertionDropZone(
-        entryID: MeasurementHistoryEntry.ID,
-        placement: MeasurementHistoryDropPlacement,
-        width: Double
+    private func insertionIndicator(
+        itemIndex: Int,
+        itemWidth: Double
     ) -> some View {
-        ZStack {
-            Color.clear
-                .contentShape(Rectangle())
-
-            if dropTarget == MeasurementHistoryDropTarget(
-                entryID: entryID,
-                placement: placement
-            ) {
-                MeasurementHistoryInsertionIndicator(placement: placement)
+        ZStack(alignment: .leading) {
+            if dropTarget?.itemIndex == itemIndex,
+               dropTarget?.insertionIndex == itemIndex {
+                MeasurementHistoryInsertionIndicator()
+            }
+            if dropTarget?.itemIndex == itemIndex,
+               dropTarget?.insertionIndex == itemIndex + 1 {
+                MeasurementHistoryInsertionIndicator()
+                    .offset(
+                        x: itemWidth
+                            - MeasurementHistoryInsertionIndicatorMetrics.width
+                    )
             }
         }
-        .frame(width: width)
-        .frame(maxHeight: .infinity)
-        .contentShape(Rectangle())
-        .onDrop(
-            of: [.plainText],
-            delegate: MeasurementHistoryDropDelegate(
-                targetEntryID: entryID,
-                placement: placement,
-                historyStore: historyStore,
-                dragState: $dragState,
-                dropTarget: $dropTarget
-            )
-        )
-        .animation(.easeOut(duration: 0.14), value: dropTarget)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .allowsHitTesting(false)
         .accessibilityHidden(true)
+    }
+
+    private func dropArea(
+        itemIndex: Int,
+        itemCount: Int,
+        itemWidth: Double
+    ) -> some View {
+        Color.clear
+            .frame(
+                width: itemWidth + (
+                    itemIndex == itemCount - 1
+                        ? Self.trailingDropExtension
+                        : 0
+                )
+            )
+            .contentShape(Rectangle())
+            .onDrop(
+                of: [MeasurementHistoryDragPayload.contentType],
+                delegate: MeasurementHistoryDropDelegate(
+                    mode: .reflectance,
+                    itemIndex: itemIndex,
+                    itemCount: itemCount,
+                    itemWidth: itemWidth,
+                    historyStore: historyStore,
+                    dragState: $dragState,
+                    dropTarget: $dropTarget
+                )
+            )
     }
 
     private func deleteSelectedEntries() {
@@ -329,8 +348,8 @@ struct MeasurementHistoryDragState: Equatable {
 
 private struct MeasurementHistoryCard: View {
     private static let colorAreaHeight = MeasurementHistoryCardMetrics.colorAreaHeight
-    private static let nameFieldHeight = 24.0
-    private static let nameFieldBottomPadding = 4.0
+    private static let nameFieldHeight = 20.0
+    private static let nameFieldBottomPadding = 3.0
 
     private static var nameFieldTopPadding: Double {
         colorAreaHeight - nameFieldHeight - nameFieldBottomPadding
@@ -461,8 +480,8 @@ private struct MeasurementHistoryCard: View {
             onNavigate: onNavigateRenaming,
             onCancel: onCancelRenaming
         )
-        .padding(.horizontal, 5)
-        .frame(width: width - 16, height: Self.nameFieldHeight)
+        .padding(.horizontal, 4)
+        .frame(width: width - 12, height: Self.nameFieldHeight)
         .background(Color.white.opacity(0.5), in: .rect(cornerRadius: 6))
         .overlay {
             RoundedRectangle(cornerRadius: 6)
@@ -481,15 +500,15 @@ private struct MeasurementHistoryCard: View {
     }
 
     private var labValues: some View {
-        Grid(horizontalSpacing: 7, verticalSpacing: 2) {
+        Grid(horizontalSpacing: 4, verticalSpacing: 1) {
             GridRow {
                 labMetric("L*", entry.measurement.lab?.first)
                 labMetric("a*", entry.measurement.lab?.second)
                 labMetric("b*", entry.measurement.lab?.third)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
     }
 
     private func labMetric(_ label: String, _ value: Double?) -> some View {
@@ -505,22 +524,24 @@ private struct MeasurementHistoryCard: View {
 
     private var accessibilityLabel: String {
         guard let lab = entry.measurement.lab else {
-            return [entry.name, "Lab値なし"]
+            return [entry.name, String(localized: "Lab値なし")]
                 .compactMap { $0 }
                 .joined(separator: "、")
         }
         let gamutDescription = colorConversion?.sRGB.isOutOfGamut == true
-            ? "sRGB色域外"
-            : "sRGB色域内"
-        let nameDescription = entry.name.map { "名前 \($0)、" } ?? ""
-        return "\(nameDescription)Lab、Lスター \(formatted(lab.first))、aスター \(formatted(lab.second))、bスター \(formatted(lab.third))、\(gamutDescription)"
+            ? String(localized: "sRGB色域外")
+            : String(localized: "sRGB色域内")
+        let nameDescription = entry.name.map { String(localized: "名前 \($0)、") } ?? ""
+        return String(
+            localized: "\(nameDescription)Lab、Lスター \(formatted(lab.first))、aスター \(formatted(lab.second))、bスター \(formatted(lab.third))、\(gamutDescription)"
+        )
     }
 
     private var accessibilitySelectionValue: String {
         if isActive {
-            return "選択中、測定値を表示中"
+            return String(localized: "選択中、測定値を表示中")
         }
-        return isSelected ? "選択中" : "未選択"
+        return isSelected ? String(localized: "選択中") : String(localized: "未選択")
     }
 
     private func formatted(_ value: Double) -> String {
@@ -590,120 +611,114 @@ private struct MeasurementHistoryDragPreview: View {
 }
 
 struct MeasurementHistoryDropTarget: Equatable {
-    let entryID: MeasurementHistoryEntry.ID
-    let placement: MeasurementHistoryDropPlacement
+    let itemIndex: Int
+    let insertionIndex: Int
 }
 
-enum MeasurementHistoryDropPlacement: Equatable {
-    case before
-    case after
+enum MeasurementHistoryDropGeometry {
+    static func insertionIndex(
+        itemIndex: Int,
+        itemCount: Int,
+        locationX: Double,
+        itemWidth: Double
+    ) -> Int {
+        let boundedItemIndex = min(max(itemIndex, 0), max(itemCount - 1, 0))
+        return locationX < itemWidth / 2
+            ? boundedItemIndex
+            : min(boundedItemIndex + 1, itemCount)
+    }
 }
 
 enum MeasurementHistoryInsertionIndicatorMetrics {
     static let width = 4.0
-
-    static func alignment(
-        for placement: MeasurementHistoryDropPlacement
-    ) -> Alignment {
-        switch placement {
-        case .before:
-            .leading
-        case .after:
-            .trailing
-        }
-    }
-
-    static func horizontalOffset(
-        for placement: MeasurementHistoryDropPlacement
-    ) -> Double {
-        switch placement {
-        case .before:
-            -width / 2
-        case .after:
-            width / 2
-        }
-    }
 }
 
 struct MeasurementHistoryInsertionIndicator: View {
-    let placement: MeasurementHistoryDropPlacement
-
     var body: some View {
         Capsule()
             .fill(Color.accentColor)
             .frame(width: MeasurementHistoryInsertionIndicatorMetrics.width)
             .padding(.vertical, 7)
-            .frame(
-                maxWidth: .infinity,
-                alignment: MeasurementHistoryInsertionIndicatorMetrics.alignment(
-                    for: placement
-                )
-            )
-            .offset(
-                x: MeasurementHistoryInsertionIndicatorMetrics.horizontalOffset(
-                    for: placement
-                )
-            )
             .transition(.opacity.combined(with: .scale(scale: 0.8)))
     }
 }
 
 struct MeasurementHistoryDropDelegate: DropDelegate {
-    let targetEntryID: MeasurementHistoryEntry.ID
-    let placement: MeasurementHistoryDropPlacement
+    let mode: MeasurementMode
+    let itemIndex: Int
+    let itemCount: Int
+    let itemWidth: Double
     let historyStore: MeasurementHistoryStore
     @Binding var dragState: MeasurementHistoryDragState?
     @Binding var dropTarget: MeasurementHistoryDropTarget?
 
-    func validateDrop(info _: DropInfo) -> Bool {
-        guard let dragState else { return false }
-        return dragState.entryIDs.contains(targetEntryID) == false
-    }
-
-    func dropEntered(info _: DropInfo) {
-        updateDropTarget()
-    }
-
-    func dropExited(info _: DropInfo) {
-        if dropTarget?.entryID == targetEntryID {
-            dropTarget = nil
-        }
-    }
-
-    func dropUpdated(info _: DropInfo) -> DropProposal? {
-        updateDropTarget()
-        return DropProposal(operation: .move)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        defer {
-            dragState = nil
-            dropTarget = nil
-        }
-
-        guard validateDrop(info: info), let dragState else {
+    func validateDrop(info: DropInfo) -> Bool {
+        guard info.itemProviders(
+            for: [MeasurementHistoryDragPayload.contentType]
+        ).isEmpty == false,
+              dragState != nil else {
             return false
-        }
-
-        withAnimation(.snappy(duration: 0.28)) {
-            _ = historyStore.move(
-                entryIDs: dragState.entryIDs,
-                relativeTo: targetEntryID,
-                placeAfter: placement == .after
-            )
         }
         return true
     }
 
-    private func updateDropTarget() {
-        guard let dragState,
-              dragState.entryIDs.contains(targetEntryID) == false else { return }
-        withAnimation(.easeOut(duration: 0.14)) {
-            dropTarget = MeasurementHistoryDropTarget(
-                entryID: targetEntryID,
-                placement: placement
+    func dropEntered(info: DropInfo) {
+        updateDropTarget(info: info)
+    }
+
+    func dropExited(info: DropInfo) {
+        let exitingTarget = target(for: info)
+        DispatchQueue.main.async {
+            if dropTarget == exitingTarget {
+                dropTarget = nil
+            }
+        }
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        updateDropTarget(info: info)
+        return DropProposal(operation: .move)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        guard validateDrop(info: info), let dragState else {
+            return false
+        }
+        let target = target(for: info)
+
+        withAnimation(.snappy(duration: 0.28)) {
+            _ = historyStore.move(
+                entryIDs: dragState.entryIDs,
+                in: mode,
+                toInsertionIndex: target.insertionIndex
             )
         }
+        self.dragState = nil
+        dropTarget = nil
+        return true
+    }
+
+    private func updateDropTarget(info: DropInfo) {
+        guard validateDrop(info: info) else {
+            dropTarget = nil
+            return
+        }
+        let target = target(for: info)
+        withAnimation(.easeOut(duration: 0.14)) {
+            dropTarget = target
+        }
+    }
+
+    private func target(for info: DropInfo) -> MeasurementHistoryDropTarget {
+        MeasurementHistoryDropTarget(
+            itemIndex: itemIndex,
+            insertionIndex: MeasurementHistoryDropGeometry.insertionIndex(
+                itemIndex: itemIndex,
+                itemCount: itemCount,
+                locationX: info.location.x,
+                itemWidth: itemWidth
+            )
+        )
     }
 }
 

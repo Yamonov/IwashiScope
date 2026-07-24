@@ -1,9 +1,24 @@
+import AppKit
 import Sparkle
 import SwiftUI
 import IwashiScopeFeature
 
+@MainActor
+private final class IwashiScopeAppDelegate: NSObject, NSApplicationDelegate {
+    weak var model: IwashiScopeApplicationModel?
+
+    func applicationShouldTerminate(
+        _ sender: NSApplication
+    ) -> NSApplication.TerminateReply {
+        model?.prepareForApplicationTermination()
+        return .terminateNow
+    }
+}
+
 @main
 struct IwashiScopeApp: App {
+    @NSApplicationDelegateAdaptor(IwashiScopeAppDelegate.self)
+    private var appDelegate
     @State private var model = IwashiScopeApplicationModel()
     private let updaterController: SPUStandardUpdaterController
 
@@ -18,6 +33,9 @@ struct IwashiScopeApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(model: model)
+                .onAppear {
+                    appDelegate.model = model
+                }
         }
         .defaultSize(width: 1080, height: 760)
         .windowResizability(.contentMinSize)

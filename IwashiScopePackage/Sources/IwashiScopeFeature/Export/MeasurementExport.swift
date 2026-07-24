@@ -83,13 +83,13 @@ enum MeasurementExportError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noSelection:
-            "書き出す履歴カードを1枚以上選択してください。"
+            String(localized: "書き出す履歴カードを1枚以上選択してください。")
         case .noExportableData:
-            "選択した項目に書き出せる測定データがありません。"
+            String(localized: "選択した項目に書き出せる測定データがありません。")
         case .imageRenderingFailed:
-            "グラフ画像を生成できませんでした。"
+            String(localized: "グラフ画像を生成できませんでした。")
         case .pngEncodingFailed:
-            "グラフ画像をPNGへ変換できませんでした。"
+            String(localized: "グラフ画像をPNGへ変換できませんでした。")
         }
     }
 }

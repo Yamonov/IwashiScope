@@ -204,19 +204,19 @@ struct TM30ColorVectorGraphicView: View {
             if let result, let geometry {
                 HStack(alignment: .top, spacing: 16) {
                     TM30ColorVectorCanvas(geometry: geometry, result: result)
-                        .frame(minWidth: 300, maxWidth: 400, minHeight: 400, maxHeight: 400)
+                        .frame(minWidth: 300, maxWidth: 440, minHeight: 440, maxHeight: 440)
 
                     VStack(alignment: .leading, spacing: 12) {
                         HStack(alignment: .top, spacing: 14) {
                             TM30ScoreSummary(result: result)
-                                .frame(minWidth: 76, maxWidth: 90, alignment: .topLeading)
+                                .frame(minWidth: 120, maxWidth: 140, alignment: .topLeading)
 
                             TM30RfRgPlotView(
                                 fidelityIndex: result.fidelityIndex,
                                 gamutIndex: result.gamutIndex
                             )
                         }
-                        .frame(maxWidth: .infinity, minHeight: 190, maxHeight: 190)
+                        .frame(maxWidth: .infinity, minHeight: 230, maxHeight: 230)
 
                         TM30SampleFidelityChartView(samples: result.evaluationSamples)
                             .frame(maxWidth: .infinity, minHeight: 198, maxHeight: 198)
@@ -224,8 +224,8 @@ struct TM30ColorVectorGraphicView: View {
                     .frame(
                         minWidth: 360,
                         maxWidth: .infinity,
-                        minHeight: 400,
-                        maxHeight: 400,
+                        minHeight: 440,
+                        maxHeight: 440,
                         alignment: .topLeading
                     )
                 }
@@ -236,7 +236,7 @@ struct TM30ColorVectorGraphicView: View {
                     systemImage: "circle.hexagongrid",
                     description: Text("環境光または発光を測定するとTM-30のRf・Rgと各グラフを表示します。")
                 )
-                .frame(maxWidth: .infinity, minHeight: 400, maxHeight: 400)
+                .frame(maxWidth: .infinity, minHeight: 440, maxHeight: 440)
             }
         } label: {
             Label("IES TM-30-15", systemImage: "circle.hexagongrid.fill")
@@ -521,6 +521,15 @@ private struct TM30ScoreSummary: View {
         VStack(alignment: .leading, spacing: 10) {
             TM30Score(label: "Rf", value: format(result.fidelityIndex, digits: 1))
             TM30Score(label: "Rg", value: format(result.gamutIndex, digits: 1))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("① プランク軌跡上の光源（概略）")
+                Text("② 実用光源（概略）")
+            }
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityHidden(true)
 
             if result.caution {
                 Label("基準光の適用範囲外です", systemImage: "exclamationmark.triangle.fill")

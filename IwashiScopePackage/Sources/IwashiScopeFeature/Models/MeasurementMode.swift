@@ -10,33 +10,33 @@ enum MeasurementMode: String, CaseIterable, Codable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .reflectance:
-            "反射原稿"
+            String(localized: "反射原稿")
         case .ambient:
-            "環境光"
+            String(localized: "環境光")
         case .emissive:
-            "発光"
+            String(localized: "発光")
         }
     }
 
     var subtitle: String {
         switch self {
         case .reflectance:
-            "印刷物・用紙・色票"
+            String(localized: "印刷物・用紙・色票")
         case .ambient:
-            "照度・CRI・TLCI・TM-30"
+            String(localized: "照度・CRI・TLCI・TM-30")
         case .emissive:
-            "ディスプレイ・ライトボックス・発光体"
+            String(localized: "ディスプレイ・ライトボックス・発光体")
         }
     }
 
     var detail: String {
         switch self {
         case .reflectance:
-            "反射スペクトルとXYZ、D50 Labを測定します。"
+            String(localized: "反射スペクトルとXYZ、D50 Labを測定します。")
         case .ambient:
-            "入射光のLux、CCT、Duv、演色評価値を測定します。"
+            String(localized: "入射光のLux、CCT、Duv、演色評価値を測定します。")
         case .emissive:
-            "対象に測定器を当て、発光分光分布とXYZ（Y＝輝度）、CCT、Duvを測定します。光源用途では演色指標も表示します。"
+            String(localized: "対象に測定器を当て、発光分光分布とXYZ（Y＝輝度）、CCT、Duvを測定します。光源用途では演色指標も表示します。")
         }
     }
 

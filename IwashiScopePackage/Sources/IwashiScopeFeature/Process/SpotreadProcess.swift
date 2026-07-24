@@ -9,11 +9,11 @@ enum SpotreadProcessError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .alreadyRunning:
-            "spotreadはすでに実行中です。"
+            String(localized: "spotreadはすでに実行中です。")
         case .notRunning:
-            "spotreadが実行されていません。"
+            String(localized: "spotreadが実行されていません。")
         case .inputUnavailable:
-            "spotreadへ操作を送信できません。"
+            String(localized: "spotreadへ操作を送信できません。")
         }
     }
 }
@@ -203,20 +203,22 @@ final class SpotreadProcess: @unchecked Sendable {
         watchdogProcess = nil
         lock.unlock()
 
-        try? inputHandle?.close()
-        if let runningWatchdog, runningWatchdog.isRunning {
-            runningWatchdog.terminate()
+        if let runningProcess, runningProcess.isRunning {
+            Darwin.kill(runningProcess.processIdentifier, SIGTERM)
         }
 
-        guard let runningProcess else { return }
-        if runningProcess.isRunning {
-            runningProcess.terminate()
-        }
+        Self.forcedTerminationQueue.async {
+            try? inputHandle?.close()
+            if let runningWatchdog, runningWatchdog.isRunning {
+                runningWatchdog.terminate()
+            }
 
-        let processIdentifier = runningProcess.processIdentifier
-        Self.forcedTerminationQueue.asyncAfter(deadline: .now() + .milliseconds(250)) {
-            guard runningProcess.isRunning else { return }
-            Darwin.kill(processIdentifier, SIGKILL)
+            guard let runningProcess else { return }
+            let processIdentifier = runningProcess.processIdentifier
+            Self.forcedTerminationQueue.asyncAfter(deadline: .now() + .milliseconds(250)) {
+                guard runningProcess.isRunning else { return }
+                Darwin.kill(processIdentifier, SIGKILL)
+            }
         }
     }
 

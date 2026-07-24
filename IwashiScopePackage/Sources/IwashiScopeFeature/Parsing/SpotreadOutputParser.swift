@@ -351,96 +351,100 @@ struct SpotreadOutputParser {
         case "reflectiveWhite", "reflectiveWhiteClick":
             let suffix = identifier.map { "（S/N \($0)）" } ?? ""
             return (
-                "白色基準でキャリブレーション",
-                "測定器を付属の白色基準\(suffix)に置いてください。",
+                localized("白色基準でキャリブレーション"),
+                localized("測定器を付属の白色基準\(suffix)に置いてください。"),
                 "square.fill"
             )
         case "sensorCalibrationPosition":
             return (
-                "測定器を校正位置へ",
-                "センサーのダイヤルをキャリブレーション位置に合わせてください。",
+                localized("測定器を校正位置へ"),
+                localized("センサーのダイヤルをキャリブレーション位置に合わせてください。"),
                 "dial.medium"
             )
         case "ambientDark":
             return (
-                "環境光アダプターを遮光",
-                "環境光アダプターを取り付け、キャップで遮光してください。",
+                localized("環境光アダプターを遮光"),
+                localized("環境光アダプターを取り付け、キャップで遮光してください。"),
                 "sun.max.trianglebadge.exclamationmark"
             )
         case "emissiveDark":
             return (
-                "測定器を遮光",
-                "測定器にキャップを付けるか、暗い面または校正基準に置いてください。",
+                localized("測定器を遮光"),
+                localized("測定器にキャップを付けるか、暗い面または校正基準に置いてください。"),
                 "moon.fill"
             )
         case "reflectiveDark":
             return (
-                "暗部キャリブレーション",
-                "測定器をライトトラップに置くか、周囲の面から離して遮光してください。",
+                localized("暗部キャリブレーション"),
+                localized("測定器をライトトラップに置くか、周囲の面から離して遮光してください。"),
                 "moon.stars.fill"
             )
         case "glossBlack":
             return (
-                "黒色光沢基準でキャリブレーション",
-                "測定器を黒色光沢基準に置いてください。",
+                localized("黒色光沢基準でキャリブレーション"),
+                localized("測定器を黒色光沢基準に置いてください。"),
                 "circle.lefthalf.filled"
             )
         case "transmissiveWhite", "userOperatedTransmissiveWhite":
             return (
-                "透過白基準でキャリブレーション",
-                "測定器を透過白基準光源に置き、光路を安定させてください。",
+                localized("透過白基準でキャリブレーション"),
+                localized("測定器を透過白基準光源に置き、光路を安定させてください。"),
                 "sun.max.fill"
             )
         case "transmissiveDark", "userOperatedTransmissiveDark":
             return (
-                "透過暗部キャリブレーション",
-                "適切な遮光材で透過光路を完全に遮ってください。",
+                localized("透過暗部キャリブレーション"),
+                localized("適切な遮光材で透過光路を完全に遮ってください。"),
                 "rectangle.slash"
             )
         case "userOperatedReflectiveWhite":
             return (
-                "反射白基準でキャリブレーション",
-                "測定器の手順に従って反射白基準を測定してください。",
+                localized("反射白基準でキャリブレーション"),
+                localized("測定器の手順に従って反射白基準を測定してください。"),
                 "square.fill"
             )
         case "changeFilter":
             return (
-                "測定器のフィルターを変更",
-                identifier.map { "測定器のフィルターを「\($0)」に変更してください。" }
-                    ?? "spotreadが指定するフィルターへ変更してください。",
+                localized("測定器のフィルターを変更"),
+                identifier.map { localized("測定器のフィルターを「\($0)」に変更してください。") }
+                    ?? localized("spotreadが指定するフィルターへ変更してください。"),
                 "camera.filters"
             )
         case "emissiveWhite":
             return (
-                "白色パッチを測定",
-                "測定器を100%の白色パッチに置いてください。",
+                localized("白色パッチを測定"),
+                localized("測定器を100%の白色パッチに置いてください。"),
                 "display"
             )
         case "emissive80Percent":
             return (
-                "白色パッチを測定",
-                "測定器を80%の白色パッチに置いてください。",
+                localized("白色パッチを測定"),
+                localized("測定器を80%の白色パッチに置いてください。"),
                 "display"
             )
         case "emissiveGrey", "emissiveGreyDarker", "emissiveGreyLighter":
             return (
-                "グレーパッチを測定",
-                "測定器の表示に従い、指定された明るさのグレーパッチを表示してください。",
+                localized("グレーパッチを測定"),
+                localized("測定器の表示に従い、指定された明るさのグレーパッチを表示してください。"),
                 "display"
             )
         case "message":
             return (
-                "キャリブレーションの準備",
-                identifier ?? "測定器の表示に従って準備してください。",
+                localized("キャリブレーションの準備"),
+                identifier ?? localized("測定器の表示に従って準備してください。"),
                 "scope"
             )
         default:
             return (
-                "キャリブレーションの準備",
-                "測定器の表示に従って準備してください。",
+                localized("キャリブレーションの準備"),
+                localized("測定器の表示に従って準備してください。"),
                 "scope"
             )
         }
+    }
+
+    private static func localized(_ resource: LocalizedStringResource) -> String {
+        String(localized: resource)
     }
 
     private static func spectralSamples(

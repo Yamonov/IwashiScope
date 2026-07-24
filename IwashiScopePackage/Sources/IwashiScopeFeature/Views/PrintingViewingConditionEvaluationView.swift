@@ -15,31 +15,31 @@ struct PrintingViewingConditionEvaluationView: View {
                 Divider()
 
                 PrintingCriterionRow(
-                    label: "相関色温度",
+                    label: String(localized: "相関色温度"),
                     value: formattedTemperature,
-                    requirement: "目標 \(format(PrintingViewingConditionEvaluator.targetCorrelatedColorTemperature, digits: 0)) K（許容幅規定なし）",
+                    requirement: String(localized: "目標 \(format(PrintingViewingConditionEvaluator.targetCorrelatedColorTemperature, digits: 0)) K（許容幅規定なし）"),
                     status: nil
                 )
                 PrintingCriterionRow(
-                    label: "D50色度差 Δu′v′",
+                    label: String(localized: "D50色度差 Δu′v′"),
                     value: formattedChromaticityDistance,
-                    requirement: "基準 ≤ \(format(PrintingViewingConditionEvaluator.maximumChromaticityDistance, digits: 5))",
+                    requirement: String(localized: "基準 ≤ \(format(PrintingViewingConditionEvaluator.maximumChromaticityDistance, digits: 5))"),
                     status: evaluation.chromaticityStatus
                 )
                 PrintingCriterionRow(
-                    label: "平均演色評価数 Ra",
+                    label: String(localized: "平均演色評価数 Ra"),
                     value: formattedAverageColorRenderingIndex,
-                    requirement: "基準 ≥ \(format(PrintingViewingConditionEvaluator.minimumAverageColorRenderingIndex, digits: 1))",
+                    requirement: String(localized: "基準 ≥ \(format(PrintingViewingConditionEvaluator.minimumAverageColorRenderingIndex, digits: 1))"),
                     status: evaluation.averageColorRenderingStatus
                 )
                 PrintingCriterionRow(
-                    label: "最小Ri（R9〜R15）",
+                    label: String(localized: "最小Ri（R9〜R15）"),
                     value: formattedMinimumSpecialColorRenderingIndex,
-                    requirement: "基準 ≥ \(format(PrintingViewingConditionEvaluator.minimumSpecialColorRenderingIndex, digits: 1))",
+                    requirement: String(localized: "基準 ≥ \(format(PrintingViewingConditionEvaluator.minimumSpecialColorRenderingIndex, digits: 1))"),
                     status: evaluation.specialColorRenderingStatus
                 )
                 PrintingCriterionRow(
-                    label: "作業面照度",
+                    label: String(localized: "作業面照度"),
                     value: formattedIlluminance,
                     requirement: illuminanceRequirement,
                     status: evaluation.illuminanceStatus
@@ -74,50 +74,50 @@ struct PrintingViewingConditionEvaluationView: View {
 
     private var summaryDetail: String {
         if evaluation.requiresAmbientIlluminanceMeasurement {
-            "D50色度と演色性を評価しています。作業面照度は環境光モードで測定してください。"
+            String(localized: "D50色度と演色性を評価しています。作業面照度は環境光モードで測定してください。")
         } else if evaluation.illuminanceClassification == .displayComparison {
-            "D50色度と演色性を評価しています。作業面照度はディスプレイとの比較に適しています。"
+            String(localized: "D50色度と演色性を評価しています。作業面照度はディスプレイとの比較に適しています。")
         } else if evaluation.illuminanceClassification == .tooDark {
-            "作業面照度が一般的な事務作業の300 lxを下回っています。"
+            String(localized: "作業面照度が一般的な事務作業の300 lxを下回っています。")
         } else {
-            "D50色度、演色性、作業面照度の測定可能な数値項目を評価しています。"
+            String(localized: "D50色度、演色性、作業面照度の測定可能な数値項目を評価しています。")
         }
     }
 
     private var formattedTemperature: String {
         guard let cct = evaluation.correlatedColorTemperature else {
-            return "データなし"
+            return String(localized: "データなし")
         }
         return "\(format(cct, digits: 0)) K"
     }
 
     private var formattedChromaticityDistance: String {
         guard let distance = evaluation.chromaticityDistance else {
-            return "データなし"
+            return String(localized: "データなし")
         }
         return format(distance, digits: 5)
     }
 
     private var formattedAverageColorRenderingIndex: String {
         guard let ra = evaluation.averageColorRenderingIndex else {
-            return "データなし"
+            return String(localized: "データなし")
         }
         return format(ra, digits: 1)
     }
 
     private var formattedMinimumSpecialColorRenderingIndex: String {
         guard let minimum = evaluation.minimumSpecialColorRenderingIndex else {
-            return "データなし"
+            return String(localized: "データなし")
         }
         return format(minimum.value, digits: 1)
     }
 
     private var formattedIlluminance: String {
         if evaluation.requiresAmbientIlluminanceMeasurement {
-            return "環境光モードで測定"
+            return String(localized: "環境光モードで測定")
         }
         guard let illuminance = evaluation.illuminance else {
-            return "データなし"
+            return String(localized: "データなし")
         }
         return "\(format(illuminance, digits: 0)) lx"
     }
@@ -130,11 +130,11 @@ struct PrintingViewingConditionEvaluationView: View {
     private var illuminanceRequirement: String {
         switch evaluation.illuminanceClassification {
         case .displayComparison:
-            "ディスプレイとの比較に適している"
+            String(localized: "ディスプレイとの比較に適している")
         case .generalOffice, .tooDark:
-            "事務所衛生基準規則：一般的な事務作業 300 lx以上"
+            String(localized: "事務所衛生基準規則：一般的な事務作業 300 lx以上")
         case .printComparison, .tooBright, .unavailable:
-            "基準 \(formattedIlluminanceRange)"
+            String(localized: "基準 \(formattedIlluminanceRange)")
         }
     }
 
@@ -154,9 +154,9 @@ enum PrintingViewingConditionSummaryText {
            summaryStatus != .unavailable {
             switch evaluation.illuminanceClassification {
             case .tooDark:
-                return "数値基準外（事務所衛生基準規則第10条に不適）"
+                return String(localized: "数値基準外（事務所衛生基準規則第10条に不適）")
             case .displayComparison, .generalOffice, .tooBright:
-                return "数値基準外（印刷物同士の比較に不適）"
+                return String(localized: "数値基準外（印刷物同士の比較に不適）")
             case .printComparison, .unavailable:
                 break
             }
@@ -164,23 +164,23 @@ enum PrintingViewingConditionSummaryText {
 
         return switch (evaluation.mode, summaryStatus) {
         case (.ambient, .meets):
-            "測定した数値項目が基準範囲内"
+            String(localized: "測定した数値項目が基準範囲内")
         case (.ambient, .caution),
              (.ambient, .doesNotMeet),
              (.ambient, .fails):
-            "数値基準外"
+            String(localized: "数値基準外")
         case (.ambient, .unavailable):
-            "数値基準を判定できません"
+            String(localized: "数値基準を判定できません")
         case (.emissive, .meets):
-            "光源の測定した数値項目が基準範囲内"
+            String(localized: "光源の測定した数値項目が基準範囲内")
         case (.emissive, .caution),
              (.emissive, .doesNotMeet),
              (.emissive, .fails):
-            "光源の数値基準外"
+            String(localized: "光源の数値基準外")
         case (.emissive, .unavailable):
-            "光源の数値基準を判定できません"
+            String(localized: "光源の数値基準を判定できません")
         case (.reflectance, _):
-            "数値基準を判定できません"
+            String(localized: "数値基準を判定できません")
         }
     }
 }
@@ -209,27 +209,27 @@ struct ISO3664NumericEvaluationView: View {
                 Divider()
 
                 PrintingCriterionRow(
-                    label: "TM-30-15 Rf",
+                    label: String(localized: "TM-30-15 Rf"),
                     value: formattedFidelityIndex,
-                    requirement: "基準 ≥ \(format(ISO3664NumericEvaluator.minimumFidelityIndex, digits: 1))",
+                    requirement: String(localized: "基準 ≥ \(format(ISO3664NumericEvaluator.minimumFidelityIndex, digits: 1))"),
                     status: evaluation.fidelityStatus
                 )
                 PrintingCriterionRow(
-                    label: "平均演色評価数 Ra",
+                    label: String(localized: "平均演色評価数 Ra"),
                     value: formattedAverageColorRenderingIndex,
-                    requirement: "基準 > \(format(ISO3664NumericEvaluator.minimumAverageColorRenderingIndexExclusive, digits: 1))",
+                    requirement: String(localized: "基準 > \(format(ISO3664NumericEvaluator.minimumAverageColorRenderingIndexExclusive, digits: 1))"),
                     status: evaluation.averageColorRenderingStatus
                 )
                 PrintingCriterionRow(
-                    label: "P1・P2観察条件",
-                    value: "判定しない",
-                    requirement: "UV条件を測定できないため",
+                    label: String(localized: "P1・P2観察条件"),
+                    value: String(localized: "判定しない"),
+                    requirement: String(localized: "UV条件を測定できないため"),
                     status: nil
                 )
                 PrintingCriterionRow(
-                    label: "P3・P4観察条件",
+                    label: String(localized: "P3・P4観察条件"),
                     value: formattedIlluminanceCondition,
-                    requirement: "P3 1,500〜2,500 lx／P4 375〜625 lx（照度のみ）",
+                    requirement: String(localized: "P3 1,500〜2,500 lx／P4 375〜625 lx（照度のみ）"),
                     status: evaluation.illuminanceStatus
                 )
             }
@@ -238,35 +238,37 @@ struct ISO3664NumericEvaluationView: View {
     }
 
     private var summaryTitle: String {
-        let prefix = evaluation.mode == .ambient ? "測定した数値項目" : "演色性の測定項目"
+        let prefix = evaluation.mode == .ambient
+            ? String(localized: "測定した数値項目")
+            : String(localized: "演色性の測定項目")
         return switch evaluation.summaryStatus {
         case .meets:
-            "\(prefix)が基準範囲内"
+            String(localized: "\(prefix)が基準範囲内")
         case .caution, .doesNotMeet, .fails:
-            "\(prefix)が基準範囲外"
+            String(localized: "\(prefix)が基準範囲外")
         case .unavailable:
-            "\(prefix)を判定できません"
+            String(localized: "\(prefix)を判定できません")
         }
     }
 
     private var summaryDetail: String {
         if evaluation.requiresAmbientIlluminanceMeasurement {
-            "RfとRaを評価しています。P3・P4の照度は環境光モードで測定してください。完全な規格適合判定ではありません。"
+            String(localized: "RfとRaを評価しています。P3・P4の照度は環境光モードで測定してください。完全な規格適合判定ではありません。")
         } else {
-            "Rf、RaとP3・P4の照度範囲のみを評価しています。完全な規格適合判定ではありません。"
+            String(localized: "Rf、RaとP3・P4の照度範囲のみを評価しています。完全な規格適合判定ではありません。")
         }
     }
 
     private var formattedFidelityIndex: String {
         guard let value = evaluation.fidelityIndex else {
-            return "データなし"
+            return String(localized: "データなし")
         }
         return format(value, digits: 1)
     }
 
     private var formattedAverageColorRenderingIndex: String {
         guard let value = evaluation.averageColorRenderingIndex else {
-            return "データなし"
+            return String(localized: "データなし")
         }
         return format(value, digits: 1)
     }
@@ -277,15 +279,15 @@ struct ISO3664NumericEvaluationView: View {
         } ?? ""
         return switch evaluation.illuminanceCondition {
         case .p3:
-            "P3照度範囲\(measuredValue)"
+            String(localized: "P3照度範囲\(measuredValue)")
         case .p4:
-            "P4照度範囲\(measuredValue)"
+            String(localized: "P4照度範囲\(measuredValue)")
         case .outside:
-            "P3・P4照度範囲外\(measuredValue)"
+            String(localized: "P3・P4照度範囲外\(measuredValue)")
         case .unavailable:
             evaluation.requiresAmbientIlluminanceMeasurement
-                ? "環境光モードで測定"
-                : "データなし"
+                ? String(localized: "環境光モードで測定")
+                : String(localized: "データなし")
         }
     }
 
@@ -365,15 +367,15 @@ private extension PrintingViewingConditionEvaluation.Status {
     var accessibilityDescription: String {
         switch self {
         case .meets:
-            "基準内"
+            String(localized: "基準内")
         case .caution:
-            "注意"
+            String(localized: "注意")
         case .doesNotMeet:
-            "基準外"
+            String(localized: "基準外")
         case .fails:
-            "不適合"
+            String(localized: "不適合")
         case .unavailable:
-            "判定不可"
+            String(localized: "判定不可")
         }
     }
 }

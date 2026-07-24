@@ -32,18 +32,38 @@ struct SpotreadIssue: Equatable, Sendable {
     let recoveryAction: SpotreadRecoveryAction
     let rawText: String
 
+    init(
+        kind: SpotreadIssueKind,
+        title: LocalizedStringResource,
+        instruction: LocalizedStringResource,
+        systemImage: String,
+        recoveryAction: SpotreadRecoveryAction,
+        rawText: String
+    ) {
+        self.kind = kind
+        self.title = String(localized: title)
+        self.instruction = String(localized: instruction)
+        self.systemImage = systemImage
+        self.recoveryAction = recoveryAction
+        self.rawText = rawText
+    }
+
     var recoveryButtonTitle: String {
         switch recoveryAction {
         case .resumeMeasurementLoop:
-            kind == .communicationFailure ? "接続後に続行" : "測定待機へ戻る"
+            kind == .communicationFailure
+                ? String(localized: "接続後に続行")
+                : String(localized: "測定待機へ戻る")
         case .retryCalibration:
-            "キャリブレーションを再試行"
+            String(localized: "キャリブレーションを再試行")
         case .retryOperation:
-            "操作を再試行"
+            String(localized: "操作を再試行")
         case .acknowledgeConfiguration:
-            kind == .outputParsingFailure ? "測定待機へ戻る" : "設定を直しました"
+            kind == .outputParsingFailure
+                ? String(localized: "測定待機へ戻る")
+                : String(localized: "設定を直しました")
         case .restart:
-            "spotreadを再起動"
+            String(localized: "spotreadを再起動")
         }
     }
 
@@ -283,7 +303,7 @@ extension SpotreadIssue {
 
     static func wrongConfiguration(reason: String, rawText: String) -> SpotreadIssue {
         let normalized = reason.lowercased()
-        let instruction: String
+        let instruction: LocalizedStringResource
 
         if normalized.contains("ambient") {
             instruction = "環境光アダプターを取り付け、センサーを環境光測定位置に合わせてください。"
@@ -353,8 +373,8 @@ extension SpotreadIssue {
 
     static func fatal(rawText: String) -> SpotreadIssue {
         let normalized = rawText.lowercased()
-        let title: String
-        let instruction: String
+        let title: LocalizedStringResource
+        let instruction: LocalizedStringResource
 
         if normalized.contains("defaulting to emission")
             || normalized.contains("defaulting to transmission") {
@@ -393,8 +413,8 @@ extension SpotreadIssue {
     }
 
     private static func measurementFailure(
-        title: String,
-        instruction: String,
+        title: LocalizedStringResource,
+        instruction: LocalizedStringResource,
         rawText: String
     ) -> SpotreadIssue {
         SpotreadIssue(
@@ -411,7 +431,7 @@ extension SpotreadIssue {
 extension SpotreadNotice {
     static func from(rawText: String) -> SpotreadNotice {
         let normalized = rawText.lowercased()
-        let message: String
+        let message: LocalizedStringResource
 
         if normalized.contains("high resolution") || normalized.contains("high res") {
             message = "この測定器は高解像度モードに対応していないため、標準解像度で測定します。"
@@ -424,6 +444,7 @@ extension SpotreadNotice {
             message = "spotreadの指定の一部が測定器に対応していないため、その指定を無効にしました。"
         }
 
-        return SpotreadNotice(message: message, rawText: rawText)
+        return SpotreadNotice(message: String(localized: message), rawText: rawText)
     }
 }
+import Foundation

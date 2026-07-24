@@ -12,7 +12,7 @@ enum SpotreadInteractionDirection: Equatable, Sendable {
         case .output:
             "spotread → APP"
         case .lifecycle:
-            "プロセス"
+            String(localized: "プロセス")
         }
     }
 }
@@ -25,11 +25,11 @@ enum SpotreadInputDeliveryState: Equatable, Sendable {
     var label: String {
         switch self {
         case .pending:
-            "送信中"
+            String(localized: "送信中")
         case .sent:
-            "送信済み"
+            String(localized: "送信済み")
         case .failed:
-            "送信失敗"
+            String(localized: "送信失敗")
         }
     }
 }

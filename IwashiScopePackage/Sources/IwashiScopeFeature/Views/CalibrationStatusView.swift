@@ -212,103 +212,118 @@ struct CalibrationStatusView: View {
         switch session.phase {
         case .idle:
             StatusPresentation(
-                title: "待機中",
-                detail: "測定モードを選択してください。",
+                title: localized("待機中"),
+                detail: localized("測定モードを選択してください。"),
                 systemImage: "pause.fill",
                 color: .secondary
             )
         case .launching:
             StatusPresentation(
-                title: "spotreadを起動中",
-                detail: "測定器への接続と初期化を待っています。",
+                title: localized("spotreadを起動中"),
+                detail: localized("測定器への接続と初期化を待っています。"),
                 systemImage: "ellipsis",
                 color: .blue
             )
         case .calibrationRecommended:
             StatusPresentation(
-                title: "キャリブレーションしてください",
-                detail: "測定前に測定器をキャリブレーションします。開始後、表示される手順に従ってください。",
+                title: localized("キャリブレーションしてください"),
+                detail: localized("測定前に測定器をキャリブレーションします。開始後、表示される手順に従ってください。"),
                 systemImage: "scope",
                 color: .orange
             )
         case .awaitingCalibrationSetup:
             StatusPresentation(
-                title: session.calibrationPrompt?.title ?? "キャリブレーションの準備",
-                detail: session.calibrationPrompt?.instruction ?? "測定器を校正位置へ移動してください。",
+                title: session.calibrationPrompt?.title ?? localized("キャリブレーションの準備"),
+                detail: calibrationSetupDetail,
                 systemImage: session.calibrationPrompt?.systemImage ?? "scope",
                 color: .orange
             )
         case .waitingForInstrument:
             StatusPresentation(
-                title: session.calibrationPrompt?.title ?? "測定器を操作してください",
-                detail: session.calibrationPrompt?.instruction ?? "測定器のスイッチを押してください。",
+                title: session.calibrationPrompt?.title ?? localized("測定器を操作してください"),
+                detail: session.calibrationPrompt?.instruction ?? localized("測定器のスイッチを押してください。"),
                 systemImage: session.calibrationPrompt?.systemImage ?? "hand.tap",
                 color: .orange
             )
         case .calibrating:
             StatusPresentation(
-                title: "キャリブレーション中",
-                detail: "測定器から完了通知が返るまで、そのままお待ちください。",
+                title: localized("キャリブレーション中"),
+                detail: localized("測定器から完了通知が返るまで、そのままお待ちください。"),
                 systemImage: "hourglass",
                 color: .blue
             )
         case .ready:
             StatusPresentation(
-                title: "測定待機中",
-                detail: "測定対象に測定器を置き、測定ボタンまたは測定器本体のスイッチを押してください。",
+                title: localized("測定待機中"),
+                detail: localized("測定対象に測定器を置き、測定ボタンまたは測定器本体のスイッチを押してください。"),
                 systemImage: "checkmark.circle.fill",
                 color: .green
             )
         case .measuring:
             StatusPresentation(
-                title: "測定中",
-                detail: "スペクトルと測色値を取得しています。測定器を動かさないでください。",
+                title: localized("測定中"),
+                detail: localized("スペクトルと測色値を取得しています。測定器を動かさないでください。"),
                 systemImage: "waveform.path.ecg",
                 color: .blue
             )
         case .recovering:
             StatusPresentation(
-                title: "spotreadの応答を待っています",
-                detail: "エラー処理が終わるまで測定器を操作しないでください。応答が戻らない場合は自動的に強制再起動します。",
+                title: localized("spotreadの応答を待っています"),
+                detail: localized("エラー処理が終わるまで測定器を操作しないでください。応答が戻らない場合は自動的に強制再起動します。"),
                 systemImage: "arrow.clockwise.circle",
                 color: .blue
             )
         case .retryAvailable:
             StatusPresentation(
-                title: session.activeIssue?.title ?? "操作を再試行できます",
-                detail: session.activeIssue?.instruction ?? "測定器の状態を確認してから再試行してください。",
+                title: session.activeIssue?.title ?? localized("操作を再試行できます"),
+                detail: session.activeIssue?.instruction ?? localized("測定器の状態を確認してから再試行してください。"),
                 systemImage: session.activeIssue?.systemImage ?? "arrow.clockwise.circle",
                 color: .orange
             )
         case .configurationRequired:
             StatusPresentation(
-                title: session.activeIssue?.title ?? "測定器の設定を確認してください",
-                detail: session.activeIssue?.instruction ?? "測定モードに合う位置とアダプターへ変更してください。",
+                title: session.activeIssue?.title ?? localized("測定器の設定を確認してください"),
+                detail: session.activeIssue?.instruction ?? localized("測定モードに合う位置とアダプターへ変更してください。"),
                 systemImage: session.activeIssue?.systemImage ?? "dial.medium",
                 color: .orange
             )
         case .workspace:
             StatusPresentation(
-                title: "ワークスペースを表示中",
-                detail: "保存された測定結果を表示しています。測定器には接続していません。",
+                title: localized("ワークスペースを表示中"),
+                detail: localized("保存された測定結果を表示しています。測定器には接続していません。"),
                 systemImage: "folder",
                 color: .blue
             )
         case .stopped:
             StatusPresentation(
-                title: "spotreadは停止しました",
-                detail: "再起動するか、別の測定モードを選択してください。",
+                title: localized("spotreadは停止しました"),
+                detail: localized("再起動するか、別の測定モードを選択してください。"),
                 systemImage: "stop.circle",
                 color: .secondary
             )
         case .failed:
             StatusPresentation(
-                title: session.activeIssue?.title ?? "spotreadを実行できません",
-                detail: session.activeIssue?.instruction ?? session.errorMessage ?? "不明なエラーが発生しました。",
+                title: session.activeIssue?.title ?? localized("spotreadを実行できません"),
+                detail: session.activeIssue?.instruction ?? session.errorMessage ?? localized("不明なエラーが発生しました。"),
                 systemImage: session.activeIssue?.systemImage ?? "exclamationmark.triangle.fill",
                 color: .red
             )
         }
+    }
+
+    private var calibrationSetupDetail: String {
+        let instruction = session.calibrationPrompt?.instruction
+            ?? localized("測定器を校正位置へ移動してください。")
+        return String(
+            localized: """
+            \(instruction)
+            設置後、測定器を動かさず8〜10秒程度待ってからキャリブレーションを開始してください。
+            """
+        )
+    }
+
+    private func localized(_ resource: LocalizedStringResource) -> String {
+        String(localized: resource)
     }
 }
 
@@ -320,15 +335,15 @@ private struct InstrumentMetadataView: View {
     var body: some View {
         VStack(spacing: 6) {
             InstrumentMetadataRow(
-                label: "測定器名（シリアル）",
+                label: String(localized: "測定器名（シリアル）"),
                 value: instrumentNameAndSerial
             )
             InstrumentMetadataRow(
-                label: "波長範囲",
+                label: String(localized: "波長範囲"),
                 value: wavelengthRange
             )
             InstrumentMetadataRow(
-                label: "データ点数",
+                label: String(localized: "データ点数"),
                 value: dataPointCount
             )
         }
@@ -345,20 +360,20 @@ private struct InstrumentMetadataView: View {
         case let (nil, serialNumber?):
             "S/N \(serialNumber)"
         case (nil, nil):
-            isWorkspace ? "保存データなし" : "取得中…"
+            isWorkspace ? String(localized: "保存データなし") : String(localized: "取得中…")
         }
     }
 
     private var wavelengthRange: String {
         guard let measurement else {
-            return isWorkspace ? "保存データなし" : "測定後に表示"
+            return isWorkspace ? String(localized: "保存データなし") : String(localized: "測定後に表示")
         }
         return "\(format(measurement.spectrumStart))–\(format(measurement.spectrumEnd)) nm"
     }
 
     private var dataPointCount: String {
         guard let measurement else {
-            return isWorkspace ? "保存データなし" : "測定後に表示"
+            return isWorkspace ? String(localized: "保存データなし") : String(localized: "測定後に表示")
         }
         return "\(measurement.spectrum.count)"
     }

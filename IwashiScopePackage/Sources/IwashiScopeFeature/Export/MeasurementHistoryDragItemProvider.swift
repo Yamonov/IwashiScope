@@ -4,35 +4,45 @@ import UniformTypeIdentifiers
 enum MeasurementHistoryDragItemProvider {
     static let aseFileName = "IwashiScope-Lab-Swatches.ase"
 
+    @MainActor
     static func make(
-        internalIdentifier: String,
+        entryIDs: Set<MeasurementHistoryEntry.ID>,
         swatches: [AdobeLabSwatch],
         exportRequest: MeasurementHistoryDragExportRequest? = nil
     ) -> NSItemProvider {
-        let provider = NSItemProvider()
-        let internalIdentifierData = Data(internalIdentifier.utf8)
+        let preparedExport = exportRequest.map(prepareExport)
+        let provider: NSItemProvider
+        if exportRequest?.mode != .reflectance,
+           case .success(let folderURL) = preparedExport,
+           let folderProvider = NSItemProvider(contentsOf: folderURL) {
+            provider = folderProvider
+        } else {
+            provider = NSItemProvider()
+        }
 
-        // The plain-text identifier is only for IwashiScope's insertion drop
-        // zones. Hiding it from other processes prevents Finder from treating
-        // the card as a dragged text clipping.
+        // The plain-text representation is consumed only by IwashiScope's
+        // reordering drop targets. Own-process visibility prevents Finder
+        // from treating the card as a dragged text clipping.
         provider.registerDataRepresentation(
-            forTypeIdentifier: UTType.plainText.identifier,
+            forTypeIdentifier: MeasurementHistoryDragPayload.contentType.identifier,
             visibility: .ownProcess
         ) { completionHandler in
-            completionHandler(internalIdentifierData, nil)
+            do {
+                completionHandler(
+                    try MeasurementHistoryDragPayload.encode(entryIDs: entryIDs),
+                    nil
+                )
+            } catch {
+                completionHandler(nil, error)
+            }
             return nil
         }
 
-        if let exportRequest {
+        if let exportRequest, let preparedExport {
             if exportRequest.mode == .reflectance {
                 registerReflectanceSwatch(
                     on: provider,
-                    request: exportRequest
-                )
-            } else {
-                registerExportFolder(
-                    on: provider,
-                    request: exportRequest
+                    preparedExport: preparedExport
                 )
             }
         }
@@ -75,116 +85,83 @@ enum MeasurementHistoryDragItemProvider {
 
     private static func registerReflectanceSwatch(
         on provider: NSItemProvider,
-        request: MeasurementHistoryDragExportRequest
+        preparedExport: Result<URL, any Error>
     ) {
-        let swatchEntries = request.entries.filter {
-            $0.measurement.lab != nil
-        }
-        let fileName = MeasurementExportFileNamer.combinedSwatchFileName(
-            for: swatchEntries,
-            orderedEntries: request.orderedEntries
-        )
-        provider.suggestedName = fileName
+        provider.suggestedName = try? preparedExport.get().lastPathComponent
         provider.registerFileRepresentation(
             for: .adobeSwatchExchange,
             visibility: .all,
             openInPlace: false
         ) { completionHandler in
             let progress = Progress(totalUnitCount: 1)
-            let completion = MeasurementHistoryFileRepresentationCompletion(
-                completionHandler
-            )
-
-            Task { @MainActor in
-                do {
-                    let files = try MeasurementExporter.dragFiles(
-                        request: request
-                    )
-                    guard files.count == 1,
-                          let swatchFile = files.first,
-                          swatchFile.name.hasSuffix(".ase") else {
-                        throw MeasurementExportError.noExportableData
-                    }
-
-                    let temporaryDirectory = FileManager.default.temporaryDirectory
-                        .appendingPathComponent(
-                            "IwashiScope-Drag-\(UUID().uuidString)",
-                            isDirectory: true
-                        )
-                    try FileManager.default.createDirectory(
-                        at: temporaryDirectory,
-                        withIntermediateDirectories: true
-                    )
-                    let fileURL = temporaryDirectory.appendingPathComponent(
-                        swatchFile.name,
-                        isDirectory: false
-                    )
-                    try swatchFile.data.write(to: fileURL, options: .atomic)
-
-                    progress.completedUnitCount = 1
-                    completion.call(fileURL, false, nil)
-                } catch {
-                    completion.call(nil, false, error)
-                }
-            }
-
+            complete(preparedExport, progress: progress, using: completionHandler)
             return progress
         }
     }
 
-    private static func registerExportFolder(
-        on provider: NSItemProvider,
+    @MainActor
+    private static func prepareExport(
         request: MeasurementHistoryDragExportRequest
-    ) {
-        let folderName = exportFolderName(for: request)
-        provider.suggestedName = folderName
-        provider.registerFileRepresentation(
-            for: .folder,
-            visibility: .all,
-            openInPlace: false
-        ) { completionHandler in
-            let progress = Progress(totalUnitCount: 1)
-            let completion = MeasurementHistoryFileRepresentationCompletion(
-                completionHandler
-            )
-
-            Task { @MainActor in
-                do {
-                    let files = try MeasurementExporter.dragFiles(
-                        request: request
-                    )
-                    guard files.isEmpty == false else {
-                        throw MeasurementExportError.noExportableData
-                    }
-
-                    let temporaryRoot = FileManager.default.temporaryDirectory
-                        .appendingPathComponent(
-                            "IwashiScope-Drag-\(UUID().uuidString)",
-                            isDirectory: true
-                        )
-                    let folderURL = temporaryRoot.appendingPathComponent(
-                        folderName,
-                        isDirectory: true
-                    )
-                    try FileManager.default.createDirectory(
-                        at: folderURL,
-                        withIntermediateDirectories: true
-                    )
-                    for file in files {
-                        try file.data.write(
-                            to: folderURL.appendingPathComponent(file.name),
-                            options: .atomic
-                        )
-                    }
-
-                    progress.completedUnitCount = 1
-                    completion.call(folderURL, false, nil)
-                } catch {
-                    completion.call(nil, false, error)
-                }
+    ) -> Result<URL, any Error> {
+        Result {
+            let files = try MeasurementExporter.dragFiles(request: request)
+            guard files.isEmpty == false else {
+                throw MeasurementExportError.noExportableData
             }
 
-            return progress
+            let temporaryRoot = FileManager.default.temporaryDirectory
+                .appendingPathComponent(
+                    "IwashiScope-Drag-\(UUID().uuidString)",
+                    isDirectory: true
+                )
+            try FileManager.default.createDirectory(
+                at: temporaryRoot,
+                withIntermediateDirectories: true
+            )
+
+            if request.mode == .reflectance {
+                guard files.count == 1,
+                      let swatchFile = files.first,
+                      swatchFile.name.hasSuffix(".ase") else {
+                    throw MeasurementExportError.noExportableData
+                }
+                let fileURL = temporaryRoot.appendingPathComponent(
+                    swatchFile.name,
+                    isDirectory: false
+                )
+                try swatchFile.data.write(to: fileURL, options: .atomic)
+                return fileURL
+            }
+
+            let folderURL = temporaryRoot.appendingPathComponent(
+                exportFolderName(for: request),
+                isDirectory: true
+            )
+            try FileManager.default.createDirectory(
+                at: folderURL,
+                withIntermediateDirectories: true
+            )
+            for file in files {
+                try file.data.write(
+                    to: folderURL.appendingPathComponent(file.name),
+                    options: .atomic
+                )
+            }
+            return folderURL
+        }
+    }
+
+    private static func complete(
+        _ preparedExport: Result<URL, any Error>,
+        progress: Progress,
+        using completionHandler: @escaping (URL?, Bool, (any Error)?) -> Void
+    ) {
+        switch preparedExport {
+        case .success(let url):
+            progress.completedUnitCount = 1
+            completionHandler(url, false, nil)
+        case .failure(let error):
+            completionHandler(nil, false, error)
         }
     }
 
@@ -200,21 +177,5 @@ enum MeasurementHistoryDragItemProvider {
             return "IwashiScope-Export"
         }
         return "\(baseName)-Export"
-    }
-}
-
-private final class MeasurementHistoryFileRepresentationCompletion: @unchecked Sendable {
-    private let handler: (URL?, Bool, (any Error)?) -> Void
-
-    init(_ handler: @escaping (URL?, Bool, (any Error)?) -> Void) {
-        self.handler = handler
-    }
-
-    func call(
-        _ url: URL?,
-        _ isInPlace: Bool,
-        _ error: (any Error)?
-    ) {
-        handler(url, isInPlace, error)
     }
 }

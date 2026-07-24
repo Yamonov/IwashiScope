@@ -217,9 +217,10 @@
 				};
 			};
 			buildConfigurationList = 8BC265572DEDD3F400F279A4 /* Build configuration list for PBXProject "IwashiScope" */;
-			developmentRegion = en;
+			developmentRegion = ja;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				ja,
 				en,
 				Base,
 			);

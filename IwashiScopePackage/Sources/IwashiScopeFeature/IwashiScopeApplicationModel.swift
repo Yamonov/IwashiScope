@@ -16,6 +16,10 @@ public final class IwashiScopeApplicationModel {
         self.session = MeasurementSession(historyStore: historyStore)
     }
 
+    public func prepareForApplicationTermination() {
+        session.stopForApplicationTermination()
+    }
+
     func requestWorkspaceSave() {
         workspaceMenuRequest = WorkspaceMenuRequest(operation: .save)
     }

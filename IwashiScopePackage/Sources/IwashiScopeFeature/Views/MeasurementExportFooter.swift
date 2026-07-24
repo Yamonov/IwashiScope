@@ -70,17 +70,17 @@ struct MeasurementExportFooter: View {
     private var reflectanceOptions: some View {
         VStack(alignment: .leading, spacing: 5) {
             exportToggle(
-                "スウォッチ",
+                String(localized: "スウォッチ"),
                 isOn: $options.includesSwatch,
                 isAvailable: availability.hasLab
             )
             exportToggle(
-                "スペクトル画像（幅3,000 px PNG）",
+                String(localized: "スペクトル画像（幅3,000 px PNG）"),
                 isOn: $options.includesSpectrumImage,
                 isAvailable: availability.hasSpectrum
             )
             exportToggle(
-                "スペクトルCSV",
+                String(localized: "スペクトルCSV"),
                 isOn: $options.includesCSV,
                 isAvailable: availability.hasSpectrum
             )
@@ -90,20 +90,20 @@ struct MeasurementExportFooter: View {
     private var lightingOptions: some View {
         VStack(alignment: .leading, spacing: 5) {
             exportToggle(
-                "スペクトル画像（幅3,000 px PNG）",
+                String(localized: "スペクトル画像（幅3,000 px PNG）"),
                 isOn: $options.includesSpectrumImage,
                 isAvailable: availability.hasSpectrum
             )
 
             HStack(spacing: 18) {
                 exportToggle(
-                    "D50線",
+                    String(localized: "D50線"),
                     isOn: $options.includesD50Reference,
                     isAvailable: availability.hasSpectrum
                         && options.includesSpectrumImage
                 )
                 exportToggle(
-                    "D65線",
+                    String(localized: "D65線"),
                     isOn: $options.includesD65Reference,
                     isAvailable: availability.hasSpectrum
                         && options.includesSpectrumImage
@@ -113,17 +113,17 @@ struct MeasurementExportFooter: View {
             .opacity(options.includesSpectrumImage ? 1 : 0.45)
 
             exportToggle(
-                "CRI画像（幅3,000 px PNG）",
+                String(localized: "CRI画像（幅3,000 px PNG）"),
                 isOn: $options.includesCRIImage,
                 isAvailable: availability.hasCRI
             )
             exportToggle(
-                "TM-30-15画像（幅3,000 px PNG）",
+                String(localized: "TM-30-15画像（幅3,000 px PNG）"),
                 isOn: $options.includesTM30Image,
                 isAvailable: availability.hasTM30
             )
             exportToggle(
-                "CSV（スペクトル、CRI、TM-30-15）",
+                String(localized: "CSV（スペクトル、CRI、TM-30-15）"),
                 isOn: $options.includesCSV,
                 isAvailable: availability.selectionCount > 0
             )

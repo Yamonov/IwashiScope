@@ -274,6 +274,33 @@ final class MeasurementHistoryStore {
     }
 
     @discardableResult
+    func move(
+        entryIDs: Set<MeasurementHistoryEntry.ID>,
+        in mode: MeasurementMode,
+        toInsertionIndex insertionIndex: Int
+    ) -> Bool {
+        guard entryIDs.isEmpty == false,
+              let orderedIDs = presentationOrderByMode[mode],
+              (0...orderedIDs.count).contains(insertionIndex) else {
+            return false
+        }
+
+        let movingIDs = orderedIDs.filter { entryIDs.contains($0) }
+        guard movingIDs.count == entryIDs.count else { return false }
+
+        let movingCountBeforeInsertion = orderedIDs[..<insertionIndex]
+            .filter(entryIDs.contains)
+            .count
+        let adjustedInsertionIndex = insertionIndex - movingCountBeforeInsertion
+        var reorderedIDs = orderedIDs.filter { entryIDs.contains($0) == false }
+        reorderedIDs.insert(contentsOf: movingIDs, at: adjustedInsertionIndex)
+
+        guard reorderedIDs != orderedIDs else { return false }
+        presentationOrderByMode[mode] = reorderedIDs
+        return true
+    }
+
+    @discardableResult
     func removeSelectedEntry(for mode: MeasurementMode) -> Bool {
         removeSelectedEntries(for: mode) > 0
     }

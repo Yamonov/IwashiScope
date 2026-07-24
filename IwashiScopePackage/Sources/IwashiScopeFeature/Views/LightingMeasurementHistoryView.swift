@@ -4,12 +4,12 @@ import SwiftUI
 
 enum LightingMeasurementHistoryCardMetrics {
     static let size = MeasurementHistoryCardMetrics.size
-    static let spectrumHeight = 65.0
+    static let spectrumHeight = 44.0
     static let dividerHeight = 1.0
-    static let criHeight = 66.0
-    static let titleAreaHeight = 32.0
-    static let titleFieldHeight = 24.0
-    static let titleFieldBottomPadding = 4.0
+    static let criHeight = 44.0
+    static let titleAreaHeight = 21.0
+    static let titleFieldHeight = 18.0
+    static let titleFieldBottomPadding = 2.0
 
     static var contentHeight: Double {
         spectrumHeight + dividerHeight + criHeight + titleAreaHeight
@@ -19,6 +19,7 @@ enum LightingMeasurementHistoryCardMetrics {
 struct LightingMeasurementHistoryView: View {
     private static let cardSpacing = 16.0
     private static let dropZoneWidth = 12.0
+    private static let trailingDropExtension = 64.0
 
     @State private var dragState: MeasurementHistoryDragState?
     @State private var dropTarget: MeasurementHistoryDropTarget?
@@ -55,7 +56,7 @@ struct LightingMeasurementHistoryView: View {
                 emptyState
             } else {
                 LazyVGrid(columns: columns, alignment: .leading, spacing: Self.cardSpacing) {
-                    ForEach(entries) { entry in
+                    ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
                         historyCard(entry)
                             .padding(.horizontal, Self.dropZoneWidth)
                             .contextMenu {
@@ -65,22 +66,23 @@ struct LightingMeasurementHistoryView: View {
                                     Label("名前を付ける", systemImage: "pencil")
                                 }
                             }
-                            .overlay(alignment: .leading) {
-                                insertionDropZone(
-                                    entryID: entry.id,
-                                    placement: .before,
-                                    width: Self.dropZoneWidth
+                            .overlay {
+                                insertionIndicator(
+                                    itemIndex: index,
+                                    itemWidth: cardItemWidth
                                 )
                             }
-                            .overlay(alignment: .trailing) {
-                                insertionDropZone(
-                                    entryID: entry.id,
-                                    placement: .after,
-                                    width: Self.dropZoneWidth
+                            .contentShape(Rectangle())
+                            .background(alignment: .leading) {
+                                dropArea(
+                                    itemIndex: index,
+                                    itemCount: entries.count,
+                                    itemWidth: cardItemWidth
                                 )
                             }
                     }
                 }
+                .padding(.horizontal, Self.dropZoneWidth)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 4)
                 .animation(.snappy(duration: 0.28), value: entries.map(\.id))
@@ -233,12 +235,11 @@ struct LightingMeasurementHistoryView: View {
         }
         focusHistory()
 
-        dragState = MeasurementHistoryDragState(
-            entryIDs: historyStore.selectedEntryIDs(for: mode)
-        )
+        let selectedEntryIDs = historyStore.selectedEntryIDs(for: mode)
+        dragState = MeasurementHistoryDragState(entryIDs: selectedEntryIDs)
         let selectedEntries = historyStore.selectedEntries(for: mode)
         return MeasurementHistoryDragItemProvider.make(
-            internalIdentifier: entryID.uuidString,
+            entryIDs: selectedEntryIDs,
             swatches: [],
             exportRequest: MeasurementHistoryDragExportRequest(
                 mode: mode,
@@ -248,37 +249,55 @@ struct LightingMeasurementHistoryView: View {
         )
     }
 
-    private func insertionDropZone(
-        entryID: MeasurementHistoryEntry.ID,
-        placement: MeasurementHistoryDropPlacement,
-        width: Double
+    private func insertionIndicator(
+        itemIndex: Int,
+        itemWidth: Double
     ) -> some View {
-        ZStack {
-            Color.clear
-                .contentShape(Rectangle())
-
-            if dropTarget == MeasurementHistoryDropTarget(
-                entryID: entryID,
-                placement: placement
-            ) {
-                MeasurementHistoryInsertionIndicator(placement: placement)
+        ZStack(alignment: .leading) {
+            if dropTarget?.itemIndex == itemIndex,
+               dropTarget?.insertionIndex == itemIndex {
+                MeasurementHistoryInsertionIndicator()
+            }
+            if dropTarget?.itemIndex == itemIndex,
+               dropTarget?.insertionIndex == itemIndex + 1 {
+                MeasurementHistoryInsertionIndicator()
+                    .offset(
+                        x: itemWidth
+                            - MeasurementHistoryInsertionIndicatorMetrics.width
+                    )
             }
         }
-        .frame(width: width)
-        .frame(maxHeight: .infinity)
-        .contentShape(Rectangle())
-        .onDrop(
-            of: [.plainText],
-            delegate: MeasurementHistoryDropDelegate(
-                targetEntryID: entryID,
-                placement: placement,
-                historyStore: historyStore,
-                dragState: $dragState,
-                dropTarget: $dropTarget
-            )
-        )
-        .animation(.easeOut(duration: 0.14), value: dropTarget)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .allowsHitTesting(false)
         .accessibilityHidden(true)
+    }
+
+    private func dropArea(
+        itemIndex: Int,
+        itemCount: Int,
+        itemWidth: Double
+    ) -> some View {
+        Color.clear
+            .frame(
+                width: itemWidth + (
+                    itemIndex == itemCount - 1
+                        ? Self.trailingDropExtension
+                        : 0
+                )
+            )
+            .contentShape(Rectangle())
+            .onDrop(
+                of: [MeasurementHistoryDragPayload.contentType],
+                delegate: MeasurementHistoryDropDelegate(
+                    mode: mode,
+                    itemIndex: itemIndex,
+                    itemCount: itemCount,
+                    itemWidth: itemWidth,
+                    historyStore: historyStore,
+                    dragState: $dragState,
+                    dropTarget: $dropTarget
+                )
+            )
     }
 
     private func deleteSelectedEntries() {
@@ -413,9 +432,9 @@ private struct LightingMeasurementHistoryCard: View {
             onNavigate: onNavigateRenaming,
             onCancel: onCancelRenaming
         )
-        .padding(.horizontal, 5)
+        .padding(.horizontal, 4)
         .frame(
-            width: LightingMeasurementHistoryCardMetrics.size.width - 20,
+            width: LightingMeasurementHistoryCardMetrics.size.width - 12,
             height: LightingMeasurementHistoryCardMetrics.titleFieldHeight
         )
         .background(Color.white.opacity(0.5), in: .rect(cornerRadius: 6))
@@ -430,19 +449,20 @@ private struct LightingMeasurementHistoryCard: View {
     }
 
     private var accessibilityLabel: String {
-        let name = entry.name.map { "タイトル \($0)" } ?? "タイトルなし"
-        let spectrum = "スペクトル \(entry.measurement.spectrum.count)点"
+        let name = entry.name.map { String(localized: "タイトル \($0)") }
+            ?? String(localized: "タイトルなし")
+        let spectrum = String(localized: "スペクトル \(entry.measurement.spectrum.count)点")
         let cri = entry.measurement.cri.map {
             "CRI、Ra \($0.ra.formatted(.number.precision(.fractionLength(1))))"
-        } ?? "CRIなし"
+        } ?? String(localized: "CRIなし")
         return [name, spectrum, cri].joined(separator: "、")
     }
 
     private var accessibilitySelectionValue: String {
         if isActive {
-            return "選択中、測定値を表示中"
+            return String(localized: "選択中、測定値を表示中")
         }
-        return isSelected ? "選択中" : "未選択"
+        return isSelected ? String(localized: "選択中") : String(localized: "未選択")
     }
 }
 
@@ -469,7 +489,7 @@ private struct LightingHistorySpectrumThumbnail: View {
 
             if samples.isEmpty {
                 LightingHistoryChartPlaceholder(
-                    title: "スペクトルなし",
+                    title: String(localized: "スペクトルなし"),
                     systemImage: "waveform.path.ecg"
                 )
             } else {
@@ -502,7 +522,7 @@ private struct LightingHistorySpectrumThumbnail: View {
                         .background(SpectrumChartStyle.gradient.opacity(0.13))
                         .clipShape(.rect(cornerRadius: 5))
                 }
-                .padding(8)
+                .padding(4)
             }
         }
         .allowsHitTesting(false)
@@ -544,7 +564,7 @@ private struct LightingHistoryCRIThumbnail: View {
 
             if scores.isEmpty {
                 LightingHistoryChartPlaceholder(
-                    title: "CRIなし",
+                    title: String(localized: "CRIなし"),
                     systemImage: "chart.bar"
                 )
             } else {
@@ -573,7 +593,7 @@ private struct LightingHistoryCRIThumbnail: View {
                         .background(Color.secondary.opacity(0.035))
                         .clipShape(.rect(cornerRadius: 5))
                 }
-                .padding(8)
+                .padding(4)
             }
         }
         .allowsHitTesting(false)

@@ -110,7 +110,7 @@ struct MeasurementDetailsView: View {
         GroupBox("光源情報") {
             VStack(spacing: 8) {
                 if let lux = measurement.lux {
-                    MetricRow(label: "照度", value: "\(format(lux, digits: 1)) Lux")
+                    MetricRow(label: String(localized: "照度"), value: "\(format(lux, digits: 1)) lx")
                 }
                 if let cct = measurement.cct {
                     MetricRow(label: "CCT", value: "\(format(cct, digits: 0)) K")
@@ -119,29 +119,29 @@ struct MeasurementDetailsView: View {
                     MetricRow(label: "Duv", value: format(duv, digits: 4))
                 }
                 if let ev = measurement.suggestedEV100 {
-                    MetricRow(label: "推奨EV（ISO 100）", value: format(ev, digits: 1))
+                    MetricRow(label: String(localized: "推奨EV（ISO 100）"), value: format(ev, digits: 1))
                 }
                 if let planckian = measurement.closestPlanckian {
                     Divider()
                     MetricRow(
-                        label: "最接近黒体軌跡",
+                        label: String(localized: "最接近黒体軌跡"),
                         value: "\(format(planckian.kelvin, digits: 0)) K  ·  ΔE00 \(format(planckian.deltaE2000, digits: 1))"
                     )
                 }
                 if let daylight = measurement.closestDaylight {
                     MetricRow(
-                        label: "最接近昼光軌跡",
+                        label: String(localized: "最接近昼光軌跡"),
                         value: "\(format(daylight.kelvin, digits: 0)) K  ·  ΔE00 \(format(daylight.deltaE2000, digits: 1))"
                     )
                 }
                 if measurement.lightingMetricIssues.contains(.invalidCCT) {
-                    metricWarning("CCTを算出できませんでした")
+                    metricWarning(String(localized: "CCTを算出できませんでした"))
                 }
                 if measurement.lightingMetricIssues.contains(.invalidPlanckianTemperature) {
-                    metricWarning("黒体軌跡の最近接温度を算出できませんでした")
+                    metricWarning(String(localized: "黒体軌跡の最近接温度を算出できませんでした"))
                 }
                 if measurement.lightingMetricIssues.contains(.invalidDaylightTemperature) {
-                    metricWarning("昼光軌跡の最近接温度を算出できませんでした")
+                    metricWarning(String(localized: "昼光軌跡の最近接温度を算出できませんでした"))
                 }
             }
             .padding(.top, 4)
@@ -162,7 +162,7 @@ struct MeasurementDetailsView: View {
                 if let tlci = measurement.tlci {
                     MetricRow(label: "TLCI 2012 Qa", value: format(tlci.qa, digits: 1))
                     if tlci.caution {
-                        metricWarning("TLCIの結果にCautionがあります")
+                        metricWarning(String(localized: "TLCIの結果にCautionがあります"))
                     }
                 }
 
@@ -204,7 +204,7 @@ private struct ColorEncodingMetricsView: View {
                 isOutOfGamut: conversion.sRGB.isOutOfGamut
             )
             GamutMetricRow(
-                label: "Adobe RGB (1998) RGB値",
+                label: String(localized: "Adobe RGB (1998) RGB値"),
                 value: conversion.adobeRGB.rgbDescription,
                 colorSpaceName: "Adobe RGB (1998)",
                 isOutOfGamut: conversion.adobeRGB.isOutOfGamut

@@ -93,23 +93,23 @@ struct LicenseInformationView: View {
 
             VStack(alignment: .leading, spacing: 9) {
                 legalLink(
-                    "このバージョン（v\(releaseVersion)）の対応ソースと改変内容",
+                    String(localized: "このバージョン（v\(releaseVersion)）の対応ソースと改変内容"),
                     destination: sourceURL
                 )
                 legalLink(
-                    "GNU AGPLバージョン3本文",
+                    String(localized: "GNU AGPLバージョン3本文"),
                     destination: agplLicenseURL
                 )
                 legalLink(
-                    "GNU GPLバージョン3本文",
+                    String(localized: "GNU GPLバージョン3本文"),
                     destination: gplLicenseURL
                 )
                 legalLink(
-                    "第三者著作物とライセンス",
+                    String(localized: "第三者著作物とライセンス"),
                     destination: thirdPartyNoticesURL
                 )
                 legalLink(
-                    "プライバシー",
+                    String(localized: "プライバシー"),
                     destination: privacyURL
                 )
             }

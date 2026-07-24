@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 
 public struct ContentView: View {
@@ -42,13 +41,6 @@ public struct ContentView: View {
         .frame(minWidth: 860, minHeight: 620)
         .navigationTitle(windowTitle)
         .onDisappear {
-            model.session.stop()
-        }
-        .onReceive(
-            NotificationCenter.default.publisher(
-                for: NSApplication.willTerminateNotification
-            )
-        ) { _ in
             model.session.stop()
         }
         .onChange(of: model.workspaceMenuRequest) { _, request in

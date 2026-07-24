@@ -166,23 +166,23 @@ struct MeasurementWorkspaceView: View {
         switch session.phase {
         case .launching:
             InstrumentBusyPresentation(
-                title: "測定器に接続中",
-                detail: "接続と初期化が終わるまで測定器を操作しないでください。"
+                title: String(localized: "測定器に接続中"),
+                detail: String(localized: "接続と初期化が終わるまで測定器を操作しないでください。")
             )
         case .calibrating:
             InstrumentBusyPresentation(
-                title: "キャリブレーション中",
-                detail: "完了するまで測定器を動かしたり操作したりしないでください。"
+                title: String(localized: "キャリブレーション中"),
+                detail: String(localized: "完了するまで測定器を動かしたり操作したりしないでください。")
             )
         case .measuring:
             InstrumentBusyPresentation(
-                title: "測定中",
-                detail: "測定器を動かさないでください。"
+                title: String(localized: "測定中"),
+                detail: String(localized: "測定器を動かさないでください。")
             )
         case .recovering:
             InstrumentBusyPresentation(
-                title: "spotreadの応答を待っています",
-                detail: "待機画面が消えるまで測定器を操作しないでください。"
+                title: String(localized: "spotreadの応答を待っています"),
+                detail: String(localized: "待機画面が消えるまで測定器を操作しないでください。")
             )
         default:
             nil
@@ -235,7 +235,7 @@ struct MeasurementWorkspaceView: View {
     private func exportSelectedSwatches() {
         let swatches = selectedLabSwatches
         guard swatches.isEmpty == false else {
-            presentExportError("Lab値を持つカードだけを1枚以上選択してください。")
+            presentExportError(String(localized: "Lab値を持つカードだけを1枚以上選択してください。"))
             return
         }
 
@@ -271,10 +271,10 @@ struct MeasurementWorkspaceView: View {
         fileName: String
     ) {
         let panel = NSSavePanel()
-        panel.title = "Lab特色スウォッチを書き出し"
-        panel.message = "選択した履歴カードをLab特色スウォッチとして書き出します。"
-        panel.prompt = "書き出し"
-        panel.nameFieldLabel = "ファイル名:"
+        panel.title = String(localized: "Lab特色スウォッチを書き出し")
+        panel.message = String(localized: "選択した履歴カードをLab特色スウォッチとして書き出します。")
+        panel.prompt = String(localized: "書き出し")
+        panel.nameFieldLabel = String(localized: "ファイル名:")
         panel.nameFieldStringValue = fileName
         panel.allowedContentTypes = [.adobeSwatchExchange]
         panel.canCreateDirectories = true
@@ -309,15 +309,15 @@ struct MeasurementWorkspaceView: View {
             mode: mode,
             options: options
         ) else {
-            presentExportError("書き出す履歴カードと項目を選択してください。")
+            presentExportError(String(localized: "書き出す履歴カードと項目を選択してください。"))
             return
         }
         let orderedEntries = historyStore.orderedEntries(for: mode)
 
         let panel = NSOpenPanel()
-        panel.title = "測定履歴を書き出し"
-        panel.message = "選択した履歴カードの書き出し先を選択してください。"
-        panel.prompt = "書き出し"
+        panel.title = String(localized: "測定履歴を書き出し")
+        panel.message = String(localized: "選択した履歴カードの書き出し先を選択してください。")
+        panel.prompt = String(localized: "書き出し")
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.canCreateDirectories = true

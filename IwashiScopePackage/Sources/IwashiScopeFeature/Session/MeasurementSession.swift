@@ -186,8 +186,9 @@ final class MeasurementSession {
 
         guard let executableURL = executableURLOverride ?? SpotreadExecutableLocator.locate() else {
             fail(
-                "spotreadが見つかりません。App BundleのResourcesへ同梱するか、" +
-                "IWASHISCOPE_SPOTREAD_PATHで実行ファイルを指定してください。"
+                String(
+                    localized: "spotreadが見つかりません。App BundleのResourcesへ同梱するか、IWASHISCOPE_SPOTREAD_PATHで実行ファイルを指定してください。"
+                )
             )
             return
         }
@@ -214,7 +215,7 @@ final class MeasurementSession {
 
         appendInteraction(
             direction: .lifecycle,
-            content: "起動要求\n実行ファイル: \(executableURL.path)\n引数: \(mode.spotreadArguments.joined(separator: " "))",
+            content: String(localized: "起動要求\n実行ファイル: \(executableURL.path)\n引数: \(mode.spotreadArguments.joined(separator: " "))"),
             sessionID: generation
         )
 
@@ -235,7 +236,7 @@ final class MeasurementSession {
             )
             appendInteraction(
                 direction: .lifecycle,
-                content: "spotreadを起動しました",
+                content: String(localized: "spotreadを起動しました"),
                 sessionID: generation
             )
         } catch {
@@ -244,10 +245,10 @@ final class MeasurementSession {
             processEventTask = nil
             self.runner = nil
             let issue = SpotreadIssue.fatal(
-                rawText: "spotreadを起動できませんでした。 \(error.localizedDescription)"
+                rawText: String(localized: "spotreadを起動できませんでした。 \(error.localizedDescription)")
             )
             activeIssue = issue
-            fail("spotreadを起動できませんでした。\n\(error.localizedDescription)")
+            fail(String(localized: "spotreadを起動できませんでした。\n\(error.localizedDescription)"))
         }
     }
 
@@ -343,7 +344,7 @@ final class MeasurementSession {
         guard let mode else { return }
         appendInteraction(
             direction: .lifecycle,
-            content: "UIからspotreadの強制再起動を要求しました",
+            content: String(localized: "UIからspotreadの強制再起動を要求しました"),
             sessionID: generation
         )
         scheduleForcedRelaunch(
@@ -351,7 +352,7 @@ final class MeasurementSession {
             resetsMeasurements: false,
             resetsInteractionLog: false,
             resetsRecoveryBudget: true,
-            noticeMessage: "spotreadを強制終了して再起動しました。"
+            noticeMessage: String(localized: "spotreadを強制終了して再起動しました。")
         )
     }
 
@@ -359,6 +360,17 @@ final class MeasurementSession {
         relaunchTask?.cancel()
         relaunchTask = nil
         stopRunner(markStopped: true)
+    }
+
+    func stopForApplicationTermination() {
+        relaunchTask?.cancel()
+        relaunchTask = nil
+        responseWatchdog?.cancel()
+        responseWatchdog = nil
+        processEventTask?.cancel()
+        processEventTask = nil
+        runner?.stop()
+        runner = nil
     }
 
     func clearInteractionLog() {
@@ -493,7 +505,7 @@ final class MeasurementSession {
     private func send(_ command: SpotreadCommand) {
         guard let runner else {
             recoverProcessOrFail(
-                issue: .fatal(rawText: "spotreadが実行されていないため、操作を送信できませんでした。")
+                issue: .fatal(rawText: String(localized: "spotreadが実行されていないため、操作を送信できませんでした。"))
             )
             return
         }
@@ -520,7 +532,7 @@ final class MeasurementSession {
                 }
                 self.recoverProcessOrFail(
                     issue: .fatal(
-                        rawText: "spotreadへ操作を送信できませんでした。 \(error.localizedDescription)"
+                        rawText: String(localized: "spotreadへ操作を送信できませんでした。 \(error.localizedDescription)")
                     )
                 )
             }
@@ -544,7 +556,7 @@ final class MeasurementSession {
         let stoppedGeneration = generation
         appendInteraction(
             direction: .lifecycle,
-            content: "終了要求（SIGTERM、250 ms後も動作中ならSIGKILL）",
+            content: String(localized: "終了要求（SIGTERM、250 ms後も動作中ならSIGKILL）"),
             sessionID: stoppedGeneration
         )
         stopWasRequested = true
@@ -559,7 +571,7 @@ final class MeasurementSession {
     private func processTerminated(status: Int32, generation: UUID) {
         appendInteraction(
             direction: .lifecycle,
-            content: "spotreadが終了しました（終了コード \(status)）",
+            content: String(localized: "spotreadが終了しました（終了コード \(status)）"),
             sessionID: generation
         )
         guard generation == self.generation else { return }
@@ -579,8 +591,8 @@ final class MeasurementSession {
 
         let detail = Self.lastUsefulLines(from: transcript)
         let rawText = detail.isEmpty
-            ? "spotreadが予期せず終了しました（終了コード \(status)）。"
-            : "spotreadが予期せず終了しました（終了コード \(status)）。\n\(detail)"
+            ? String(localized: "spotreadが予期せず終了しました（終了コード \(status)）。")
+            : String(localized: "spotreadが予期せず終了しました（終了コード \(status)）。\n\(detail)")
         recoverProcessOrFail(issue: activeIssue ?? .fatal(rawText: rawText))
     }
 
@@ -589,7 +601,7 @@ final class MeasurementSession {
         transition(to: .failed)
         appendInteraction(
             direction: .lifecycle,
-            content: "エラー\n\(message)",
+            content: String(localized: "エラー\n\(message)"),
             sessionID: generation
         )
     }
@@ -635,11 +647,11 @@ final class MeasurementSession {
               !stopWasRequested else { return }
 
         let operation = switch phase {
-        case .launching: "起動"
-        case .calibrating: "キャリブレーション"
-        case .measuring: "測定"
-        case .recovering: "エラーからの復旧"
-        default: "操作"
+        case .launching: String(localized: "起動")
+        case .calibrating: String(localized: "キャリブレーション")
+        case .measuring: String(localized: "測定")
+        case .recovering: String(localized: "エラーからの復旧")
+        default: String(localized: "操作")
         }
         recoverProcessOrFail(issue: .unresponsive(operation: operation))
     }
@@ -659,7 +671,7 @@ final class MeasurementSession {
         automaticRecoveryAttemptCount += 1
         appendInteraction(
             direction: .lifecycle,
-            content: "応答不能または復旧不能な状態を検出したため、spotreadを強制終了して自動再起動します\n\(rawReason)",
+            content: String(localized: "応答不能または復旧不能な状態を検出したため、spotreadを強制終了して自動再起動します\n\(rawReason)"),
             sessionID: generation
         )
         scheduleForcedRelaunch(
@@ -667,7 +679,7 @@ final class MeasurementSession {
             resetsMeasurements: false,
             resetsInteractionLog: false,
             resetsRecoveryBudget: false,
-            noticeMessage: "spotreadが応答しなかったため、強制終了して自動再起動しました。",
+            noticeMessage: String(localized: "spotreadが応答しなかったため、強制終了して自動再起動しました。"),
             noticeRawText: issue.rawText
         )
     }
@@ -773,7 +785,7 @@ final class MeasurementSession {
 
         let notice = SpotreadInteraction(
             direction: .lifecycle,
-            content: "表示上限を超えたため、古い通信記録を省略しました"
+            content: String(localized: "表示上限を超えたため、古い通信記録を省略しました")
         )
         interactions.insert(notice, at: 0)
         interactionCharacterCount += notice.content.count

@@ -205,17 +205,8 @@ struct TM30RfRgPlotView: View {
                     lineWidth: 0.8
                 )
             }
-            .frame(maxWidth: .infinity, minHeight: 118, maxHeight: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 170, maxHeight: .infinity)
             .accessibilityHidden(true)
-
-            HStack(spacing: 14) {
-                Text("① プランク軌跡上の光源（概略）")
-                Text("② 実用光源（概略）")
-            }
-            .font(.caption2)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .accessibilityElement(children: .ignore)

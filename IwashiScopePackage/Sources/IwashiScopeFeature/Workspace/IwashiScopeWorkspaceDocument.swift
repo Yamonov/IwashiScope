@@ -119,15 +119,15 @@ enum IwashiScopeWorkspaceFileError: Error, Equatable, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingFileContents:
-            "ワークスペースファイルの内容を読み取れませんでした。"
+            String(localized: "ワークスペースファイルの内容を読み取れませんでした。")
         case .unsupportedFormatVersion(let version):
-            "このワークスペースファイルの形式バージョン（\(version)）には対応していません。"
+            String(localized: "このワークスペースファイルの形式バージョン（\(version)）には対応していません。")
         case .duplicateHistoryEntry:
-            "ワークスペースファイルに重複した測定履歴が含まれています。"
+            String(localized: "ワークスペースファイルに重複した測定履歴が含まれています。")
         case .invalidModeStates:
-            "ワークスペースファイルの測定モード情報が壊れています。"
+            String(localized: "ワークスペースファイルの測定モード情報が壊れています。")
         case .invalidModeState(let mode):
-            "\(mode.title)ワークスペースの履歴情報が壊れています。"
+            String(localized: "\(mode.title)ワークスペースの履歴情報が壊れています。")
         }
     }
 }
