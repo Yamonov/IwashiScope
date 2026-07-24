@@ -15,6 +15,8 @@
 
 このReleaseには、配布バイナリと正確に対応する完全なソース一式を含めています。ライセンス、第三者著作物、ArgyllCMSからの変更内容は、ソースZIP内の `LICENSE`、`NOTICE`、`THIRD_PARTY_NOTICES.md`、`ARGYLL_CHANGES.md`を参照してください。
 
+[v0.9.2のソースコード](https://github.com/Yamonov/IwashiScope/tree/v0.9.2)
+
 ## SHA-256
 
 - `IwashiScope-0.9.2.zip`: `5295e94b1a7697628ea8de397307ef49d818efca341ad50bdd59d5a1796380d6`
