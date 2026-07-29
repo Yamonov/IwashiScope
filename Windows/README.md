@@ -69,6 +69,23 @@ Generated executables, `bin`, `obj`, test results, release artifacts, user
 settings, logs, and `.iwashiscope` workspace files are excluded from source
 control.
 
+After a helper binary has completed hardware qualification, an official
+package can reuse that exact binary while still checking its recorded hash:
+
+```powershell
+.\Windows\Scripts\Build-Release.ps1 `
+  -Version 0.9.5 `
+  -JamPath C:\path\to\jam.exe `
+  -VerifiedHelperPath C:\qualified\iwashiscope-spotread.exe `
+  -ExpectedHelperSha256 D214B5F884349E6766325EA32F075C2C87745FD801C85DACB6BECA60FB282816 `
+  -OutputRoot C:\path\to\artifacts\release-0.9.5
+```
+
+Without `-VerifiedHelperPath`, the script builds and tests a fresh helper from
+the common source tree. With it, the script packages only the supplied,
+hash-matched binary; this avoids silently replacing a hardware-qualified
+release helper with a newly linked native executable.
+
 ## Version and signing
 
 The Windows product, assembly, file, and informational versions are defined in

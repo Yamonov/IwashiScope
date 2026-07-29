@@ -8,6 +8,10 @@ param(
 
     [string] $VsDevCmdPath,
 
+    [string] $VerifiedHelperPath,
+
+    [string] $ExpectedHelperSha256,
+
     [string] $OutputRoot
 )
 
@@ -92,21 +96,35 @@ $temporaryHelper = Join-Path $temporaryRoot 'iwashiscope-spotread.exe'
 New-Item -ItemType Directory -Path $temporaryRoot | Out-Null
 
 try {
-    $helperArguments = @{
-        JamPath = $JamPath
-        Architecture = 'x64'
-        OutputPath = $temporaryHelper
-    }
-    if (-not [string]::IsNullOrWhiteSpace($VsDevCmdPath)) {
-        $helperArguments.VsDevCmdPath = $VsDevCmdPath
-    }
-    & $helperBuildScript @helperArguments
+    if ([string]::IsNullOrWhiteSpace($VerifiedHelperPath)) {
+        $helperArguments = @{
+            JamPath = $JamPath
+            Architecture = 'x64'
+            OutputPath = $temporaryHelper
+        }
+        if (-not [string]::IsNullOrWhiteSpace($VsDevCmdPath)) {
+            $helperArguments.VsDevCmdPath = $VsDevCmdPath
+        }
+        & $helperBuildScript @helperArguments
 
-    $temporaryHelper = Resolve-ExistingFile `
-        -Path $temporaryHelper `
-        -Description 'Built iwashiscope-spotread.exe'
-    $helperHash = (Get-FileHash -LiteralPath $temporaryHelper `
+        $packagedHelper = Resolve-ExistingFile `
+            -Path $temporaryHelper `
+            -Description 'Built iwashiscope-spotread.exe'
+        $helperOrigin = 'built from the repository source by this release run'
+    }
+    else {
+        $packagedHelper = Resolve-ExistingFile `
+            -Path $VerifiedHelperPath `
+            -Description 'Hardware-qualified iwashiscope-spotread.exe'
+        $helperOrigin = 'prebuilt hardware-qualified helper supplied to the release run'
+    }
+
+    $helperHash = (Get-FileHash -LiteralPath $packagedHelper `
         -Algorithm SHA256).Hash
+    if (-not [string]::IsNullOrWhiteSpace($ExpectedHelperSha256) -and
+        $helperHash -ne $ExpectedHelperSha256.ToUpperInvariant()) {
+        throw "Helper SHA-256 mismatch. Expected $ExpectedHelperSha256, got $helperHash."
+    }
 
     Invoke-CheckedCommand -FilePath 'dotnet' -ArgumentList @(
         'build',
@@ -133,7 +151,7 @@ try {
         '--nologo',
         '-p:PublishSingleFile=false',
         "-p:Version=$Version",
-        "-p:IwashiScopeHelperPath=$temporaryHelper",
+        "-p:IwashiScopeHelperPath=$packagedHelper",
         '-o', $payloadPath
     )
 
@@ -188,6 +206,7 @@ try {
         "Source commit: $sourceCommit"
         "Version: $Version"
         'Helper source: Argyll_V3.5.0 (same repository commit)'
+        "Helper packaging origin: $helperOrigin"
         "Helper SHA-256: $publishedHelperHash"
     )
     [IO.File]::WriteAllLines(
@@ -207,6 +226,7 @@ try {
         "Application version: $($executableInfo.ProductVersion)"
         "Application file version: $($executableInfo.FileVersion)"
         "Application Authenticode: $($signature.Status)"
+        "Helper packaging origin: $helperOrigin"
         "Helper SHA-256: $publishedHelperHash"
         "Source commit: $sourceCommit"
         "Runtime: self-contained win-x64"
