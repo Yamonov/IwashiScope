@@ -55,18 +55,129 @@ static void record_status(json_writer *writer, yajl_gen_status status) {
 		writer->failed = 1;
 }
 
+static size_t valid_utf8_sequence_length(
+	const unsigned char *value,
+	size_t remaining
+) {
+	unsigned char first;
+	unsigned char second;
+	unsigned char third;
+	unsigned char fourth;
+
+	if (remaining == 0)
+		return 0;
+	first = value[0];
+	if (first <= 0x7f)
+		return 1;
+	if (remaining < 2)
+		return 0;
+	second = value[1];
+
+	if (first >= 0xc2 && first <= 0xdf)
+		return second >= 0x80 && second <= 0xbf ? 2 : 0;
+
+	if (remaining < 3)
+		return 0;
+	third = value[2];
+	if (third < 0x80 || third > 0xbf)
+		return 0;
+	if (first == 0xe0)
+		return second >= 0xa0 && second <= 0xbf ? 3 : 0;
+	if (first >= 0xe1 && first <= 0xec)
+		return second >= 0x80 && second <= 0xbf ? 3 : 0;
+	if (first == 0xed)
+		return second >= 0x80 && second <= 0x9f ? 3 : 0;
+	if (first >= 0xee && first <= 0xef)
+		return second >= 0x80 && second <= 0xbf ? 3 : 0;
+
+	if (remaining < 4)
+		return 0;
+	fourth = value[3];
+	if (fourth < 0x80 || fourth > 0xbf)
+		return 0;
+	if (first == 0xf0)
+		return second >= 0x90 && second <= 0xbf ? 4 : 0;
+	if (first >= 0xf1 && first <= 0xf3)
+		return second >= 0x80 && second <= 0xbf ? 4 : 0;
+	if (first == 0xf4)
+		return second >= 0x80 && second <= 0x8f ? 4 : 0;
+	return 0;
+}
+
 static void json_string(json_writer *writer, const char *value) {
+	const unsigned char *input;
+	unsigned char *sanitized;
+	size_t input_length;
+	size_t input_offset;
+	size_t output_length;
+	size_t sequence_length;
+	int needs_sanitization = 0;
+
 	if (writer->failed)
 		return;
 	if (value == NULL) {
 		record_status(writer, yajl_gen_null(writer->generator));
 		return;
 	}
+	input = (const unsigned char *)value;
+	input_length = strlen(value);
+	for (input_offset = 0; input_offset < input_length;) {
+		sequence_length = valid_utf8_sequence_length(
+			input + input_offset,
+			input_length - input_offset
+		);
+		if (sequence_length == 0) {
+			needs_sanitization = 1;
+			break;
+		}
+		input_offset += sequence_length;
+	}
+	if (!needs_sanitization) {
+		record_status(writer, yajl_gen_string(
+			writer->generator,
+			input,
+			input_length
+		));
+		return;
+	}
+	if (input_length > (((size_t)-1) - 1) / 3) {
+		writer->failed = 1;
+		return;
+	}
+	sanitized = (unsigned char *)malloc(input_length * 3 + 1);
+	if (sanitized == NULL) {
+		writer->failed = 1;
+		return;
+	}
+	input_offset = 0;
+	output_length = 0;
+	while (input_offset < input_length) {
+		sequence_length = valid_utf8_sequence_length(
+			input + input_offset,
+			input_length - input_offset
+		);
+		if (sequence_length == 0) {
+			sanitized[output_length++] = 0xef;
+			sanitized[output_length++] = 0xbf;
+			sanitized[output_length++] = 0xbd;
+			input_offset++;
+			continue;
+		}
+		memcpy(
+			sanitized + output_length,
+			input + input_offset,
+			sequence_length
+		);
+		output_length += sequence_length;
+		input_offset += sequence_length;
+	}
+	sanitized[output_length] = '\0';
 	record_status(writer, yajl_gen_string(
 		writer->generator,
-		(const unsigned char *)value,
-		strlen(value)
+		sanitized,
+		output_length
 	));
+	free(sanitized);
 }
 
 static void json_key(json_writer *writer, const char *key) {

@@ -7,13 +7,14 @@ IwashiScopeは、ArgyllCMS 3.5.0の`spotread`をGUIから安全に制御する�
 - 改変者: Yamonov
 - 改変日: 2026-07-23
 - 追加改変日: 2026-07-29
+- 追加改変日: 2026-07-30
 
 ## 改変ファイル
 
 | ファイル | 改変内容 |
 | --- | --- |
 | `Jamfile` | IwashiScopeのビルド時に、`spotread`へ必要なサブプロジェクトだけを読み込む分岐を追加 |
-| `spectro/Jamfile` | JSON Lines実装を追加し、上流版と混同しない`iwashiscope-spotread`ビルドターゲットを定義 |
+| `spectro/Jamfile` | JSON Lines実装を追加し、上流版と混同しない`iwashiscope-spotread`ビルドターゲットとUTF-8テストターゲットを定義 |
 | `spectro/inst.h` | 現在のモード・解像度に対する実用波長範囲を取得する任意APIを追加 |
 | `spectro/instappsup.c` | 既存APIを維持したまま、校正状態を通知する任意コールバックを追加 |
 | `spectro/instappsup.h` | 校正イベントとコールバックAPIを宣言 |
@@ -21,8 +22,9 @@ IwashiScopeは、ArgyllCMS 3.5.0の`spotread`をGUIから安全に制御する�
 | `spectro/munki_imp.c` | 高解像度測定で複製される短波長側を除いた実用波長範囲を返す処理を追加 |
 | `spectro/munki_imp.h` | ColorMunki系の実用波長範囲取得関数を宣言 |
 | `spectro/spotread.c` | `-J`、JSON Lines v3、測定・校正・エラー状態、CRI/TM-30出力、実用波長範囲、IwashiScope改変版の起動表示を追加 |
-| `spectro/spotread_jsonl.c` | JSON Linesの生成、実用波長範囲の出力、標準出力・標準エラー分離を新規実装 |
+| `spectro/spotread_jsonl.c` | JSON Linesの生成、実用波長範囲の出力、標準出力・標準エラー分離、不正UTF-8のU+FFFDへの置換を新規実装 |
 | `spectro/spotread_jsonl.h` | JSON Linesの測定データ、実用波長範囲、出力APIを新規定義 |
+| `spectro/spotread_jsonl_test.c` | JSON文字列のUTF-8検証・置換をmacOSとWindowsで共通確認するテストを追加 |
 | `xicc/tm3015.c` | TM-30-15の99評価用試料について、基準光・測定光のJab値を呼び出し側へ返す機能を追加 |
 | `xicc/tm3015.h` | 99評価用試料の出力引数を宣言 |
 
@@ -44,6 +46,8 @@ IwashiScopeは、ArgyllCMS 3.5.0の`spotread`をGUIから安全に制御する�
 - `measurement`
 
 `measurement`には、利用可能な場合にスペクトル、実用波長範囲、XYZ、Lab、Lux、CCT、Duv、CRI、TLCI、TM-30-15の16色相ビンと99評価用試料が含まれます。実用波長範囲は、ドライバがノイズ対策で端部を複製または除外している場合はその処理後の範囲、それ以外は測定器が返したスペクトル範囲です。
+
+測定器から得た名称、シリアル番号、校正識別子などに不正なUTF-8バイトが含まれる場合は、そのバイトをUnicode置換文字U+FFFDへ置き換えます。これにより、機器固有文字列の内容にかかわらず、標準出力の各行を妥当なUTF-8のJSONとして維持します。
 
 ## Swiftへ移植・適応したArgyllCMSコード
 

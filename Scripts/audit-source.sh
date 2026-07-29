@@ -55,6 +55,11 @@ Scripts/generate-cie-standard-illuminants.swift
 Scripts/package-source.sh
 Scripts/audit-source.sh
 Scripts/audit-release.sh
+Scripts/build-spotread.sh
+Scripts/build-spotread-windows.ps1
+Argyll_V3.5.0/spectro/spotread_jsonl.c
+Argyll_V3.5.0/spectro/spotread_jsonl.h
+Argyll_V3.5.0/spectro/spotread_jsonl_test.c
 IwashiScopePackage/Sources/IwashiScopeFeature/Models/CIEStandardIlluminantData.generated.swift
 IwashiScope/Resources/NOTICE.txt
 IwashiScope/Resources/THIRD-PARTY-NOTICES.txt
@@ -134,7 +139,8 @@ if git grep -n -E \
 	'AGPL[^[:cntrl:]]*(or later|以降)|version 3 or later|Version 3 or later|バージョン3以降' \
 	-- NOTICE README.md ARGYLL_CHANGES.md IwashiScope IwashiScopePackage/Sources \
 		Argyll_V3.5.0/spectro/spotread_jsonl.c \
-		Argyll_V3.5.0/spectro/spotread_jsonl.h; then
+		Argyll_V3.5.0/spectro/spotread_jsonl.h \
+		Argyll_V3.5.0/spectro/spotread_jsonl_test.c; then
 	fail "whole-product AGPL wording still allows a later version"
 fi
 
@@ -200,7 +206,7 @@ if [ -n "$tracked_private_materials" ]; then
 fi
 
 tracked_products=$(git ls-files | grep -E \
-	'(^|/)(iwashiscope-spotread|spotread)$|\.(o|a|dylib|so|app|xcarchive)$' || true)
+	'(^|/)(iwashiscope-spotread|spotread)(\.exe)?$|\.(o|obj|a|lib|dylib|so|dll|exe|pdb|app|xcarchive)$' || true)
 if [ -n "$tracked_products" ]; then
 	printf '%s\n' "$tracked_products" >&2
 	fail "generated build products are tracked"

@@ -8,7 +8,7 @@ built_helper_path="$argyll_root/spectro/iwashiscope-spotread"
 helper_path=${SCRIPT_OUTPUT_FILE_0:-"$built_helper_path"}
 build_stamp="$argyll_root/.iwashiscope-build-config"
 deployment_target=${MACOSX_DEPLOYMENT_TARGET:-14.6}
-build_signature="universal-arm64-x86_64-macos${deployment_target}-jsonl3-patch2-derived-output"
+build_signature="universal-arm64-x86_64-macos${deployment_target}-jsonl3-patch3-utf8"
 jam_tool=${JAM:-}
 
 if [ -z "$jam_tool" ]; then
@@ -42,6 +42,7 @@ if [ -r "$build_stamp" ]; then
 		&& [ ! "$0" -nt "$built_helper_path" ] \
 		&& ! find "$argyll_root" -type f \
 			! -path "$built_helper_path" \
+			! -path "$argyll_root/spectro/iwashiscope-spotread-jsonl-test" \
 			! -path "$build_stamp" \
 			-newer "$built_helper_path" \
 			-print -quit | grep -q .; then
@@ -62,7 +63,11 @@ if [ "$needs_clean" = true ]; then
 		-sIWASHISCOPE_ONLY=true \
 		-sIWASHISCOPE_UNIVERSAL=true \
 		-sIWASHISCOPE_DEPLOYMENT_TARGET="$deployment_target" \
+		-sIWASHISCOPE_TESTS=true \
+		iwashiscope_spotread_jsonl_test \
 		iwashiscope_spotread
+
+	"$argyll_root/spectro/iwashiscope-spotread-jsonl-test"
 
 	if [ ! -x "$built_helper_path" ]; then
 		printf '%s\n' "error: ArgyllCMS completed without producing spectro/iwashiscope-spotread." >&2

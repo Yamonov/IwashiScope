@@ -104,8 +104,14 @@ Argyll_V3.5.0/**/*.o
 Argyll_V3.5.0/**/*.a
 Argyll_V3.5.0/**/*.dylib
 Argyll_V3.5.0/**/*.so
+Argyll_V3.5.0/**/*.obj
+Argyll_V3.5.0/**/*.lib
+Argyll_V3.5.0/**/*.dll
+Argyll_V3.5.0/**/*.exe
+Argyll_V3.5.0/**/*.pdb
 Argyll_V3.5.0/spectro/spotread
 Argyll_V3.5.0/spectro/iwashiscope-spotread
+Argyll_V3.5.0/spectro/iwashiscope-spotread-jsonl-test
 Argyll_V3.5.0/.iwashiscope-build-config
 
 # Upstream ArgyllCMS projects and release tooling outside IwashiScope's

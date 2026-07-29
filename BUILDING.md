@@ -1,6 +1,6 @@
 # IwashiScopeのビルド
 
-## 必要な環境
+## macOSアプリに必要な環境
 
 - macOS
 - Xcode 16.3以降
@@ -97,6 +97,37 @@ xcodebuild \
 - 署名・公証・Sparkleの秘密鍵
 
 公開リポジトリのタグには、その版のアプリと同梱`iwashiscope-spotread`を再構築するためのソース、ビルドスクリプト、固定済みSwift Package情報を含めます。
+
+## Windows版helper
+
+同じ`Argyll_V3.5.0`の追跡ソースから、Windows x64版の`iwashiscope-spotread.exe`もビルドできます。macOSとWindowsではコンパイラと生成物が異なるため、それぞれのOSの別cloneまたは別worktreeで、同一コミットをビルドしてください。同じ作業ディレクトリへ両OSの中間生成物を混在させないでください。
+
+必要な環境は次のとおりです。
+
+- Windows
+- Visual StudioのC++ x64ビルドツール
+- Jam 2.6.1互換の`jam.exe`
+- PowerShell
+
+PowerShellから次を実行します。
+
+```powershell
+.\Scripts\build-spotread-windows.ps1 -JamPath C:\path\to\jam.exe
+```
+
+Visual Studioは`vswhere.exe`で検出します。自動検出できない場合は、`-VsDevCmdPath`へ`VsDevCmd.bat`の絶対パスを指定できます。スクリプトはUTF-8処理の共通Cテストを実行してから、次のファイルを生成します。
+
+```text
+Argyll_V3.5.0\spectro\iwashiscope-spotread.exe
+```
+
+Windowsアプリの出力先へ直接コピーする場合は、`-OutputPath`を指定します。
+
+```powershell
+.\Scripts\build-spotread-windows.ps1 `
+  -JamPath C:\path\to\jam.exe `
+  -OutputPath C:\path\to\app\iwashiscope-spotread.exe
+```
 
 公開前のソース監査は次で実行します。
 

@@ -1,5 +1,5 @@
-# Modified for IwashiScope by Yamonov on 2026-07-23:
-# add the JSON Lines source and a dedicated spotread build target.
+# Modified for IwashiScope by Yamonov on 2026-07-23 and 2026-07-30:
+# add the JSON Lines source, dedicated spotread build target, and UTF-8 test.
 
 #PREF_CCFLAGS 	+= $(CCOPTFLAG) ;		# Turn optimisation on
 PREF_CCFLAGS    += $(CCDEBUGFLAG) ;		# Debugging flags
@@ -204,6 +204,12 @@ if $(IWASHISCOPE_ONLY) = true {
 	Main iwashiscope-spotread : spotread.c spotread_jsonl.c : : : ../yajl : : ;
 	NotFile iwashiscope_spotread ;
 	Depends iwashiscope_spotread : <spectro>iwashiscope-spotread ;
+	if $(IWASHISCOPE_TESTS) = true {
+		Main iwashiscope-spotread-jsonl-test : spotread_jsonl_test.c : : : ../yajl : : ;
+		NotFile iwashiscope_spotread_jsonl_test ;
+		Depends iwashiscope_spotread_jsonl_test
+			: <spectro>iwashiscope-spotread-jsonl-test ;
+	}
 } else {
 	Main spotread : spotread.c spotread_jsonl.c : : : ../yajl : : ;
 }
