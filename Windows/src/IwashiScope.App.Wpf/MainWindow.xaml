@@ -1,0 +1,875 @@
+<Window x:Class="IwashiScope.App.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:IwashiScope.App.Wpf.Controls"
+        xmlns:layout="clr-namespace:IwashiScope.App.Wpf.Layout"
+        xmlns:models="clr-namespace:IwashiScope.Core.Models;assembly=IwashiScope.Core"
+        Title="{Binding WindowTitle}"
+        Width="1280" Height="820" MinWidth="860" MinHeight="620"
+        Icon="Resources/Icons/IwashiScope.ico"
+        WindowStartupLocation="CenterScreen"
+        KeyDown="Window_KeyDown"
+        Closing="Window_Closing">
+    <Window.Resources>
+        <Style x:Key="MetricLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="MetricValue" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
+            <Setter Property="TextAlignment" Value="Right" />
+        </Style>
+        <Style x:Key="RequirementText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="TextAlignment" Value="Right" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style x:Key="ModeCardButton" TargetType="Button"
+               BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="22" />
+            <Setter Property="MinHeight" Value="230" />
+            <Setter Property="Margin" Value="9" />
+            <Setter Property="Background" Value="#F8FFFFFF" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderBrush}"
+              BorderThickness="0,0,0,1">
+            <MenuItem Header="{Binding FileLabel}">
+                <MenuItem Header="{Binding OpenWorkspaceLabel}" InputGestureText="Ctrl+O"
+                          Click="OpenWorkspace_Click" />
+                <MenuItem Header="{Binding SaveWorkspaceLabel}" InputGestureText="Ctrl+S"
+                          Click="SaveWorkspace_Click" />
+                <Separator />
+                <MenuItem Header="{Binding ExportLabel}" InputGestureText="Ctrl+E"
+                          IsEnabled="{Binding CanExportSelection}" Click="Export_Click" />
+            </MenuItem>
+            <MenuItem Header="{Binding ViewLabel}">
+                <MenuItem Header="{Binding JapaneseLabel}" Click="Japanese_Click" />
+                <MenuItem Header="{Binding EnglishLabel}" Click="English_Click" />
+            </MenuItem>
+            <MenuItem Header="{Binding HelpLabel}">
+                <MenuItem Header="{Binding LicensesAndSourceLabel}" Click="Licenses_Click" />
+            </MenuItem>
+        </Menu>
+
+        <!-- ModeSelectionView.swift -->
+        <Grid Grid.Row="1"
+              Visibility="{Binding IsModeSelectionVisible, Converter={StaticResource BoolToVisibility}}">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#16007AC2" Offset="0" />
+                    <GradientStop Color="#00FFFFFF" Offset="0.52" />
+                    <GradientStop Color="#0F8A4BC0" Offset="1" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="40" HorizontalAlignment="Center"
+                            VerticalAlignment="Center" MaxWidth="980">
+                    <Image Source="Resources/Icons/IwashiScope-128.png"
+                           Width="64" Height="64"
+                           Stretch="Uniform"
+                           SnapsToDevicePixels="True"
+                           RenderOptions.BitmapScalingMode="HighQuality"
+                           HorizontalAlignment="Center" />
+                    <TextBlock Text="IwashiScope" FontSize="32" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    <TextBlock Text="Spectral &amp; Color Measurement" FontSize="18"
+                               HorizontalAlignment="Center" Margin="0,8,0,0" />
+                    <TextBlock Text="{Binding ToolTagline}" FontSize="15"
+                               Foreground="{StaticResource SecondaryTextBrush}"
+                               HorizontalAlignment="Center" Margin="0,5,0,0" />
+                    <TextBlock Text="{Binding ModeSelectionTitle}" FontSize="21"
+                               FontWeight="SemiBold" HorizontalAlignment="Center"
+                               Margin="0,12,0,0" />
+                    <TextBlock Text="{Binding ModeSelectionDetail}"
+                               Foreground="{StaticResource SecondaryTextBrush}"
+                               HorizontalAlignment="Center" Margin="0,7,0,18" />
+
+                    <UniformGrid Columns="3" MaxWidth="900">
+                        <Button Style="{StaticResource ModeCardButton}"
+                                AutomationProperties.AutomationId="mode-reflectance"
+                                Command="{Binding ChangeModeCommand}"
+                                CommandParameter="{x:Static models:MeasurementMode.Reflectance}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding ReflectanceTitle}" FontSize="20"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding ReflectanceSubtitle}"
+                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           Margin="0,4,0,0" />
+                                <TextBlock Text="{Binding ReflectanceDetail}" TextWrapping="Wrap"
+                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           Margin="0,14,0,0" />
+                                <TextBlock Text="{Binding StartModeLabel}" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AccentBrush}"
+                                           Margin="0,22,0,0" />
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource ModeCardButton}"
+                                AutomationProperties.AutomationId="mode-ambient"
+                                Command="{Binding ChangeModeCommand}"
+                                CommandParameter="{x:Static models:MeasurementMode.Ambient}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding AmbientTitle}" FontSize="20"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding AmbientSubtitle}"
+                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           Margin="0,4,0,0" />
+                                <TextBlock Text="{Binding AmbientDetail}" TextWrapping="Wrap"
+                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           Margin="0,14,0,0" />
+                                <TextBlock Text="{Binding StartModeLabel}" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AccentBrush}"
+                                           Margin="0,22,0,0" />
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource ModeCardButton}"
+                                AutomationProperties.AutomationId="mode-emissive"
+                                Command="{Binding ChangeModeCommand}"
+                                CommandParameter="{x:Static models:MeasurementMode.Emissive}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding EmissiveTitle}" FontSize="20"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding EmissiveSubtitle}"
+                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           Margin="0,4,0,0" />
+                                <TextBlock Text="{Binding EmissiveDetail}" TextWrapping="Wrap"
+                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           Margin="0,14,0,0" />
+                                <TextBlock Text="{Binding StartModeLabel}" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AccentBrush}"
+                                           Margin="0,22,0,0" />
+                            </StackPanel>
+                        </Button>
+                    </UniformGrid>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                                Margin="0,20,0,0">
+                        <TextBlock Text="{Binding SpotreadAvailabilityText}"
+                                   Foreground="{StaticResource SecondaryTextBrush}" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- MeasurementWorkspaceView.swift -->
+        <Grid Grid.Row="1"
+              Visibility="{Binding IsWorkspaceVisible, Converter={StaticResource BoolToVisibility}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="1" />
+                <ColumnDefinition Width="440" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0" Background="{StaticResource CanvasBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Button Grid.Row="0" Content="{Binding ReturnToModeSelectionLabel}"
+                        Command="{Binding ReturnToModeSelectionCommand}"
+                        HorizontalAlignment="Left" Margin="18,12,0,8"
+                        Padding="10,5" />
+
+                <Grid x:Name="AnalysisHistoryGrid" Grid.Row="1" Margin="18,0,18,18"
+                      SizeChanged="AnalysisHistoryGrid_SizeChanged">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" MinHeight="120" />
+                        <RowDefinition Height="6" />
+                        <RowDefinition x:Name="HistoryRow" Height="140" MinHeight="100" />
+                    </Grid.RowDefinitions>
+
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,0,0,8">
+                            <Border Style="{StaticResource CardBorder}" Padding="0"
+                                    ClipToBounds="True">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="400" />
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Grid.Row="0"
+                                                Visibility="{Binding ShowsReferenceControls, Converter={StaticResource BoolToVisibility}}">
+                                        <DockPanel Margin="14,10,14,8">
+                                            <TextBlock Text="{Binding ReferenceSpectrumLabel}"
+                                                       Foreground="{StaticResource SecondaryTextBrush}"
+                                                       Margin="0,0,14,0" />
+                                            <CheckBox Content="{Binding D50ReferenceLabel}"
+                                                      IsChecked="{Binding ShowD50}" />
+                                            <CheckBox Content="{Binding D65ReferenceLabel}"
+                                                      IsChecked="{Binding ShowD65}" />
+                                            <TextBlock Text="{Binding ReferenceNormalizationLabel}"
+                                                       DockPanel.Dock="Right"
+                                                       Foreground="{StaticResource SecondaryTextBrush}"
+                                                       FontSize="10" />
+                                        </DockPanel>
+                                        <Separator />
+                                    </StackPanel>
+                                    <controls:SpectrumChart Grid.Row="1" Margin="4,0,7,7"
+                                                            Measurement="{Binding ActiveMeasurement}"
+                                                            UsePracticalRange="{Binding UsePracticalRange}"
+                                                            ShowD50="{Binding ShowD50}"
+                                                            ShowD65="{Binding ShowD65}" />
+                                    <StackPanel Grid.Row="1" HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Visibility="{Binding HasActiveMeasurement, Converter={StaticResource InverseBoolToVisibility}}">
+                                        <TextBlock Text="{Binding NoMeasurementTitle}"
+                                                   FontSize="18" FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding NoMeasurementDetail}"
+                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                   Margin="0,7,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <TabControl Height="480" Margin="0,16,0,0"
+                                        SelectedIndex="{Binding SelectedRenderingTabIndex}"
+                                        Visibility="{Binding ShowsLightingRenderingTabs, Converter={StaticResource BoolToVisibility}}">
+                                <TabItem Header="CRI">
+                                    <Border Style="{StaticResource CardBorder}" Padding="0"
+                                            Margin="0,8,0,0" ClipToBounds="True">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Text="{Binding RenderingGroupLabel}"
+                                                       FontWeight="SemiBold" Margin="14,10,14,4" />
+                                            <controls:CriChart Grid.Row="1" Margin="5,0,8,8"
+                                                               Measurement="{Binding ActiveMeasurement}" />
+                                        </Grid>
+                                    </Border>
+                                </TabItem>
+                                <TabItem Header="TM-30">
+                                    <Border Style="{StaticResource CardBorder}" Padding="0"
+                                            Margin="0,8,0,0" ClipToBounds="True">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Text="IES TM-30-15" FontWeight="SemiBold"
+                                                       Margin="14,9,14,2" />
+                                            <layout:Tm30ResponsivePanel Grid.Row="1"
+                                                                       ClipToBounds="True">
+                                                <Grid ClipToBounds="True">
+                                                    <controls:Tm30VectorChart Measurement="{Binding ActiveMeasurement}"
+                                                                                ClipToBounds="True" />
+                                                    <TextBlock Text="{Binding Tm30VectorLegendText}"
+                                                               HorizontalAlignment="Right"
+                                                               VerticalAlignment="Bottom"
+                                                               Margin="7" Padding="5,3"
+                                                               FontSize="9"
+                                                               Background="#DFFFFFFF" />
+                                                </Grid>
+                                                <Border Padding="4" ClipToBounds="True">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Rf" Foreground="{StaticResource SecondaryTextBrush}" />
+                                                        <TextBlock Text="{Binding Tm30RfText}" FontSize="22"
+                                                                   FontFamily="Cascadia Mono, Consolas"
+                                                                   FontWeight="SemiBold" />
+                                                        <TextBlock Text="Rg" Foreground="{StaticResource SecondaryTextBrush}"
+                                                                   Margin="0,3,0,0" />
+                                                        <TextBlock Text="{Binding Tm30RgText}" FontSize="22"
+                                                                   FontFamily="Cascadia Mono, Consolas"
+                                                                   FontWeight="SemiBold" />
+                                                        <TextBlock Text="{Binding Tm30GuideOneText}" FontSize="9"
+                                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                                   TextWrapping="Wrap" Margin="0,5,0,0" />
+                                                        <TextBlock Text="{Binding Tm30GuideTwoText}" FontSize="9"
+                                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                                   TextWrapping="Wrap" />
+                                                        <TextBlock Text="{Binding Tm30CautionText}" FontSize="9"
+                                                                   Foreground="#B56C18" TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </Border>
+                                                <Grid ClipToBounds="True">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="*" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock Text="{Binding Tm30RfRgPlotLabel}"
+                                                               FontWeight="SemiBold" FontSize="11" />
+                                                    <controls:RfRgChart Grid.Row="1"
+                                                                       Measurement="{Binding ActiveMeasurement}"
+                                                                       ClipToBounds="True" />
+                                                </Grid>
+                                                <Grid ClipToBounds="True">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="*" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock Text="{Binding Tm30SamplesLabel}"
+                                                               FontWeight="SemiBold" FontSize="11" />
+                                                    <controls:Tm30SampleChart Grid.Row="1"
+                                                                             Measurement="{Binding ActiveMeasurement}"
+                                                                             ClipToBounds="True" />
+                                                </Grid>
+                                            </layout:Tm30ResponsivePanel>
+                                        </Grid>
+                                    </Border>
+                                </TabItem>
+                            </TabControl>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <GridSplitter Grid.Row="1" Height="6" HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Center" Background="Transparent"
+                                  ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"
+                                  DragCompleted="HistorySplitter_DragCompleted" />
+
+                    <Border Grid.Row="2" Background="#FAFCFD"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1" CornerRadius="8" ClipToBounds="True">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Button x:Name="HistoryToggleButton" Grid.Row="0"
+                                    AutomationProperties.Name="{Binding HistoryLabel}"
+                                    Background="Transparent" BorderThickness="0"
+                                    ToolTip="{Binding HistoryFooterTooltip}"
+                                    Click="HistoryToggle_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="14" Height="3" Margin="0,0,4,0"
+                                            CornerRadius="1.5" Background="#63717D" />
+                                    <Border Width="14" Height="3"
+                                            CornerRadius="1.5" Background="#63717D" />
+                                </StackPanel>
+                            </Button>
+                            <ListBox x:Name="HistoryList" Grid.Row="1"
+                                     ItemsSource="{Binding HistoryItems}"
+                                     SelectionMode="Extended"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                     BorderThickness="0" Background="Transparent"
+                                     SelectionChanged="HistoryList_SelectionChanged"
+                                     PreviewMouseLeftButtonDown="HistoryList_PreviewMouseLeftButtonDown"
+                                     PreviewMouseMove="HistoryList_PreviewMouseMove"
+                                     AllowDrop="True" DragOver="HistoryList_DragOver"
+                                     Drop="HistoryList_Drop">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=OneWay}" />
+                                        <Setter Property="Width" Value="{x:Static layout:HistoryCardLayout.Width}" />
+                                        <Setter Property="Height" Value="{x:Static layout:HistoryCardLayout.Height}" />
+                                        <Setter Property="Margin" Value="{x:Static layout:HistoryCardLayout.ItemMargin}" />
+                                        <Setter Property="Padding" Value="0" />
+                                        <Setter Property="VerticalAlignment" Value="Top" />
+                                        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Width="{x:Static layout:HistoryCardLayout.Width}"
+                                              Height="{x:Static layout:HistoryCardLayout.Height}">
+                                            <Grid Visibility="{Binding IsReflectance, Converter={StaticResource BoolToVisibility}}">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="{x:Static layout:HistoryCardLayout.ReflectanceColorArea}" />
+                                                    <RowDefinition Height="{x:Static layout:HistoryCardLayout.ReflectanceLabArea}" />
+                                                </Grid.RowDefinitions>
+                                                <Border Grid.Row="0" Background="{Binding SwatchBrush}" />
+                                                <UniformGrid Grid.Row="1" Columns="3" Margin="4,2">
+                                                    <StackPanel>
+                                                        <TextBlock Text="L*" FontSize="9"
+                                                                   Foreground="{StaticResource SecondaryTextBrush}" />
+                                                        <TextBlock Text="{Binding LabLText}" FontSize="10" />
+                                                    </StackPanel>
+                                                    <StackPanel>
+                                                        <TextBlock Text="a*" FontSize="9"
+                                                                   Foreground="{StaticResource SecondaryTextBrush}" />
+                                                        <TextBlock Text="{Binding LabAText}" FontSize="10" />
+                                                    </StackPanel>
+                                                    <StackPanel>
+                                                        <TextBlock Text="b*" FontSize="9"
+                                                                   Foreground="{StaticResource SecondaryTextBrush}" />
+                                                        <TextBlock Text="{Binding LabBText}" FontSize="10" />
+                                                    </StackPanel>
+                                                 </UniformGrid>
+                                                 <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
+                                                          VerticalAlignment="Top"
+                                                          Margin="{x:Static layout:HistoryCardLayout.ReflectanceNameMargin}"
+                                                          Height="{x:Static layout:HistoryCardLayout.ReflectanceNameFieldHeight}"
+                                                          FontSize="11" Padding="3,1"
+                                                         IsReadOnly="True"
+                                                         PreviewMouseDoubleClick="HistoryNameEditor_MouseDoubleClick"
+                                                         LostKeyboardFocus="HistoryNameEditor_LostKeyboardFocus"
+                                                         PreviewKeyDown="HistoryNameEditor_PreviewKeyDown" />
+                                            </Grid>
+                                             <Grid Visibility="{Binding IsLighting, Converter={StaticResource BoolToVisibility}}">
+                                                 <Grid.RowDefinitions>
+                                                     <RowDefinition Height="{x:Static layout:HistoryCardLayout.LightingContentArea}" />
+                                                     <RowDefinition Height="{x:Static layout:HistoryCardLayout.LightingTitleArea}" />
+                                                 </Grid.RowDefinitions>
+                                                <controls:LightingHistoryChart Measurement="{Binding Measurement}" />
+                                                <TextBox Grid.Row="1"
+                                                         Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
+                                                         FontSize="11" Padding="3,1" Margin="5,1"
+                                                         IsReadOnly="True"
+                                                         PreviewMouseDoubleClick="HistoryNameEditor_MouseDoubleClick"
+                                                         LostKeyboardFocus="HistoryNameEditor_LostKeyboardFocus"
+                                                         PreviewKeyDown="HistoryNameEditor_PreviewKeyDown" />
+                                            </Grid>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <Border Grid.Column="1" Background="White"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1,0,0,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- CalibrationStatusView.swift -->
+                    <Border Grid.Row="0" Style="{StaticResource CardBorder}"
+                            Margin="14,14,14,8" Padding="12">
+                        <StackPanel>
+                            <TextBlock Text="{Binding ModeTitle}" FontSize="26"
+                                       FontWeight="SemiBold" />
+                            <Separator Margin="0,8" />
+                            <DockPanel>
+                                <TextBlock Text="{Binding StatusTitle}" FontSize="17"
+                                           FontWeight="SemiBold" />
+                                <TextBlock DockPanel.Dock="Right" Text="Calibration Done"
+                                           Foreground="#278A4D" FontWeight="SemiBold"
+                                           Visibility="{Binding IsCalibrationDone, Converter={StaticResource BoolToVisibility}}" />
+                            </DockPanel>
+                            <TextBlock Text="{Binding StatusDetail}" TextWrapping="Wrap"
+                                       Foreground="{StaticResource SecondaryTextBrush}"
+                                       Margin="0,5,0,0" />
+                            <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap"
+                                       Foreground="#B33A2B" Margin="0,5,0,0"
+                                       Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
+
+                            <ProgressBar Height="4" IsIndeterminate="True" Margin="0,8,0,0"
+                                         Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+                            <Button Style="{StaticResource PrimaryButton}"
+                                    Content="{Binding CalibrateLabel}"
+                                    Command="{Binding CalibrateCommand}" Margin="0,9,0,0"
+                                    Visibility="{Binding ShowsInitialCalibrationControl, Converter={StaticResource BoolToVisibility}}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,9,0,0"
+                                        Visibility="{Binding ShowsMeasureControls, Converter={StaticResource BoolToVisibility}}">
+                                <Button Style="{StaticResource PrimaryButton}"
+                                        Content="{Binding MeasureLabel}"
+                                        Command="{Binding MeasureCommand}" MinWidth="100" />
+                                <Button Content="{Binding RecalibrateLabel}"
+                                        Command="{Binding CalibrateCommand}" Margin="7,0,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,9,0,0"
+                                        Visibility="{Binding NeedsCalibrationConfirmation, Converter={StaticResource BoolToVisibility}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource PrimaryButton}"
+                                            Content="{Binding ContinueLabel}"
+                                            Command="{Binding ConfirmCalibrationCommand}" />
+                                    <Button Content="{Binding SkipLabel}"
+                                            Command="{Binding SkipCalibrationCommand}"
+                                            Margin="7,0,0,0" />
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Style="{StaticResource PrimaryButton}" Margin="0,9,0,0"
+                                    Content="{Binding RetryLabel}" Command="{Binding RetryCommand}"
+                                    Visibility="{Binding ShowsRetryControl, Converter={StaticResource BoolToVisibility}}" />
+                            <Button Style="{StaticResource PrimaryButton}" Margin="0,9,0,0"
+                                    Content="{Binding ConnectLabel}" Command="{Binding ConnectCommand}"
+                                    Visibility="{Binding ShowsConnectControl, Converter={StaticResource BoolToVisibility}}" />
+                            <Button Style="{StaticResource PrimaryButton}" Margin="0,9,0,0"
+                                    Content="{Binding RestartLabel}" Command="{Binding RestartCommand}"
+                                    Visibility="{Binding ShowsRestartControl, Converter={StaticResource BoolToVisibility}}" />
+
+                            <Separator Margin="0,9,0,7" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Style="{StaticResource MetricLabel}"
+                                           Text="{Binding InstrumentAndSerialLabel}" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource MetricValue}"
+                                           Text="{Binding InstrumentMetadataName}" />
+                                <TextBlock Grid.Row="1" Style="{StaticResource MetricLabel}"
+                                           Text="{Binding WavelengthRangeLabel}" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource MetricValue}"
+                                           Text="{Binding WavelengthRangeText}" />
+                                <TextBlock Grid.Row="2" Style="{StaticResource MetricLabel}"
+                                           Text="{Binding DataPointCountLabel}" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource MetricValue}"
+                                           Text="{Binding DataPointCountText}" />
+                                <TextBlock Grid.Row="3" Style="{StaticResource MetricLabel}"
+                                           Text="{Binding PracticalWavelengthRangeLabel}" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource MetricValue}"
+                                           Text="{Binding PracticalWavelengthRangeText}" />
+                                <CheckBox Grid.Row="4" Grid.ColumnSpan="2" Margin="0,5,0,0"
+                                          Content="{Binding UsePracticalAreaLabel}"
+                                          IsChecked="{Binding UsePracticalRange}"
+                                          IsEnabled="{Binding HasPracticalRange}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- MeasurementDetailsView / SpotreadDebugWindowView -->
+                    <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}"
+                                BorderThickness="0,1,0,0">
+                        <TabItem Header="{Binding MeasurementValuesLabel}">
+                            <Grid>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                              Visibility="{Binding HasActiveMeasurement, Converter={StaticResource BoolToVisibility}}">
+                                    <StackPanel Margin="14,10,14,16">
+                                        <DockPanel>
+                                            <TextBlock Text="{Binding MeasurementResultLabel}"
+                                                       FontSize="19" FontWeight="SemiBold" />
+                                            <TextBlock DockPanel.Dock="Right"
+                                                       Text="{Binding MeasurementTimeText}"
+                                                       Foreground="{StaticResource SecondaryTextBrush}" />
+                                        </DockPanel>
+
+                                        <GroupBox Header="{Binding ColorimetricValuesLabel}" Margin="0,12,0,0">
+                                            <StackPanel Margin="8,5">
+                                                <TextBlock Text="XYZ" FontSize="15" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding XyzText}" Margin="0,4,0,8"
+                                                           FontFamily="Cascadia Mono, Consolas" />
+                                                <Separator />
+                                                <TextBlock Text="{Binding LabGroupLabel}" FontSize="15" FontWeight="SemiBold"
+                                                           Margin="0,8,0,0" />
+                                                <TextBlock Text="{Binding LabText}" Margin="0,4,0,0"
+                                                           FontFamily="Cascadia Mono, Consolas" />
+                                                <Grid Margin="0,9,0,0"
+                                                      Visibility="{Binding ShowsSrgbEncoding, Converter={StaticResource BoolToVisibility}}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="HEX（sRGB）"
+                                                               Style="{StaticResource MetricLabel}" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding SrgbHex}"
+                                                               ToolTip="{Binding SrgbGamutWarning}"
+                                                               AutomationProperties.HelpText="{Binding SrgbGamutWarning}">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock"
+                                                                   BasedOn="{StaticResource MetricValue}">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding HasSrgbGamutWarning}"
+                                                                                 Value="True">
+                                                                        <Setter Property="Foreground"
+                                                                                Value="#B06B00" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Grid>
+                                                <Grid Margin="0,8,0,0"
+                                                      Visibility="{Binding HasMonochrome, Converter={StaticResource BoolToVisibility}}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock Text="Y" Style="{StaticResource MetricLabel}" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding MonochromeYText}"
+                                                               Style="{StaticResource MetricValue}" />
+                                                    <TextBlock Grid.Row="1" Text="L*" Style="{StaticResource MetricLabel}" />
+                                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MonochromeLText}"
+                                                               Style="{StaticResource MetricValue}" />
+                                                </Grid>
+                                            </StackPanel>
+                                        </GroupBox>
+
+                                        <GroupBox Header="{Binding LightingInformationLabel}" Margin="0,10,0,0"
+                                                  Visibility="{Binding HasLightingMetrics, Converter={StaticResource BoolToVisibility}}">
+                                            <Grid Margin="8,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Grid.Row="0" Text="{Binding IlluminanceLabel}" Style="{StaticResource MetricLabel}"
+                                                           Visibility="{Binding HasLux, Converter={StaticResource BoolToVisibility}}" />
+                                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding LuxText}" Style="{StaticResource MetricValue}"
+                                                           Visibility="{Binding HasLux, Converter={StaticResource BoolToVisibility}}" />
+                                                <TextBlock Grid.Row="1" Text="CCT" Style="{StaticResource MetricLabel}"
+                                                           Visibility="{Binding HasCct, Converter={StaticResource BoolToVisibility}}" />
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CctText}" Style="{StaticResource MetricValue}"
+                                                           Visibility="{Binding HasCct, Converter={StaticResource BoolToVisibility}}" />
+                                                <TextBlock Grid.Row="2" Text="Duv" Style="{StaticResource MetricLabel}"
+                                                           Visibility="{Binding HasDuv, Converter={StaticResource BoolToVisibility}}" />
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DuvText}" Style="{StaticResource MetricValue}"
+                                                           Visibility="{Binding HasDuv, Converter={StaticResource BoolToVisibility}}" />
+                                                <TextBlock Grid.Row="3" Text="{Binding SuggestedEvLabel}" Style="{StaticResource MetricLabel}"
+                                                           Visibility="{Binding HasEv, Converter={StaticResource BoolToVisibility}}" />
+                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding EvText}" Style="{StaticResource MetricValue}"
+                                                           Visibility="{Binding HasEv, Converter={StaticResource BoolToVisibility}}" />
+                                                <TextBlock Grid.Row="4" Text="{Binding ClosestPlanckianLabel}" Style="{StaticResource MetricLabel}"
+                                                           Visibility="{Binding HasClosestPlanckian, Converter={StaticResource BoolToVisibility}}" />
+                                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ClosestPlanckianText}" Style="{StaticResource MetricValue}"
+                                                           Visibility="{Binding HasClosestPlanckian, Converter={StaticResource BoolToVisibility}}" />
+                                                <TextBlock Grid.Row="5" Text="{Binding ClosestDaylightLabel}" Style="{StaticResource MetricLabel}"
+                                                           Visibility="{Binding HasClosestDaylight, Converter={StaticResource BoolToVisibility}}" />
+                                                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding ClosestDaylightText}" Style="{StaticResource MetricValue}"
+                                                           Visibility="{Binding HasClosestDaylight, Converter={StaticResource BoolToVisibility}}" />
+                                            </Grid>
+                                        </GroupBox>
+
+                                        <GroupBox Header="{Binding JspstGroupLabel}" Margin="0,10,0,0"
+                                                  Visibility="{Binding ShowsStandardsEvaluation, Converter={StaticResource BoolToVisibility}}">
+                                            <StackPanel Margin="8,5">
+                                                <TextBlock Text="{Binding JspstSummaryTitle}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding JspstSummaryDetail}" TextWrapping="Wrap"
+                                                           FontSize="10" Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Margin="0,3,0,6" />
+                                                <Separator />
+                                                <DockPanel Margin="0,5,0,0">
+                                                    <TextBlock Text="{Binding JspstCctLabel}" Style="{StaticResource MetricLabel}" />
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding JspstCctText}" Style="{StaticResource MetricValue}" />
+                                                </DockPanel>
+                                                <TextBlock Text="{Binding JspstCctRequirement}" Style="{StaticResource RequirementText}" />
+                                                <DockPanel Margin="0,5,0,0">
+                                                    <TextBlock Text="{Binding JspstChromaticityLabel}" Style="{StaticResource MetricLabel}" />
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding JspstChromaticityText}" Style="{StaticResource MetricValue}" />
+                                                </DockPanel>
+                                                <TextBlock Text="{Binding JspstChromaticityRequirement}" Style="{StaticResource RequirementText}" />
+                                                <DockPanel Margin="0,5,0,0">
+                                                    <TextBlock Text="{Binding AverageCriLabel}" Style="{StaticResource MetricLabel}" />
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding JspstRaText}" Style="{StaticResource MetricValue}" />
+                                                </DockPanel>
+                                                <TextBlock Text="{Binding JspstRaRequirement}" Style="{StaticResource RequirementText}" />
+                                                <DockPanel Margin="0,5,0,0">
+                                                    <TextBlock Text="{Binding MinimumRiLabel}" Style="{StaticResource MetricLabel}" />
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding JspstMinimumRiText}" Style="{StaticResource MetricValue}" />
+                                                </DockPanel>
+                                                <TextBlock Text="{Binding JspstRiRequirement}" Style="{StaticResource RequirementText}" />
+                                                <DockPanel Margin="0,5,0,0">
+                                                    <TextBlock Text="{Binding WorkSurfaceIlluminanceLabel}" Style="{StaticResource MetricLabel}" />
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding JspstIlluminanceText}" Style="{StaticResource MetricValue}" />
+                                                </DockPanel>
+                                                <TextBlock Text="{Binding JspstIlluminanceRequirement}" Style="{StaticResource RequirementText}" />
+                                            </StackPanel>
+                                        </GroupBox>
+
+                                        <GroupBox Header="{Binding IsoGroupLabel}" Margin="0,10,0,0"
+                                                  Visibility="{Binding ShowsStandardsEvaluation, Converter={StaticResource BoolToVisibility}}">
+                                            <StackPanel Margin="8,5">
+                                                <TextBlock Text="{Binding IsoSummaryTitle}" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding IsoSummaryDetail}" TextWrapping="Wrap"
+                                                           FontSize="10" Foreground="{StaticResource SecondaryTextBrush}"
+                                                           Margin="0,3,0,6" />
+                                                <Separator />
+                                                <DockPanel Margin="0,5,0,0">
+                                                    <TextBlock Text="{Binding IsoRfLabel}" Style="{StaticResource MetricLabel}" />
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding IsoRfText}" Style="{StaticResource MetricValue}" />
+                                                </DockPanel>
+                                                <TextBlock Text="{Binding IsoRfRequirement}" Style="{StaticResource RequirementText}" />
+                                                <DockPanel Margin="0,5,0,0">
+                                                    <TextBlock Text="{Binding AverageCriLabel}" Style="{StaticResource MetricLabel}" />
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding IsoRaText}" Style="{StaticResource MetricValue}" />
+                                                </DockPanel>
+                                                <TextBlock Text="{Binding IsoRaRequirement}" Style="{StaticResource RequirementText}" />
+                                                <DockPanel Margin="0,5,0,0">
+                                                    <TextBlock Text="{Binding P1P2Label}" Style="{StaticResource MetricLabel}" />
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding NotAssessedLabel}" Style="{StaticResource MetricValue}" />
+                                                </DockPanel>
+                                                <TextBlock Text="{Binding UvUnavailableLabel}" Style="{StaticResource RequirementText}" />
+                                                <DockPanel Margin="0,5,0,0">
+                                                    <TextBlock Text="{Binding P3P4Label}" Style="{StaticResource MetricLabel}" />
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding IsoIlluminanceText}" Style="{StaticResource MetricValue}" />
+                                                </DockPanel>
+                                                <TextBlock Text="{Binding IsoIlluminanceRequirement}" Style="{StaticResource RequirementText}" />
+                                            </StackPanel>
+                                        </GroupBox>
+
+                                        <GroupBox Header="{Binding RenderingGroupLabel}" Margin="0,10,0,0"
+                                                  Visibility="{Binding HasCriOrTlci, Converter={StaticResource BoolToVisibility}}">
+                                            <Grid Margin="8,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Grid.Row="0" Text="Ra" Style="{StaticResource MetricLabel}" />
+                                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CriRaText}" Style="{StaticResource MetricValue}" />
+                                                <TextBlock Grid.Row="1" Text="TLCI 2012 Qa" Style="{StaticResource MetricLabel}" />
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TlciQaText}" Style="{StaticResource MetricValue}" />
+                                            </Grid>
+                                        </GroupBox>
+                                    </StackPanel>
+                                </ScrollViewer>
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            Visibility="{Binding HasActiveMeasurement, Converter={StaticResource InverseBoolToVisibility}}">
+                                    <TextBlock Text="{Binding WaitingForValuesTitle}" FontSize="17"
+                                               FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding WaitingForValuesDetail}"
+                                               Foreground="{StaticResource SecondaryTextBrush}"
+                                               Margin="0,6,0,0" />
+                                </StackPanel>
+                            </Grid>
+                        </TabItem>
+                        <TabItem Header="{Binding LogLabel}">
+                            <Grid Margin="12">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding DebugStatusText}" FontWeight="SemiBold" />
+                                        <DockPanel Margin="0,4,0,0">
+                                            <TextBlock Text="モード" Width="38" FontSize="10"
+                                                       Foreground="{StaticResource SecondaryTextBrush}" />
+                                            <TextBlock Text="{Binding DebugModeText}" />
+                                        </DockPanel>
+                                        <DockPanel Margin="0,2,0,0">
+                                            <TextBlock Text="パス" Width="38" FontSize="10"
+                                                       Foreground="{StaticResource SecondaryTextBrush}" />
+                                            <TextBlock Text="{Binding DebugPathText}" FontSize="10"
+                                                       FontFamily="Cascadia Mono, Consolas"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </DockPanel>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <CheckBox x:Name="FollowLatestCheckBox"
+                                                  Content="最新" IsChecked="True" />
+                                        <Button Content="{Binding ClearLogLabel}"
+                                                Command="{Binding ClearLogCommand}" Padding="8,4" />
+                                    </StackPanel>
+                                </Grid>
+                                <TextBox x:Name="SpotreadLogTextBox" Grid.Row="1" Margin="0,8,0,0"
+                                         FontFamily="Cascadia Mono, Consolas" FontSize="11"
+                                         IsReadOnly="True" AcceptsReturn="True"
+                                         TextWrapping="NoWrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         HorizontalScrollBarVisibility="Auto" />
+                            </Grid>
+                        </TabItem>
+                    </TabControl>
+
+                    <!-- MeasurementExportFooter.swift -->
+                    <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="0,1,0,0" Padding="14,9,14,12">
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock Text="{Binding ExportActionLabel}"
+                                           FontWeight="SemiBold" FontSize="14" />
+                                <TextBlock DockPanel.Dock="Right"
+                                           Text="{Binding ExportSelectionText}"
+                                           Foreground="{StaticResource SecondaryTextBrush}" />
+                            </DockPanel>
+                            <StackPanel Margin="0,6,0,0"
+                                        Visibility="{Binding ShowsReflectanceExport, Converter={StaticResource BoolToVisibility}}">
+                                <CheckBox x:Name="ExportAseCheckBox"
+                                          Content="{Binding SwatchExportLabel}" IsChecked="True"
+                                          IsEnabled="{Binding HasSelectedLab}" />
+                                <CheckBox x:Name="ReflectanceSpectrumPngCheckBox"
+                                          Content="{Binding SpectrumPngExportLabel}" IsChecked="False"
+                                          IsEnabled="{Binding HasSelectedSpectrum}" />
+                                <CheckBox x:Name="ReflectanceCsvCheckBox"
+                                          Content="{Binding SpectrumCsvExportLabel}" IsChecked="False"
+                                          IsEnabled="{Binding HasSelectedSpectrum}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,6,0,0"
+                                        Visibility="{Binding ShowsLightingExport, Converter={StaticResource BoolToVisibility}}">
+                                <CheckBox x:Name="LightingSpectrumPngCheckBox"
+                                          Content="{Binding SpectrumPngExportLabel}" IsChecked="True"
+                                          IsEnabled="{Binding HasSelectedSpectrum}" />
+                                <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                                    <CheckBox x:Name="ExportD50CheckBox"
+                                              Content="{Binding D50Label}" IsChecked="False" />
+                                    <CheckBox x:Name="ExportD65CheckBox"
+                                              Content="{Binding D65Label}" IsChecked="False" />
+                                </StackPanel>
+                                <CheckBox x:Name="ExportCriPngCheckBox"
+                                          Content="{Binding CriPngExportLabel}" IsChecked="False"
+                                          IsEnabled="{Binding HasSelectedCri}" />
+                                <CheckBox x:Name="ExportTm30PngCheckBox"
+                                          Content="{Binding Tm30PngExportLabel}" IsChecked="False"
+                                          IsEnabled="{Binding HasSelectedTm30}" />
+                                <CheckBox x:Name="LightingCsvCheckBox"
+                                          Content="{Binding LightingCsvExportLabel}" IsChecked="False" />
+                            </StackPanel>
+                            <Button Style="{StaticResource PrimaryButton}"
+                                    Content="{Binding ExportActionLabel}"
+                                    IsEnabled="{Binding CanExportSelection}"
+                                    Click="Export_Click" Margin="0,7,0,0" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="1" Panel.ZIndex="100" Background="#99FFFFFF"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}">
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="White" BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1" CornerRadius="120" Width="250" Height="250"
+                    Padding="28">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ProgressBar Width="160" Height="5" IsIndeterminate="True" />
+                    <TextBlock Text="{Binding StatusTitle}" FontSize="17"
+                               FontWeight="SemiBold" TextAlignment="Center"
+                               TextWrapping="Wrap" Margin="0,15,0,0" />
+                    <TextBlock Text="{Binding StatusDetail}"
+                               Foreground="{StaticResource SecondaryTextBrush}"
+                               TextAlignment="Center" TextWrapping="Wrap"
+                               Margin="0,8,0,0" />
+                    <Button Content="{Binding RestartLabel}"
+                            Command="{Binding RestartCommand}" Padding="8,4"
+                            Margin="0,10,0,0" />
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</Window>

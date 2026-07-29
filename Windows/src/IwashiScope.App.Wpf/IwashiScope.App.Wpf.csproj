@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\IwashiScope.Core\IwashiScope.Core.csproj" />
+    <ProjectReference Include="..\IwashiScope.Protocol\IwashiScope.Protocol.csproj" />
+    <ProjectReference Include="..\IwashiScope.Infrastructure.Windows\IwashiScope.Infrastructure.Windows.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>IwashiScope</AssemblyName>
+    <RootNamespace>IwashiScope.App.Wpf</RootNamespace>
+    <ApplicationIcon>Resources\Icons\IwashiScope.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Icons\IwashiScope.ico" />
+    <Resource Include="Resources\Icons\IwashiScope-128.png" />
+    <EmbeddedResource Include="Resources\Localizable.xcstrings"
+                      LogicalName="IwashiScope.Localizable.xcstrings" />
+    <Content Include="..\..\..\LICENSE" Link="LICENSE">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\..\NOTICE" Link="NOTICE">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\..\THIRD_PARTY_NOTICES.md" Link="THIRD_PARTY_NOTICES.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\..\LICENSES\**\*" Link="LICENSES\%(RecursiveDir)%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="..\..\..\ThirdParty\CIE\**\*" Link="ThirdParty\CIE\%(RecursiveDir)%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="$(IwashiScopeHelperPath)"
+             Link="iwashiscope-spotread.exe"
+             Condition="'$(IwashiScopeHelperPath)' != '' and Exists('$(IwashiScopeHelperPath)')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="RequireIwashiScopeHelperForPublish"
+          BeforeTargets="Publish"
+          Condition="'$(IwashiScopeHelperPath)' == '' or !Exists('$(IwashiScopeHelperPath)')">
+    <Error Text="Publish requires -p:IwashiScopeHelperPath=&lt;absolute path to iwashiscope-spotread.exe&gt;." />
+  </Target>
+
+</Project>

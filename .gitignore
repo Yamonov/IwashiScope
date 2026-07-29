@@ -189,3 +189,21 @@ Argyll_V3.5.0/jpeg/libtool
 Argyll_V3.5.0/jpeg/stamp-h1
 Argyll_V3.5.0/jpeg/.deps/
 Argyll_V3.5.0/imdi/imdi_k.c
+
+# Windows WPF build, test, package, and user data
+/Windows/**/bin/
+/Windows/**/obj/
+/Windows/artifacts/
+/Windows/TestResults/
+/Windows/**/*.trx
+/Windows/**/*.coverage
+/Windows/**/*.coveragexml
+/Windows/.vs/
+/Windows/.vscode/
+/Windows/**/*.user
+/Windows/**/*.suo
+/Windows/**/*.userosscache
+/Windows/**/*.sln.docstates
+/Windows/**/*.csproj.user
+/Windows/**/*.iwashiscope
+/Windows/logs/
