@@ -30,6 +30,7 @@ struct LightingMeasurementHistoryView: View {
 
     let mode: MeasurementMode
     let historyStore: MeasurementHistoryStore
+    let usesPracticalSpectrumRange: Bool
 
     private var cardItemWidth: Double {
         LightingMeasurementHistoryCardMetrics.size.width
@@ -244,7 +245,8 @@ struct LightingMeasurementHistoryView: View {
             exportRequest: MeasurementHistoryDragExportRequest(
                 mode: mode,
                 entries: selectedEntries,
-                orderedEntries: entries
+                orderedEntries: entries,
+                usesPracticalSpectrumRange: usesPracticalSpectrumRange
             )
         )
     }

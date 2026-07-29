@@ -86,7 +86,9 @@ enum MeasurementExporter {
             throw MeasurementExportError.noSelection
         }
 
-        let options = MeasurementExportOptions.dragDefaults(for: request.mode)
+        var options = MeasurementExportOptions.dragDefaults(for: request.mode)
+        options.usesPracticalSpectrumRange =
+            request.usesPracticalSpectrumRange
         let baseNames = MeasurementExportFileNamer.baseNames(
             for: request.entries,
             orderedEntries: request.orderedEntries
@@ -134,6 +136,8 @@ enum MeasurementExporter {
                     name: "\(baseName)-Spectrum.png",
                     data: try MeasurementExportImageRenderer.spectrumPNG(
                         measurement: measurement,
+                        usesPracticalSpectrumRange:
+                            options.usesPracticalSpectrumRange,
                         includesD50Reference: mode == .reflectance
                             ? false
                             : options.includesD50Reference,

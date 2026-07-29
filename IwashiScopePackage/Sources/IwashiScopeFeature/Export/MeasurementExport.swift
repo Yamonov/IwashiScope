@@ -3,6 +3,7 @@ import Foundation
 struct MeasurementExportOptions: Equatable, Sendable {
     var includesSwatch = false
     var includesSpectrumImage = false
+    var usesPracticalSpectrumRange = false
     var includesD50Reference = false
     var includesD65Reference = false
     var includesCRIImage = false
@@ -72,6 +73,19 @@ struct MeasurementHistoryDragExportRequest: Sendable {
     let mode: MeasurementMode
     let entries: [MeasurementHistoryEntry]
     let orderedEntries: [MeasurementHistoryEntry]
+    let usesPracticalSpectrumRange: Bool
+
+    init(
+        mode: MeasurementMode,
+        entries: [MeasurementHistoryEntry],
+        orderedEntries: [MeasurementHistoryEntry],
+        usesPracticalSpectrumRange: Bool = false
+    ) {
+        self.mode = mode
+        self.entries = entries
+        self.orderedEntries = orderedEntries
+        self.usesPracticalSpectrumRange = usesPracticalSpectrumRange
+    }
 }
 
 enum MeasurementExportError: LocalizedError {

@@ -8,6 +8,7 @@ struct SpectrumChartView: View {
     let calibrationCompleted: Bool
     let showsReferenceControls: Bool
     let usesPracticalSpectrumRange: Bool
+    let roundsPlotAreaCorners: Bool
 
     @State private var showsD50Reference = false
     @State private var showsD65Reference = false
@@ -19,6 +20,7 @@ struct SpectrumChartView: View {
         calibrationCompleted: Bool,
         showsReferenceControls: Bool = true,
         usesPracticalSpectrumRange: Bool = false,
+        roundsPlotAreaCorners: Bool = true,
         initialShowsD50Reference: Bool = false,
         initialShowsD65Reference: Bool = false
     ) {
@@ -27,6 +29,7 @@ struct SpectrumChartView: View {
         self.calibrationCompleted = calibrationCompleted
         self.showsReferenceControls = showsReferenceControls
         self.usesPracticalSpectrumRange = usesPracticalSpectrumRange
+        self.roundsPlotAreaCorners = roundsPlotAreaCorners
         _showsD50Reference = State(initialValue: initialShowsD50Reference)
         _showsD65Reference = State(initialValue: initialShowsD65Reference)
     }
@@ -259,7 +262,9 @@ struct SpectrumChartView: View {
             plotArea
                 .background(spectrumGradient.opacity(0.17))
                 .compositingGroup()
-                .clipShape(.rect(cornerRadius: 6))
+                .clipShape(
+                    .rect(cornerRadius: roundsPlotAreaCorners ? 6 : 0)
+                )
         }
         .chartOverlay { proxy in
             spectrumHoverOverlay(proxy: proxy)

@@ -160,7 +160,8 @@ struct MeasurementWorkspaceView: View {
         } else {
             LightingMeasurementHistoryView(
                 mode: mode,
-                historyStore: historyStore
+                historyStore: historyStore,
+                usesPracticalSpectrumRange: usesPracticalSpectrumRange
             )
         }
     }
@@ -307,10 +308,12 @@ struct MeasurementWorkspaceView: View {
     private func presentMeasurementExportPanel(
         options: MeasurementExportOptions
     ) {
+        var exportOptions = options
+        exportOptions.usesPracticalSpectrumRange = usesPracticalSpectrumRange
         let entries = selectedEntries
         guard MeasurementExportAvailability(entries: entries).canExport(
             mode: mode,
-            options: options
+            options: exportOptions
         ) else {
             presentExportError(String(localized: "書き出す履歴カードと項目を選択してください。"))
             return
@@ -346,7 +349,7 @@ struct MeasurementWorkspaceView: View {
                         entries: entries,
                         orderedEntries: orderedEntries,
                         mode: mode,
-                        options: options,
+                        options: exportOptions,
                         to: directoryURL
                     )
                 } catch {

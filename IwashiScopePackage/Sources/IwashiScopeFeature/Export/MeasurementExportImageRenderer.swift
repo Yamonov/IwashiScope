@@ -11,6 +11,7 @@ enum MeasurementExportImageRenderer {
 
     static func spectrumPNG(
         measurement: SpotMeasurement,
+        usesPracticalSpectrumRange: Bool,
         includesD50Reference: Bool,
         includesD65Reference: Bool
     ) throws -> Data {
@@ -20,6 +21,8 @@ enum MeasurementExportImageRenderer {
                 measurement: measurement,
                 calibrationCompleted: true,
                 showsReferenceControls: false,
+                usesPracticalSpectrumRange: usesPracticalSpectrumRange,
+                roundsPlotAreaCorners: false,
                 initialShowsD50Reference: includesD50Reference,
                 initialShowsD65Reference: includesD65Reference
             )
