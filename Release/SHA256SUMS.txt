@@ -1,2 +1,3 @@
-7ef09ea237e66578119bd355641ecb884bf83dd50bc352746035bffb40b7a8cc  IwashiScope-0.9.4.zip
-dcb7e3a61ebae585edc9958ce32340a412d1802880da713e74a08ed85ed9f279  IwashiScope-0.9.4-source.zip
+2d7be19d43817f6f7f543efd7a9669bb9ad833f6e9f7af19cc01bf6f8c6bafc1  IwashiScope-0.9.5.zip
+e4a2f17e296ecb890457de036664c7533be9d7d752615a20eefa84ea66829306  IwashiScope-0.9.5-Windows-x64.zip
+06ef66f7d3ec2b3835db0afc506452a9b3c99f7312358a142f824967bb64c0ae  IwashiScope-0.9.5-source.zip

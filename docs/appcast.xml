@@ -6,6 +6,45 @@
         <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
         <item>
+            <title>0.9.5</title>
+            <pubDate>Thu, 30 Jul 2026 03:06:23 +0900</pubDate>
+            <link>https://yamonov.github.io/IwashiScope/</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.5</sparkle:fullReleaseNotesLink>
+            <sparkle:version>27</sparkle:version>
+            <sparkle:shortVersionString>0.9.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# IwashiScope 0.9.5
+
+Windows版の追加と、両OSで使用する測定helperのビルド構成を統合した更新です。
+
+- macOS版と同じ測定・表示・履歴・書き出し機能を備えたWindows版を追加
+- macOS版とWindows版の `iwashiscope-spotread` を同じArgyllCMS改変ソースからビルドする構成へ統合
+- 校正案内の識別情報が未初期化になり、一部環境で不正なJSONが出力される可能性がある問題を修正
+- Intel MacとAppleシリコンMacに対応するUniversal Binary
+- macOS 14.6以降に対応
+
+macOS版はDeveloper IDで署名し、Appleの公証を完了しています。
+
+Windows版は.NETランタイムを含む自己完結型x64 ZIPです。公開用Authenticode証明書がないため未署名で、初回起動時にMicrosoft Defender SmartScreenの警告が表示される場合があります。
+
+このReleaseには、macOS版・Windows版・両OSのhelperに正確に対応する完全なソース一式を含めています。ライセンス、第三者著作物、ArgyllCMSからの変更内容は、ソースZIP内の `LICENSE`、`NOTICE`、`THIRD_PARTY_NOTICES.md`、`ARGYLL_CHANGES.md`を参照してください。
+
+[v0.9.5のソースコード](https://github.com/Yamonov/IwashiScope/tree/v0.9.5)
+
+## SHA-256
+
+- `IwashiScope-0.9.5.zip`: `2d7be19d43817f6f7f543efd7a9669bb9ad833f6e9f7af19cc01bf6f8c6bafc1`
+- `IwashiScope-0.9.5-Windows-x64.zip`: `e4a2f17e296ecb890457de036664c7533be9d7d752615a20eefa84ea66829306`
+- `IwashiScope-0.9.5-source.zip`: `06ef66f7d3ec2b3835db0afc506452a9b3c99f7312358a142f824967bb64c0ae`
+]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v0.9.5/IwashiScope-0.9.5.zip"
+                length="10580613"
+                type="application/octet-stream"
+                sparkle:edSignature="udOjxIeXycHYVYn5lXRZpHf4PLP/8TMuPJEoB6JOmlBUUyTN/USMY959uFxzpfYroHgrYdpmVc1zznzKHFleDw=="
+            />
+        </item>
+        <item>
             <title>0.9.4</title>
             <pubDate>Wed, 29 Jul 2026 16:41:31 +0900</pubDate>
             <link>https://yamonov.github.io/IwashiScope/</link>
