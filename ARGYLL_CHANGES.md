@@ -16,7 +16,7 @@ IwashiScopeは、ArgyllCMS 3.5.0の`spotread`をGUIから安全に制御する�
 | `Jamfile` | IwashiScopeのビルド時に、`spotread`へ必要なサブプロジェクトだけを読み込む分岐を追加 |
 | `spectro/Jamfile` | JSON Lines実装を追加し、上流版と混同しない`iwashiscope-spotread`ビルドターゲットとUTF-8テストターゲットを定義 |
 | `spectro/inst.h` | 現在のモード・解像度に対する実用波長範囲を取得する任意APIを追加 |
-| `spectro/instappsup.c` | 既存APIを維持したまま、校正状態を通知する任意コールバックを追加 |
+| `spectro/instappsup.c` | 既存APIを維持したまま校正状態を通知する任意コールバックを追加し、各ドライバ呼び出し前に校正識別子出力を初期化 |
 | `spectro/instappsup.h` | 校正イベントとコールバックAPIを宣言 |
 | `spectro/munki.c` | ColorMunki系ドライバの実用波長範囲を共通APIから返す処理を追加 |
 | `spectro/munki_imp.c` | 高解像度測定で複製される短波長側を除いた実用波長範囲を返す処理を追加 |

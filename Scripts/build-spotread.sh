@@ -8,7 +8,7 @@ built_helper_path="$argyll_root/spectro/iwashiscope-spotread"
 helper_path=${SCRIPT_OUTPUT_FILE_0:-"$built_helper_path"}
 build_stamp="$argyll_root/.iwashiscope-build-config"
 deployment_target=${MACOSX_DEPLOYMENT_TARGET:-14.6}
-build_signature="universal-arm64-x86_64-macos${deployment_target}-jsonl3-patch3-utf8"
+build_signature="universal-arm64-x86_64-macos${deployment_target}-jsonl3-patch4-calibration-id"
 jam_tool=${JAM:-}
 
 if [ -z "$jam_tool" ]; then

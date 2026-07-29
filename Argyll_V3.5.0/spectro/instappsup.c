@@ -194,6 +194,8 @@ inst_code inst_handle_calibrate_ex(
 	for (;;) {
 
 		a1logd(p->log,1,"About to call calibrate at top of loop\n");
+		idtype = inst_calc_id_none;
+		id[0] = '\000';
 	    ev = p->calibrate(p, &calt, &calc, &idtype, id);
 		a1logd(p->log,1,"Calibrate returned calt 0x%x, calc 0x%x, ev 0x%x\n",calt,calc,ev);
 
@@ -664,7 +666,6 @@ char *inst_distr(int ditype) {
 	return buf;
 }
 /* ================================================================= */
-
 
 
 
