@@ -2,7 +2,7 @@
 
 ## Version 0.9.5 — 2026-07-30
 
-- macOS版の全機能を移植したWindows版を追加
+- macOS版と同じ測定・表示・履歴・書き出し機能を備えたWindows版を追加
 - macOS版とWindows版の`iwashiscope-spotread`を同じArgyllCMS改変ソースからビルドする構成へ統合
 - 校正案内の識別情報が未初期化になり、一部環境で不正なJSONが出力される可能性がある問題を修正
 

@@ -11,7 +11,7 @@ top-level `Argyll_V3.5.0` source tree, must be placed beside
 
 ## Requirements
 
-- Windows 10 or later, x64
+- Windows 11 x64、または.NET 10が対応するWindows 10 LTSC/Enterprise x64
 - .NET 10 SDK for source builds
 - Visual Studio 2026 or Build Tools with the MSVC x64 toolchain
 - Windows SDK

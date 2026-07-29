@@ -3,10 +3,10 @@
 *Spectral & Color Measurement*
 分光・測色ツール
 
-macOS上でArgyllCMS 3.5.0を改変した同梱コマンド`iwashiscope-spotread`を対話操作し、スペクトルと測色・光源評価値を表示するSwiftUIアプリです。
+ArgyllCMS 3.5.0を改変した同梱コマンド`iwashiscope-spotread`を対話操作し、スペクトルと測色・光源評価値を表示する分光・測色アプリです。macOS版はSwiftUI、Windows版はWPFで実装し、同じ改変ソースから各OS用の`iwashiscope-spotread`をビルドします。
 
 > [!IMPORTANT]
-> Version 0.9には、Sparkle.frameworkを見つけられず起動できない問題があります。Version 0.9をダウンロードした場合は、署名・公証済みの[IwashiScope 0.9.4](https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.4)を手動でダウンロードして置き換えてください。配布バイナリに正確に対応する完全なソース一式も、同じReleaseで公開しています。
+> macOS版Version 0.9には、Sparkle.frameworkを見つけられず起動できない問題があります。Version 0.9をダウンロードした場合は、署名・公証済みの[IwashiScope 0.9.5](https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.5)を手動でダウンロードして置き換えてください。macOS版・Windows版の配布バイナリに対応する完全なソース一式も、同じReleaseで公開しています。
 
 ## 現在の実装
 
@@ -77,21 +77,25 @@ D50とD65の比較曲線は、CIEが公開する1 nm間隔の公式データか�
 IwashiScope/
 ├── Argyll_V3.5.0/                    # 同梱するArgyllCMSソースとIwashiScope用の最小改変
 ├── Scripts/build-spotread.sh         # 改変版測定コマンドだけをビルドするJamターゲット
+├── Scripts/build-spotread-windows.ps1 # 同じ改変ソースからWindows x64 helperをビルド
 ├── IwashiScope.xcodeproj              # App shell
 ├── IwashiScope/                       # App entry point / assets
-└── IwashiScopePackage/
-    └── Sources/IwashiScopeFeature/    # UI、プロセス制御、パーサー
+├── IwashiScopePackage/
+│   └── Sources/IwashiScopeFeature/    # macOS UI、プロセス制御、パーサー
+└── Windows/                            # WPFアプリ、テスト、Windowsリリーススクリプト
 ```
 
-開発に使用するテストと内部資料は公開リポジトリへ含めていません。`Package.swift`はローカルにテストが存在する場合だけテストターゲットを追加します。
+macOS版のローカルテストは公開リポジトリへ含めていません。`Package.swift`はローカルにテストが存在する場合だけテストターゲットを追加します。Windows版の自動テストとUI対応表は`Windows/`以下へ収録しています。
 
 ## ビルド
 
-必要な環境と手順は[BUILDING.md](BUILDING.md)を参照してください。Xcodeでは`IwashiScope.xcworkspace`を開きます。初回ビルド時にSparkle 2.9.4を取得し、`Scripts/build-spotread.sh`が同梱ソースからUniversal Binaryの`iwashiscope-spotread`を作成します。
+macOS版に必要な環境と手順は[BUILDING.md](BUILDING.md)を参照してください。Xcodeでは`IwashiScope.xcworkspace`を開きます。初回ビルド時にSparkle 2.9.4を取得し、`Scripts/build-spotread.sh`が同梱ソースからUniversal Binaryの`iwashiscope-spotread`を作成します。
+
+Windows版は.NET 10とWPFを使用します。ビルド、テスト、自己完結型x64 ZIPの作成方法は[Windows/README.md](Windows/README.md)を参照してください。
 
 ## Sandboxと配布
 
-測定器へのアクセスと補助プロセス実行のため、App Sandboxは有効にしていません。配布物には、同じソースからビルドして署名した改変版`iwashiscope-spotread`をApp Bundle内の補助実行ファイルとして同梱します。
+macOS版は、測定器へのアクセスと補助プロセス実行のためApp Sandboxを有効にしていません。配布物には、同じソースからビルドして署名した改変版`iwashiscope-spotread`をApp Bundle内の補助実行ファイルとして同梱します。Windows版には、同じコミットからWindows x64用にビルドした`iwashiscope-spotread.exe`をアプリと同じフォルダーへ同梱します。
 
 ArgyllCMSソースとIwashiScope側の改変ソースを同じリポジトリで提供し、生成したオブジェクト、静的ライブラリ、`iwashiscope-spotread`バイナリはコミット対象から除外します。再配布時はArgyllCMSのライセンス文書とAGPLv3の条件を確認してください。
 

@@ -1,7 +1,7 @@
 # macOS v0.9.4 → Windows 機能・テスト対応表
 
 基準: `v0.9.4` / `343405721f1d1a5184efd32c24054259845d608c`
-更新日: 2026-07-29
+更新日: 2026-07-30
 
 状態は実装と検証を混同しない。
 
@@ -70,7 +70,7 @@ TM-30本文の4点補間、基準輪郭の単位半径化、16 sector、変位�
 | license | ライセンス/ソース表示、AGPL/GPL/CC BY-SA notice同梱 | 済 | build output確認済み、UI操作は未試験 |
 | icon | `IwashiScope.icon`/AppIconを正本に16/20/24/32/40/48/64/128/256 ICO、EXE/Window/title画像 | 済 | 自動+目視 |
 | update | Sparkle相当のWindows更新方式 | 未 | 未試験 | 方式決定まで明示的な未実装。完了扱いしない |
-| packaging | self-contained/installer、署名、clean-machine、notice/source offer | 未 | 未試験 | releaseは今回の範囲外 |
+| packaging | self-contained x64 ZIP、署名、clean-machine、notice/source offer | 一部 | 自動+目視 | ZIP、notice/source offer、展開後起動は確認。Authenticode署名と別のclean machineは未確認 |
 
 ## C. macOS内部テスト観点とWindowsテスト
 
@@ -91,14 +91,14 @@ TM-30本文の4点補間、基準輪郭の単位半径化、16 sector、変位�
 | PNG 3000×1500（logical 1000×500、3× raster）/Bgr24/sRGB、560 nm不在時のreference非表示 | `PngExportTests` |
 | full-order連番、Unicode、reserved/duplicate、単一/複数ASE名 | `ExportFileNameTests` |
 
-現行自動テストは44件。存在確認だけでなく、JSON round-trip、PNG chunk/pixel format、
+現行自動テストは54件。存在確認だけでなく、JSON round-trip、PNG chunk/pixel format、
 process pipe、selection/reorder geometry、TM-30 contourの数値構造を検証する。
 
 ## D. 実機待ち
 
-- ColorMunkiのArgyll用USB driver導入、列挙、校正、反射/環境光/発光の実測
+- Release ZIPを展開したアプリとColorMunkiを接続した状態での校正・実測
 - 実測の実用波長範囲、XYZ/Lab/Lux/CCT/Duv/EV/CRI/TLCI/TM-30精度
 - USB抜去・再接続、複数機器、sleep/resume、device-specific issue
 - Mac/Windows間で同一機器・試料を使う数値比較
 
-driver変更は未実施。承認境界と復旧方法は `DRIVER_PLAN.md` に保持する。
+Windowsホストではlibusb0ドライバーによるColorMunki列挙と、同じ共通helperソースの校正promptを確認済みです。Release ZIPの最終確認時は測定器がMacへ接続されていたため、展開後アプリの起動と残留process 0までを確認しました。ドライバーの追加・削除・変更は今回行っていません。

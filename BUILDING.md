@@ -140,3 +140,23 @@ Scripts/audit-source.sh
 ```sh
 Scripts/audit-source.sh --release vVERSION
 ```
+
+## Windows版アプリ
+
+Windows版アプリ本体は.NET 10とWPFで実装し、`Windows/`以下にソリューション、ソース、テスト、配布スクリプトを収録しています。ソースからのビルドとテストはWindowsで実行します。
+
+```powershell
+dotnet build .\Windows\IwashiScope.Windows.slnx -c Release
+dotnet test .\Windows\IwashiScope.Windows.slnx -c Release --no-build
+```
+
+自己完結型x64配布ZIPは、共通ArgyllCMSソースからWindows版helperをビルドしたうえで作成します。
+
+```powershell
+.\Windows\Scripts\Build-Release.ps1 `
+  -Version VERSION `
+  -JamPath C:\path\to\jam.exe `
+  -OutputRoot C:\path\to\release
+```
+
+詳しい必要環境、成果物、ライセンス同梱内容は`Windows/README.md`を参照してください。

@@ -515,8 +515,8 @@ Windows 版の完了は「画面が似ている」ではなく、次をすべて
 - **実機検証中:** 環境光・発光実測、抜去・再接続、sleep/resume、測定精度比較。
 - **削除済み:** fake helper、fake runtime切替、`IWASHISCOPE_USE_FAKE`、製品コード内の
   ダミー測定値生成。アプリは実機helperだけを起動する。
-- **未実装:** Windows更新方式、installer/署名/clean-machine release検証。
-  これらを完了扱いにしない。
+- **未実装:** Windows更新方式、installer、Authenticode署名。
+  self-contained x64 ZIPは作成・展開後起動を確認済みだが、別のclean machineでの検証は未完了。
 - **表示上の明示的例外:** Adobe RGBは計算コードが残っていても全モードの通常UIで
   非表示。画像実体のないSF Symbolsは近似せず未表示。タイトル波形だけはユーザー
   指定によりMacのIwashiScope実アイコンへ置換。
