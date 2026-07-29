@@ -6,6 +6,41 @@
         <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
         <item>
+            <title>0.9.4</title>
+            <pubDate>Wed, 29 Jul 2026 16:41:31 +0900</pubDate>
+            <link>https://yamonov.github.io/IwashiScope/</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.4</sparkle:fullReleaseNotesLink>
+            <sparkle:version>26</sparkle:version>
+            <sparkle:shortVersionString>0.9.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# IwashiScope 0.9.4
+
+スペクトル画像の書き出しを修正した更新です。
+
+- 「実用エリアを使用する」の設定を通常のスペクトル画像書き出しと履歴カードのドラッグ書き出しへ反映
+- 書き出すスペクトル画像のグラフ領域を角丸ではなく四角に変更
+- Intel MacとAppleシリコンMacに対応するUniversal Binary
+- macOS 14.6以降に対応
+
+アプリはDeveloper IDで署名し、Appleの公証を完了しています。
+
+このReleaseには、配布バイナリと正確に対応する完全なソース一式を含めています。ライセンス、第三者著作物、ArgyllCMSからの変更内容は、ソースZIP内の `LICENSE`、`NOTICE`、`THIRD_PARTY_NOTICES.md`、`ARGYLL_CHANGES.md`を参照してください。
+
+[v0.9.4のソースコード](https://github.com/Yamonov/IwashiScope/tree/v0.9.4)
+
+## SHA-256
+
+- `IwashiScope-0.9.4.zip`: `7ef09ea237e66578119bd355641ecb884bf83dd50bc352746035bffb40b7a8cc`
+- `IwashiScope-0.9.4-source.zip`: `dcb7e3a61ebae585edc9958ce32340a412d1802880da713e74a08ed85ed9f279`
+]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v0.9.4/IwashiScope-0.9.4.zip"
+                length="10581107"
+                type="application/octet-stream"
+                sparkle:edSignature="TB8oOV1vmrV+ifFLMviQX3CqBSz8gjXw3WScvwzIIa4rfY545C9fRxz3dpqR0FySjl7Dcsyg55cVIaU4teqsDQ=="
+            />
+        </item>
+        <item>
             <title>0.9.3</title>
             <pubDate>Wed, 29 Jul 2026 12:47:57 +0900</pubDate>
             <link>https://yamonov.github.io/IwashiScope/</link>
