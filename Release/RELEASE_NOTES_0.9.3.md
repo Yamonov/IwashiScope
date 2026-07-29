@@ -18,5 +18,5 @@
 
 ## SHA-256
 
-- `IwashiScope-0.9.3.zip`: 公開前に確定
-- `IwashiScope-0.9.3-source.zip`: 公開前に確定
+- `IwashiScope-0.9.3.zip`: `cd28d4a6506104096da4b7e2bffa612b847fbb62f3bce01911da86389280a907`
+- `IwashiScope-0.9.3-source.zip`: `b460c1a6f42e6bfcf28113eee0fc3853b90608387915ec7c455acc192ffdeecc`
