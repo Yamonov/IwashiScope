@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/IwashiScope.App.Wpf/IwashiScope.App.Wpf.csproj" />
+    <Project Path="src/IwashiScope.Core/IwashiScope.Core.csproj" />
+    <Project Path="src/IwashiScope.Infrastructure.Windows/IwashiScope.Infrastructure.Windows.csproj" />
+    <Project Path="src/IwashiScope.Protocol/IwashiScope.Protocol.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/IwashiScope.Tests/IwashiScope.Tests.csproj" />
+  </Folder>
+</Solution>

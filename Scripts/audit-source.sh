@@ -57,6 +57,25 @@ Scripts/audit-source.sh
 Scripts/audit-release.sh
 Scripts/build-spotread.sh
 Scripts/build-spotread-windows.ps1
+Windows/.gitignore
+Windows/README.md
+Windows/Directory.Build.props
+Windows/IwashiScope.Windows.slnx
+Windows/Scripts/Build-Release.ps1
+Windows/src/IwashiScope.App.Wpf/IwashiScope.App.Wpf.csproj
+Windows/src/IwashiScope.App.Wpf/MainWindow.xaml
+Windows/src/IwashiScope.App.Wpf/MainWindow.xaml.cs
+Windows/src/IwashiScope.App.Wpf/Resources/Icons/IwashiScope.ico
+Windows/src/IwashiScope.App.Wpf/Resources/Icons/IwashiScope-128.png
+Windows/src/IwashiScope.App.Wpf/Resources/Localizable.xcstrings
+Windows/src/IwashiScope.Core/IwashiScope.Core.csproj
+Windows/src/IwashiScope.Infrastructure.Windows/IwashiScope.Infrastructure.Windows.csproj
+Windows/src/IwashiScope.Protocol/IwashiScope.Protocol.csproj
+Windows/tests/IwashiScope.Tests/IwashiScope.Tests.csproj
+Windows/tests/IwashiScope.Tests/ProtocolTests.cs
+Windows/tests/IwashiScope.Tests/ReleaseMetadataTests.cs
+Windows/tools/Generate-WindowsIcon.ps1
+Windows/tools/Compare-UiParityEvidence.ps1
 Argyll_V3.5.0/spectro/spotread_jsonl.c
 Argyll_V3.5.0/spectro/spotread_jsonl.h
 Argyll_V3.5.0/spectro/spotread_jsonl_test.c
@@ -210,6 +229,13 @@ tracked_products=$(git ls-files | grep -E \
 if [ -n "$tracked_products" ]; then
 	printf '%s\n' "$tracked_products" >&2
 	fail "generated build products are tracked"
+fi
+
+tracked_windows_local_data=$(git ls-files Windows | grep -E \
+	'(^|/)(bin|obj|artifacts|TestResults|logs)(/|$)|\.(iwashiscope|user|suo|trx|coverage|coveragexml)$' || true)
+if [ -n "$tracked_windows_local_data" ]; then
+	printf '%s\n' "$tracked_windows_local_data" >&2
+	fail "Windows build products or user data are tracked"
 fi
 
 if [ -n "$release_tag" ]; then

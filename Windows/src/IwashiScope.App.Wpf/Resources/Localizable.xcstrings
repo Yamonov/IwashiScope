@@ -1,0 +1,4772 @@
+{
+  "sourceLanguage" : "ja",
+  "strings" : {
+    "(nm)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(nm)"
+          }
+        }
+      }
+    },
+    "%@\n設置後、測定器を動かさず8〜10秒程度待ってからキャリブレーションを開始してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@\nAfter positioning the instrument, keep it still and wait about 8–10 seconds before starting calibration."
+          }
+        }
+      }
+    },
+    "%@ K" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ K"
+          }
+        }
+      }
+    },
+    "%@、%@。%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@. %3$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@、%2$@。%3$@"
+          }
+        }
+      }
+    },
+    "%@Lab、Lスター %@、aスター %@、bスター %@、%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@Lab, L star %2$@, a star %3$@, b star %4$@, %5$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@Lab、Lスター %2$@、aスター %3$@、bスター %4$@、%5$@"
+          }
+        }
+      }
+    },
+    "%@が基準範囲内" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is within the specified range"
+          }
+        }
+      }
+    },
+    "%@が基準範囲外" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is outside the specified range"
+          }
+        }
+      }
+    },
+    "%@が完了しなかったため、spotreadを強制終了しました。測定器の接続と状態を確認して再起動してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ did not complete, so spotread was forcibly terminated. Check the instrument connection and status, then restart."
+          }
+        }
+      }
+    },
+    "%@ワークスペースの履歴情報が壊れています。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The history data in the %@ workspace is corrupted."
+          }
+        }
+      }
+    },
+    "%@を判定できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ cannot be evaluated"
+          }
+        }
+      }
+    },
+    "%@を測定すると、スペクトルとCRIをここへ追加します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measure %@ to add its spectrum and CRI here."
+          }
+        }
+      }
+    },
+    "%@色域外" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outside %@ gamut"
+          }
+        }
+      }
+    },
+    "%@色域外です" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outside the %@ gamut"
+          }
+        }
+      }
+    },
+    "%lld" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        }
+      }
+    },
+    "%lld%%" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%%"
+          }
+        }
+      }
+    },
+    "%lld件選択" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld selected"
+          }
+        }
+      }
+    },
+    "%lld枚" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld cards"
+          }
+        }
+      }
+    },
+    "16個の均等な色相エリアを補助色で示します。黒線は基準光、アクセントカラーの線は測定光、青線は各色相ビンの差です" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sixteen equal hue-angle bins are shown in guide colors. The black line represents the reference illuminant, the accent-colored line the test source, and the blue lines the displacement of each hue-angle bin."
+          }
+        }
+      }
+    },
+    "99本の棒が各色評価用試料のRf,CESを0から100で示します" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The 99 bars show the sample color fidelity Rf,CES for each color evaluation sample on a scale from 0 to 100."
+          }
+        }
+      }
+    },
+    "99色評価用試料" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "99 Color Evaluation Samples"
+          }
+        }
+      }
+    },
+    "560 nmで測定値に合わせて表示" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scaled to the measured value at 560 nm"
+          }
+        }
+      }
+    },
+    "①" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "①"
+          }
+        }
+      }
+    },
+    "① プランク軌跡上の光源（概略）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "① Sources on the Planckian Locus (Approx.)"
+          }
+        }
+      }
+    },
+    "①はプランク軌跡上の光源、②は実用光源のおおよその範囲です。適合判定ではありません。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "① is the approximate region for sources on the Planckian locus; ② is the approximate region for practical light sources. This is not a conformance assessment."
+          }
+        }
+      }
+    },
+    "②" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "②"
+          }
+        }
+      }
+    },
+    "② 実用光源（概略）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "② Practical Light Sources (Approx.)"
+          }
+        }
+      }
+    },
+    "Adobe RGB (1998) RGB値" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adobe RGB (1998) RGB Values"
+          }
+        }
+      }
+    },
+    "ASEデータブロックが形式の上限を超えています。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The ASE data block exceeds the format limit."
+          }
+        }
+      }
+    },
+    "Calibration Done" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibration Done"
+          }
+        }
+      }
+    },
+    "CCT" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CCT"
+          }
+        }
+      }
+    },
+    "CCT %@ケルビン、Duv %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CCT %1$@ K, Duv %2$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "CCT %1$@ケルビン、Duv %2$@"
+          }
+        }
+      }
+    },
+    "CCTを算出できませんでした" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CCT could not be calculated"
+          }
+        }
+      }
+    },
+    "Copyright © 2026 Yamonov" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copyright © 2026 Yamonov"
+          }
+        }
+      }
+    },
+    "CRI" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CRI"
+          }
+        }
+      }
+    },
+    "CRIなし" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No CRI Data"
+          }
+        }
+      }
+    },
+    "CRI画像（幅3,000 px PNG）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CRI Image (3,000 px Wide PNG)"
+          }
+        }
+      }
+    },
+    "CSV（スペクトル、CRI、TM-30-15）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CSV (Spectrum, CRI, and TM-30-15)"
+          }
+        }
+      }
+    },
+    "D50基準分光分布" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "D50 Reference Spectral Power Distribution"
+          }
+        }
+      }
+    },
+    "D50線" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "D50 Curve"
+          }
+        }
+      }
+    },
+    "D50色度、演色性、作業面照度の測定可能な数値項目を評価しています。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evaluating the measurable numerical criteria for D50 chromaticity, color rendition, and working-plane illuminance."
+          }
+        }
+      }
+    },
+    "D50色度と演色性を評価しています。作業面照度はディスプレイとの比較に適しています。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evaluating D50 chromaticity and color rendition. The working-plane illuminance is suitable for comparison with a display."
+          }
+        }
+      }
+    },
+    "D50色度と演色性を評価しています。作業面照度は環境光モードで測定してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evaluating D50 chromaticity and color rendition. Measure working-plane illuminance in ambient mode."
+          }
+        }
+      }
+    },
+    "D50色度差 Δu′v′" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "D50 Chromaticity Difference Δu′v′"
+          }
+        }
+      }
+    },
+    "D65基準分光分布" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "D65 Reference Spectral Power Distribution"
+          }
+        }
+      }
+    },
+    "D65線" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "D65 Curve"
+          }
+        }
+      }
+    },
+    "Duv" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duv"
+          }
+        }
+      }
+    },
+    "GNU AGPLバージョン3本文" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GNU AGPL Version 3 License Text"
+          }
+        }
+      }
+    },
+    "GNU GPLバージョン3本文" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GNU GPL Version 3 License Text"
+          }
+        }
+      }
+    },
+    "IES TM-30-15" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IES TM-30-15"
+          }
+        }
+      }
+    },
+    "IES TM-30-15 色相グラフ" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IES TM-30-15 Color Vector Graphic"
+          }
+        }
+      }
+    },
+    "ISO 3664:2025（測定可能な数値項目）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ISO 3664:2025 (Measurable Numerical Criteria)"
+          }
+        }
+      }
+    },
+    "ISO 3664で参照されるCIE標準光源D50を重ねます" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overlay CIE standard illuminant D50 referenced by ISO 3664"
+          }
+        }
+      }
+    },
+    "ISO 3668で参照されるCIE標準光源D65を重ねます" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overlay CIE standard illuminant D65 referenced by ISO 3668"
+          }
+        }
+      }
+    },
+    "IwashiScope" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IwashiScope"
+          }
+        }
+      }
+    },
+    "IwashiScopeはGNU Affero General Public License バージョン3の条件で再配布・変更できます。\n\nこのソフトウェアは有用であることを願って配布されますが、商品性や特定目的への適合性を含め、一切の保証はありません。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IwashiScope may be redistributed and modified under the terms of the GNU Affero General Public License version 3.\n\nThis software is distributed in the hope that it will be useful, but without any warranty, including the implied warranties of merchantability or fitness for a particular purpose."
+          }
+        }
+      }
+    },
+    "Lab値なし" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Lab Values"
+          }
+        }
+      }
+    },
+    "Lab値を持つカードだけを1枚以上選択してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select at least one card that contains Lab values."
+          }
+        }
+      }
+    },
+    "Lab特色スウォッチを書き出し" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export Lab Spot-Color Swatches"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "P1・P2観察条件" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "P1 and P2 Viewing Conditions"
+          }
+        }
+      }
+    },
+    "P3 1,500〜2,500 lx／P4 375〜625 lx（照度のみ）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "P3 1,500–2,500 lx / P4 375–625 lx (illuminance only)"
+          }
+        }
+      }
+    },
+    "P3・P4照度範囲外%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outside P3 and P4 illuminance ranges%@"
+          }
+        }
+      }
+    },
+    "P3・P4観察条件" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "P3 and P4 Viewing Conditions"
+          }
+        }
+      }
+    },
+    "P3照度範囲%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "P3 illuminance range%@"
+          }
+        }
+      }
+    },
+    "P4照度範囲%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "P4 illuminance range%@"
+          }
+        }
+      }
+    },
+    "Peak %@ @ %@ nm" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peak %@ @ %@ nm"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Peak %1$@ @ %2$@ nm"
+          }
+        }
+      }
+    },
+    "R1からR15までの演色評価棒グラフ" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color rendering index bar chart from R1 through R15"
+          }
+        }
+      }
+    },
+    "RaはR1からR8までの平均です。棒の高さと数値は各試験色の演色評価数を表します" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ra is the mean of R1 through R8. Each bar and value represents the special color rendering index for a test color sample."
+          }
+        }
+      }
+    },
+    "Rf" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rf"
+          }
+        }
+      }
+    },
+    "Rf %@、Rg %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rf %1$@, Rg %2$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Rf %1$@、Rg %2$@"
+          }
+        }
+      }
+    },
+    "Rf–Rgプロット" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rf–Rg Plot"
+          }
+        }
+      }
+    },
+    "Rf,CES" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rf,CES"
+          }
+        }
+      }
+    },
+    "Rf、RaとP3・P4の照度範囲のみを評価しています。完全な規格適合判定ではありません。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evaluating only Rf, Ra, and the P3/P4 illuminance ranges. This is not a complete standards-conformance assessment."
+          }
+        }
+      }
+    },
+    "RfとRaを評価しています。P3・P4の照度は環境光モードで測定してください。完全な規格適合判定ではありません。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evaluating Rf and Ra. Measure P3/P4 illuminance in ambient mode. This is not a complete standards-conformance assessment."
+          }
+        }
+      }
+    },
+    "Rg" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rg"
+          }
+        }
+      }
+    },
+    "Spectral & Color Measurement" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spectral & Color Measurement"
+          }
+        }
+      }
+    },
+    "spotreadから応答がありません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Response from spotread"
+          }
+        }
+      }
+    },
+    "spotreadから警告が出ています。詳細はspotread詳細ログで確認してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread reported a warning. See the spotread detailed log for details."
+          }
+        }
+      }
+    },
+    "spotreadが予期せず終了しました（終了コード %d）。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread exited unexpectedly (exit status %d)."
+          }
+        }
+      }
+    },
+    "spotreadが予期せず終了しました（終了コード %d）。\n%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread exited unexpectedly (exit status %d).\n%@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "spotreadが予期せず終了しました（終了コード %1$d）。\n%2$@"
+          }
+        }
+      }
+    },
+    "spotreadが実行されていないため、操作を送信できませんでした。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The operation could not be sent because spotread is not running."
+          }
+        }
+      }
+    },
+    "spotreadが実行されていません。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread is not running."
+          }
+        }
+      }
+    },
+    "spotreadが応答しなかったため、強制終了して自動再起動しました。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread did not respond, so it was forcibly terminated and restarted automatically."
+          }
+        }
+      }
+    },
+    "spotreadが指定するフィルターへ変更してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change to the filter specified by spotread."
+          }
+        }
+      }
+    },
+    "spotreadが終了しました（終了コード %d）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread exited (exit status %d)"
+          }
+        }
+      }
+    },
+    "spotreadが見つかりません。App BundleのResourcesへ同梱するか、IWASHISCOPE_SPOTREAD_PATHで実行ファイルを指定してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread was not found. Bundle it in the app's Resources directory or specify the executable with IWASHISCOPE_SPOTREAD_PATH."
+          }
+        }
+      }
+    },
+    "spotreadが見つかりません。起動後に設定方法を表示します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread was not found. Setup instructions will be shown after launch."
+          }
+        }
+      }
+    },
+    "spotreadで復旧不能なエラーが発生しました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread Encountered an Unrecoverable Error"
+          }
+        }
+      }
+    },
+    "spotreadの応答を待っています" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for spotread"
+          }
+        }
+      }
+    },
+    "spotreadの指定の一部が測定器に対応していないため、その指定を無効にしました。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some spotread options are not supported by this instrument and have been disabled."
+          }
+        }
+      }
+    },
+    "spotreadの測定出力を解析できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could Not Parse spotread Measurement Output"
+          }
+        }
+      }
+    },
+    "spotreadはすでに実行中です。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread is already running."
+          }
+        }
+      }
+    },
+    "spotreadは停止しました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread Has Stopped"
+          }
+        }
+      }
+    },
+    "spotreadへ操作を送信できません。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not send the operation to spotread."
+          }
+        }
+      }
+    },
+    "spotreadへ操作を送信できませんでした。 %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not send the operation to spotread. %@"
+          }
+        }
+      }
+    },
+    "spotreadを再起動" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart spotread"
+          }
+        }
+      }
+    },
+    "spotreadを実行できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could Not Run spotread"
+          }
+        }
+      }
+    },
+    "spotreadを強制再起動" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Force Restart spotread"
+          }
+        }
+      }
+    },
+    "spotreadを強制終了して再起動しました。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread was forcibly terminated and restarted."
+          }
+        }
+      }
+    },
+    "spotreadを確認しました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread Found"
+          }
+        }
+      }
+    },
+    "spotreadを終了してモード選択へ戻ります（Esc）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit spotread and return to mode selection (Esc)"
+          }
+        }
+      }
+    },
+    "spotreadを起動しました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launched spotread"
+          }
+        }
+      }
+    },
+    "spotreadを起動できませんでした。\n%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not launch spotread.\n%@"
+          }
+        }
+      }
+    },
+    "spotreadを起動できませんでした。 %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not launch spotread. %@"
+          }
+        }
+      }
+    },
+    "spotreadを起動中" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launching spotread"
+          }
+        }
+      }
+    },
+    "spotread停止中" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread Stopped"
+          }
+        }
+      }
+    },
+    "spotread実行中" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread Running"
+          }
+        }
+      }
+    },
+    "spotread詳細ログ" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "spotread Detailed Log"
+          }
+        }
+      }
+    },
+    "sRGB色域内" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inside the sRGB Gamut"
+          }
+        }
+      }
+    },
+    "sRGB色域外" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outside the sRGB Gamut"
+          }
+        }
+      }
+    },
+    "TLCIの結果にCautionがあります" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The TLCI result is rated Caution"
+          }
+        }
+      }
+    },
+    "TM-30" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TM-30"
+          }
+        }
+      }
+    },
+    "TM-30 99色評価用試料の試料別忠実度" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TM-30 Sample Color Fidelity for 99 Color Evaluation Samples"
+          }
+        }
+      }
+    },
+    "TM-30 Rf–Rgプロット" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TM-30 Rf–Rg Plot"
+          }
+        }
+      }
+    },
+    "TM-30-15 Rf" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TM-30-15 Rf"
+          }
+        }
+      }
+    },
+    "TM-30-15画像（幅3,000 px PNG）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TM-30-15 Image (3,000 px Wide PNG)"
+          }
+        }
+      }
+    },
+    "TM-30評価" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TM-30 Evaluation"
+          }
+        }
+      }
+    },
+    "TM-30評価を待っています" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for TM-30 Evaluation"
+          }
+        }
+      }
+    },
+    "UIからspotreadの強制再起動を要求しました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Force restart of spotread requested from the UI"
+          }
+        }
+      }
+    },
+    "UV条件を測定できないため" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UV conditions cannot be measured"
+          }
+        }
+      }
+    },
+    "アップデートを確認…" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check for Updates…"
+          }
+        }
+      }
+    },
+    "エラー\n%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error\n%@"
+          }
+        }
+      }
+    },
+    "エラーからの復旧" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error Recovery"
+          }
+        }
+      }
+    },
+    "エラー処理が終わるまで測定器を操作しないでください。応答が戻らない場合は自動的に強制再起動します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do not operate the instrument until error recovery finishes. If it does not respond, spotread will be forcibly restarted automatically."
+          }
+        }
+      }
+    },
+    "キャリブレーション" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibration"
+          }
+        }
+      }
+    },
+    "キャリブレーションしてください" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibrate the Instrument"
+          }
+        }
+      }
+    },
+    "キャリブレーションに失敗しました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibration Failed"
+          }
+        }
+      }
+    },
+    "キャリブレーションの準備" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prepare for Calibration"
+          }
+        }
+      }
+    },
+    "キャリブレーションを再試行" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry Calibration"
+          }
+        }
+      }
+    },
+    "キャリブレーションを継続できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibration Cannot Continue"
+          }
+        }
+      }
+    },
+    "キャリブレーション中" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibrating"
+          }
+        }
+      }
+    },
+    "キャリブレーション完了" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibration Complete"
+          }
+        }
+      }
+    },
+    "キャリブレーション待ち" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for Calibration"
+          }
+        }
+      }
+    },
+    "キャンセル" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "グラフ画像をPNGへ変換できませんでした。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The chart image could not be encoded as PNG."
+          }
+        }
+      }
+    },
+    "グラフ画像を生成できませんでした。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The chart image could not be rendered."
+          }
+        }
+      }
+    },
+    "クリックして測定値、スペクトル、CRIを表示します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to show measurement values, spectrum, and CRI."
+          }
+        }
+      }
+    },
+    "クリックして測定値とスペクトルを表示します。ダブルクリックまたは名前を付けるアクションでカード名を編集できます。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to show measurement values and spectrum. Double-click or use the Rename action to edit the card name."
+          }
+        }
+      }
+    },
+    "クリックすると90%まで展開または縮小します。上下ドラッグでも高さを調整できます" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to expand to 90% or collapse. You can also drag vertically to adjust the height."
+          }
+        }
+      }
+    },
+    "クリックで展開・縮小、上下ドラッグで高さを調整" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to expand or collapse; drag vertically to adjust height"
+          }
+        }
+      }
+    },
+    "クリックで選択し、Lab値の上にある名前欄をダブルクリックすると名前を編集できます。編集中はTabで次、Shift+Tabで前のカードへ移動します。Commandクリックで追加選択、Shiftクリックで範囲選択します。Cmd+Aで全選択、Cmd+Dで選択解除、ドラッグで並べ替え、Deleteキーで削除できます。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to select. Double-click the name field above the Lab values to edit it. While editing, press Tab for the next card or Shift-Tab for the previous card. Command-click adds to the selection, Shift-click selects a range, Command-A selects all, Command-D deselects all, dragging reorders cards, and Delete removes them."
+          }
+        }
+      }
+    },
+    "クリックで選択し、下部のタイトル欄をダブルクリックすると編集できます。編集中はTabで次、Shift+Tabで前のカードへ移動します。Commandクリックで追加選択、Shiftクリックで範囲選択します。Cmd+Aで全選択、Cmd+Dで選択解除、ドラッグで並べ替え、Deleteキーで削除できます。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to select. Double-click the title field at the bottom to edit it. While editing, press Tab for the next card or Shift-Tab for the previous card. Command-click adds to the selection, Shift-click selects a range, Command-A selects all, Command-D deselects all, dragging reorders cards, and Delete removes them."
+          }
+        }
+      }
+    },
+    "グレーパッチを測定" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measure a Gray Patch"
+          }
+        }
+      }
+    },
+    "このバージョン（v%@）の対応ソースと改変内容" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corresponding Source and Modifications for This Version (v%@)"
+          }
+        }
+      }
+    },
+    "このモードで開始" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start in This Mode"
+          }
+        }
+      }
+    },
+    "このワークスペースファイルの形式バージョン（%lld）には対応していません。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This workspace file format version (%lld) is not supported."
+          }
+        }
+      }
+    },
+    "この測定モードでspotreadを起動します" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch spotread in this measurement mode"
+          }
+        }
+      }
+    },
+    "この測定器では選択したモードを使用できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Instrument Does Not Support the Selected Mode"
+          }
+        }
+      }
+    },
+    "この測定器は高解像度モードに対応していないため、標準解像度で測定します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This instrument does not support high-resolution spectral mode. Measurements will use standard resolution."
+          }
+        }
+      }
+    },
+    "スウォッチ" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swatches"
+          }
+        }
+      }
+    },
+    "スウォッチ名が長すぎます：%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The swatch name is too long: %@"
+          }
+        }
+      }
+    },
+    "スペクトル %lld点" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spectrum: %lld points"
+          }
+        }
+      }
+    },
+    "スペクトルCSV" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spectrum CSV"
+          }
+        }
+      }
+    },
+    "スペクトルグラフを実用波長範囲に絞って表示します" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limits the spectrum chart to the practical wavelength range."
+          }
+        }
+      }
+    },
+    "スペクトルと測色値を取得しています。測定器を動かさないでください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acquiring the spectrum and colorimetric values. Keep the instrument still."
+          }
+        }
+      }
+    },
+    "スペクトルなし" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Spectrum"
+          }
+        }
+      }
+    },
+    "スペクトル値" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spectral Value"
+          }
+        }
+      }
+    },
+    "スペクトル分布グラフ" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spectral Distribution Chart"
+          }
+        }
+      }
+    },
+    "スペクトル画像（幅3,000 px PNG）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spectrum Image (3,000 px Wide PNG)"
+          }
+        }
+      }
+    },
+    "センサーが飽和しています" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sensor Is Saturated"
+          }
+        }
+      }
+    },
+    "センサーのダイヤルをキャリブレーション位置に合わせてください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set the sensor dial to the calibration position."
+          }
+        }
+      }
+    },
+    "センサーをプロジェクター測定位置に合わせてください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move the sensor to the projector measurement position."
+          }
+        }
+      }
+    },
+    "タイトル %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title: %@"
+          }
+        }
+      }
+    },
+    "タイトルなし" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untitled"
+          }
+        }
+      }
+    },
+    "データなし" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Data"
+          }
+        }
+      }
+    },
+    "データ点数" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data Points"
+          }
+        }
+      }
+    },
+    "ディスプレイ・ライトボックス・発光体" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Displays, light boxes, and emissive sources"
+          }
+        }
+      }
+    },
+    "ディスプレイとの比較に適している" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suitable for comparison with a display"
+          }
+        }
+      }
+    },
+    "パッチごとの測定量が不足しています" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insufficient Samples per Patch"
+          }
+        }
+      }
+    },
+    "ファイル名:" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File name:"
+          }
+        }
+      }
+    },
+    "プライバシー" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy"
+          }
+        }
+      }
+    },
+    "フラッシュのタイミングと測定器の向きを確認してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the flash timing and instrument orientation, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "フラッシュを検出できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Flash Detected"
+          }
+        }
+      }
+    },
+    "フラッシュ前の環境光を検出できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Ambient Light Detected Before the First Flash"
+          }
+        }
+      }
+    },
+    "プロセス" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Process"
+          }
+        }
+      }
+    },
+    "モード選択へ戻る" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to Mode Selection"
+          }
+        }
+      }
+    },
+    "ライセンスとソースコード" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "License and Source Code"
+          }
+        }
+      }
+    },
+    "ライセンスとソースコード…" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "License and Source Code…"
+          }
+        }
+      }
+    },
+    "リフレッシュレートを検出できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could Not Detect the Refresh Rate"
+          }
+        }
+      }
+    },
+    "リフレッシュ周波数を校正するため、先に80%の白色パッチを測定してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measure an 80% white patch first to calibrate the refresh frequency."
+          }
+        }
+      }
+    },
+    "ログを消去" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear Log"
+          }
+        }
+      }
+    },
+    "ワークスペースファイルに重複した測定履歴が含まれています。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The workspace file contains duplicate measurement-history entries."
+          }
+        }
+      }
+    },
+    "ワークスペースファイルの内容を読み取れませんでした。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The workspace file contents could not be read."
+          }
+        }
+      }
+    },
+    "ワークスペースファイルの測定モード情報が壊れています。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The measurement-mode data in the workspace file is corrupted."
+          }
+        }
+      }
+    },
+    "ワークスペースを保存..." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Workspace…"
+          }
+        }
+      }
+    },
+    "ワークスペースを処理できませんでした" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could Not Process Workspace"
+          }
+        }
+      }
+    },
+    "ワークスペースを復帰..." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore Workspace…"
+          }
+        }
+      }
+    },
+    "ワークスペースを表示中" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viewing Workspace"
+          }
+        }
+      }
+    },
+    "不完全または想定外の測定値を破棄しました。測定器を確認して、もう一度測定してください。詳細はspotread詳細ログで確認できます。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incomplete or unexpected measurement values were discarded. Check the instrument and measure again. See the spotread detailed log for details."
+          }
+        }
+      }
+    },
+    "不明なエラーが発生しました。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An unknown error occurred."
+          }
+        }
+      }
+    },
+    "不適合" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fail"
+          }
+        }
+      }
+    },
+    "事務所衛生基準規則：一般的な事務作業 300 lx以上" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Japanese Ordinance on Health Standards in the Office: at least 300 lx for general office work"
+          }
+        }
+      }
+    },
+    "今回はスキップ" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip This Time"
+          }
+        }
+      }
+    },
+    "作業面照度" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Working-Plane Illuminance"
+          }
+        }
+      }
+    },
+    "作業面照度が一般的な事務作業の300 lxを下回っています。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Working-plane illuminance is below the 300 lx minimum for general office work."
+          }
+        }
+      }
+    },
+    "保存" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        }
+      }
+    },
+    "保存された測定結果を表示しています。測定器には接続していません。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Displaying saved measurement results. No instrument is connected."
+          }
+        }
+      }
+    },
+    "保存していない変更は、ワークスペースを復帰すると失われます。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unsaved changes will be lost when the workspace is restored."
+          }
+        }
+      }
+    },
+    "保存せずに復帰" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore Without Saving"
+          }
+        }
+      }
+    },
+    "保存データなし" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Saved Data"
+          }
+        }
+      }
+    },
+    "光源の数値基準を判定できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The light source criteria cannot be evaluated"
+          }
+        }
+      }
+    },
+    "光源の数値基準外" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The light source is outside the numerical criteria"
+          }
+        }
+      }
+    },
+    "光源の測定した数値項目が基準範囲内" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The measured light-source values are within the specified ranges"
+          }
+        }
+      }
+    },
+    "光源を明るくするか、測定器を光源へ近づけてから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Increase the light level or move the instrument closer to the source, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "光源を測定するとR1〜R15をここへ表示します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measure a light source to display R1 through R15 here."
+          }
+        }
+      }
+    },
+    "光源情報" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light Source Information"
+          }
+        }
+      }
+    },
+    "光量が不足しています" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light Level Is Too Low"
+          }
+        }
+      }
+    },
+    "光量が強すぎます" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light Level Is Too High"
+          }
+        }
+      }
+    },
+    "光量を下げるか、測定器と光源の距離・向きを調整してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reduce the light level or adjust the distance and angle between the instrument and source, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "光量を下げるか、測定器を光源から離してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reduce the light level or move the instrument away from the source, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "入射光のLux、CCT、Duv、演色評価値を測定します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measures incident-light illuminance, CCT, Duv, and color rendition metrics."
+          }
+        }
+      }
+    },
+    "再キャリブレーション" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recalibrate"
+          }
+        }
+      }
+    },
+    "再起動するか、別の測定モードを選択してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart or select another measurement mode."
+          }
+        }
+      }
+    },
+    "最小Ri（R9〜R15）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minimum Ri (R9–R15)"
+          }
+        }
+      }
+    },
+    "最接近昼光軌跡" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nearest Daylight Locus"
+          }
+        }
+      }
+    },
+    "最接近黒体軌跡" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nearest Planckian Locus"
+          }
+        }
+      }
+    },
+    "最新" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latest"
+          }
+        }
+      }
+    },
+    "分光・測色ツール" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spectral and Color Measurement Tool"
+          }
+        }
+      }
+    },
+    "判定しない" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not Evaluated"
+          }
+        }
+      }
+    },
+    "判定不可" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cannot Evaluate"
+          }
+        }
+      }
+    },
+    "印刷学会基準（JSPST-1998）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "JSPST-1998 Standard"
+          }
+        }
+      }
+    },
+    "印刷物・用紙・色票" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Printed matter, paper, and color samples"
+          }
+        }
+      }
+    },
+    "反射スペクトルとXYZ、D50 Labを測定します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measures reflectance spectrum, XYZ, and D50 Lab."
+          }
+        }
+      }
+    },
+    "反射原稿" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reflective Sample"
+          }
+        }
+      }
+    },
+    "反射原稿を測定すると、Labカラーと測色値をここへ追加します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measure a reflective sample to add its Lab color and colorimetric values here."
+          }
+        }
+      }
+    },
+    "反射測定用アダプターを取り付け、センサーを表面測定位置に合わせてください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attach the reflectance measurement adapter and move the sensor to the surface measurement position."
+          }
+        }
+      }
+    },
+    "反射白基準でキャリブレーション" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibrate with the Reflectance White Reference"
+          }
+        }
+      }
+    },
+    "取得中…" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acquiring…"
+          }
+        }
+      }
+    },
+    "同梱するArgyllCMS 3.5.0はGraeme W. Gill氏および各構成要素の著作権者によるものです。SparkleとCIE標準光源データを含む第三者著作物には、それぞれのライセンスが適用されます。\n\nCIE標準光源データから生成したSwift適応物はGPLバージョン3のみで提供し、AGPLバージョン3のIwashiScope部分とは、両ライセンスの第13条に基づいて結合しています。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The bundled ArgyllCMS 3.5.0 is by Graeme W. Gill and the copyright holders of its components. Third-party works, including Sparkle and CIE standard illuminant data, are subject to their respective licenses.\n\nThe Swift adaptation generated from CIE standard illuminant data is provided under GPL version 3 only and is combined with the AGPL version 3 portions of IwashiScope under section 13 of both licenses."
+          }
+        }
+      }
+    },
+    "名前 %@、" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name %@, "
+          }
+        }
+      }
+    },
+    "名前を付ける" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rename"
+          }
+        }
+      }
+    },
+    "基準" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baseline"
+          }
+        }
+      }
+    },
+    "基準 %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Specified range: %@"
+          }
+        }
+      }
+    },
+    "基準 > %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Criterion: > %@"
+          }
+        }
+      }
+    },
+    "基準 ≤ %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Criterion: ≤ %@"
+          }
+        }
+      }
+    },
+    "基準 ≥ %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Criterion: ≥ %@"
+          }
+        }
+      }
+    },
+    "基準光" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reference Illuminant"
+          }
+        }
+      }
+    },
+    "基準光の適用範囲外です" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outside the reference illuminant range"
+          }
+        }
+      }
+    },
+    "基準内" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Within Range"
+          }
+        }
+      }
+    },
+    "基準分光分布" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reference Spectral Power Distribution"
+          }
+        }
+      }
+    },
+    "基準外" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outside Range"
+          }
+        }
+      }
+    },
+    "外光が入らない状態にしてから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block all stray light, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "完了するまで測定器を動かしたり操作したりしないでください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do not move or operate the instrument until the operation completes."
+          }
+        }
+      }
+    },
+    "実用エリアを使用する" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use Practical Range"
+          }
+        }
+      }
+    },
+    "実用波長範囲" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Practical Wavelength Range"
+          }
+        }
+      }
+    },
+    "実用波長範囲を含む測定データがありません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No measurement data includes a practical wavelength range."
+          }
+        }
+      }
+    },
+    "対応する測定モードまたは測定器を選択してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a supported measurement mode or instrument."
+          }
+        }
+      }
+    },
+    "対象に測定器を当て、発光分光分布とXYZ（Y＝輝度）、CCT、Duvを測定します。光源用途では演色指標も表示します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Place the instrument on the target to measure its spectral power distribution, XYZ (Y = luminance), CCT, and Duv. Color rendition metrics are also shown for light-source use."
+          }
+        }
+      }
+    },
+    "平均演色評価数 Ra" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General Color Rendering Index Ra"
+          }
+        }
+      }
+    },
+    "待機中" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idle"
+          }
+        }
+      }
+    },
+    "待機画面が消えるまで測定器を操作しないでください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do not operate the instrument until this waiting screen disappears."
+          }
+        }
+      }
+    },
+    "必要なアダプターを取り付け、測定器を校正位置または校正タイルに合わせてください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attach the required adapter and move the instrument to the calibration position or calibration tile."
+          }
+        }
+      }
+    },
+    "応答不能または復旧不能な状態を検出したため、spotreadを強制終了して自動再起動します\n%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An unresponsive or unrecoverable state was detected. spotread will be forcibly terminated and restarted automatically.\n%@"
+          }
+        }
+      }
+    },
+    "忠実度の下限" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fidelity Lower Bound"
+          }
+        }
+      }
+    },
+    "指定した測定器を使用できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Specified Instrument Is Unavailable"
+          }
+        }
+      }
+    },
+    "接続と初期化が終わるまで測定器を操作しないでください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do not operate the instrument until connection and initialization finish."
+          }
+        }
+      }
+    },
+    "接続後に続行" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue After Reconnecting"
+          }
+        }
+      }
+    },
+    "推奨EV（ISO 100）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended EV (ISO 100)"
+          }
+        }
+      }
+    },
+    "操作" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operation"
+          }
+        }
+      }
+    },
+    "操作を再試行" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry Operation"
+          }
+        }
+      }
+    },
+    "操作を再試行できます" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operation Can Be Retried"
+          }
+        }
+      }
+    },
+    "数値基準を判定できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numerical criteria cannot be evaluated"
+          }
+        }
+      }
+    },
+    "数値基準外" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outside numerical criteria"
+          }
+        }
+      }
+    },
+    "数値基準外（事務所衛生基準規則第10条に不適）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outside numerical criteria (does not meet Article 10 of the Japanese Ordinance on Health Standards in the Office)"
+          }
+        }
+      }
+    },
+    "数値基準外（印刷物同士の比較に不適）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outside numerical criteria (unsuitable for comparing printed matter)"
+          }
+        }
+      }
+    },
+    "昼光軌跡の最近接温度を算出できませんでした" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The nearest temperature on the daylight locus could not be calculated"
+          }
+        }
+      }
+    },
+    "暗部キャリブレーション" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dark Calibration"
+          }
+        }
+      }
+    },
+    "暗部校正値が安定しません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dark Calibration Reading Is Inconsistent"
+          }
+        }
+      }
+    },
+    "書き出し" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export"
+          }
+        }
+      }
+    },
+    "書き出し中…" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exporting…"
+          }
+        }
+      }
+    },
+    "書き出す履歴カードと項目を選択してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select the history cards and items to export."
+          }
+        }
+      }
+    },
+    "書き出す履歴カードを1枚以上選択してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select at least one history card to export."
+          }
+        }
+      }
+    },
+    "書き出せませんでした" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export Failed"
+          }
+        }
+      }
+    },
+    "有限値ではないLab値が含まれています：%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A non-finite Lab value is present: %@"
+          }
+        }
+      }
+    },
+    "未選択" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not Selected"
+          }
+        }
+      }
+    },
+    "校正位置、アダプター、白色基準または遮光状態を確認して再試行してください。\nspotread: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the calibration position, adapter, white reference, or light-blocking condition and retry.\nspotread: %@"
+          }
+        }
+      }
+    },
+    "校正基準と測定器の位置、光量を確認してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the calibration reference, instrument position, and light level, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "波長" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wavelength"
+          }
+        }
+      }
+    },
+    "波長（nm）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wavelength (nm)"
+          }
+        }
+      }
+    },
+    "波長キャリブレーションの信号が不足しています" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wavelength Calibration Signal Is Too Low"
+          }
+        }
+      }
+    },
+    "波長ごとの測定値と、選択したD50またはD65の基準分光分布を表示します" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows the measured value at each wavelength and the selected D50 or D65 reference spectral power distribution."
+          }
+        }
+      }
+    },
+    "波長範囲" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wavelength Range"
+          }
+        }
+      }
+    },
+    "注意" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caution"
+          }
+        }
+      }
+    },
+    "測定" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measure"
+          }
+        }
+      }
+    },
+    "測定が中断されました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measurement Was Interrupted"
+          }
+        }
+      }
+    },
+    "測定が完了するまで測定器を動かさず、スイッチを必要な時間だけ操作してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the instrument still until measurement completes, and operate its switch for the required duration."
+          }
+        }
+      }
+    },
+    "測定した数値項目" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measured numerical criteria"
+          }
+        }
+      }
+    },
+    "測定した数値項目が基準範囲内" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measured numerical values are within the specified ranges"
+          }
+        }
+      }
+    },
+    "測定すると、ここへスペクトルを表示します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take a measurement to display its spectrum here."
+          }
+        }
+      }
+    },
+    "測定に失敗しました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measurement Failed"
+          }
+        }
+      }
+    },
+    "測定モード %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measurement Mode: %@"
+          }
+        }
+      }
+    },
+    "測定モードに合うアダプターとセンサー位置へ変更してください。\nspotread: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use the adapter and sensor position required by the measurement mode.\nspotread: %@"
+          }
+        }
+      }
+    },
+    "測定モードに合う位置とアダプターへ変更してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use the position and adapter required by the measurement mode."
+          }
+        }
+      }
+    },
+    "測定モードを選択" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a Measurement Mode"
+          }
+        }
+      }
+    },
+    "測定モードを選択してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a measurement mode."
+          }
+        }
+      }
+    },
+    "測定を続ける場合は測定待機へ戻ってください。終了する場合はモード選択へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Return to measurement standby to continue, or return to mode selection to finish."
+          }
+        }
+      }
+    },
+    "測定中" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measuring"
+          }
+        }
+      }
+    },
+    "測定値" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measurement Values"
+          }
+        }
+      }
+    },
+    "測定値を待っています" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for Measurement Values"
+          }
+        }
+      }
+    },
+    "測定光" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test Source"
+          }
+        }
+      }
+    },
+    "測定前に測定器をキャリブレーションします。開始後、表示される手順に従ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibrate the instrument before measurement. After starting, follow the instructions shown."
+          }
+        }
+      }
+    },
+    "測定器から完了通知が返るまで、そのままお待ちください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the instrument still until it reports that calibration is complete."
+          }
+        }
+      }
+    },
+    "測定器が別の測定モードへ自動変更したため、測定値を受理しませんでした。選択したモードに対応する測定器またはアダプターを使用してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The instrument automatically switched to another measurement mode, so the result was rejected. Use an instrument or adapter that supports the selected mode."
+          }
+        }
+      }
+    },
+    "測定器との通信が切れました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Communication with the Instrument Was Lost"
+          }
+        }
+      }
+    },
+    "測定器との通信を継続できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cannot Continue Communicating with the Instrument"
+          }
+        }
+      }
+    },
+    "測定器と測定対象を確認してから測定待機へ戻ってください。\nspotread: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the instrument and measurement target, then return to measurement standby.\nspotread: %@"
+          }
+        }
+      }
+    },
+    "測定器にキャップを付けるか、暗い面または校正基準に置いてください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cap the instrument or place it on a dark surface or calibration reference."
+          }
+        }
+      }
+    },
+    "測定器に接続" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect to Instrument"
+          }
+        }
+      }
+    },
+    "測定器に接続中" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting to Instrument"
+          }
+        }
+      }
+    },
+    "測定器のキャリブレーションを完了してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete the instrument calibration."
+          }
+        }
+      }
+    },
+    "測定器のスイッチを押してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press the instrument switch."
+          }
+        }
+      }
+    },
+    "測定器のスイッチ入力を待っています" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for Instrument Switch"
+          }
+        }
+      }
+    },
+    "測定器のバッテリー残量が不足しています" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instrument Battery Is Too Low"
+          }
+        }
+      }
+    },
+    "測定器のフィルターを「%@」に変更してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change the instrument filter to “%@”."
+          }
+        }
+      }
+    },
+    "測定器のフィルターを変更" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change the Instrument Filter"
+          }
+        }
+      }
+    },
+    "測定器の位置またはアダプターが違います" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incorrect Instrument Position or Adapter"
+          }
+        }
+      }
+    },
+    "測定器の手順に従って反射白基準を測定してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follow the instrument instructions to measure the reflectance white reference."
+          }
+        }
+      }
+    },
+    "測定器の接続、電源、使用中のアプリを確認してspotreadを再起動してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the instrument connection, power, and other apps using it, then restart spotread."
+          }
+        }
+      }
+    },
+    "測定器の接続と状態を確認してspotreadを再起動してください。\n%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the instrument connection and status, then restart spotread.\n%@"
+          }
+        }
+      }
+    },
+    "測定器の接続と選択番号を確認してspotreadを再起動してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the instrument connection and selection number, then restart spotread."
+          }
+        }
+      }
+    },
+    "測定器の操作に失敗しました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instrument Operation Failed"
+          }
+        }
+      }
+    },
+    "測定器の状態を確認してspotreadを再起動してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the instrument status, then restart spotread."
+          }
+        }
+      }
+    },
+    "測定器の状態を確認してから再試行してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the instrument status, then retry."
+          }
+        }
+      }
+    },
+    "測定器の状態を確認して操作を再試行してください。\nspotread: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the instrument status and retry the operation.\nspotread: %@"
+          }
+        }
+      }
+    },
+    "測定器の表示に従い、指定された明るさのグレーパッチを表示してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follow the instrument display and show a gray patch at the specified level."
+          }
+        }
+      }
+    },
+    "測定器の表示に従って準備してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follow the instrument display to prepare for calibration."
+          }
+        }
+      }
+    },
+    "測定器の設定を確認してください" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the Instrument Configuration"
+          }
+        }
+      }
+    },
+    "測定器への接続と初期化を待っています。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for the instrument to connect and initialize."
+          }
+        }
+      }
+    },
+    "測定器を80%の白色パッチに置いてください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Place the instrument on an 80% white patch."
+          }
+        }
+      }
+    },
+    "測定器を100%の白色パッチに置いてください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Place the instrument on a 100% white patch."
+          }
+        }
+      }
+    },
+    "測定器をよりゆっくり動かして再測定してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move the instrument more slowly and measure again."
+          }
+        }
+      }
+    },
+    "測定器をライトトラップに置くか、周囲の面から離して遮光してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Place the instrument on a light trap, or keep it away from surrounding surfaces and block all light."
+          }
+        }
+      }
+    },
+    "測定器を付属の白色基準%@に置いてください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Place the instrument on its supplied white reference%@."
+          }
+        }
+      }
+    },
+    "測定器を充電または給電してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Charge or power the instrument, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "測定器を初期化できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could Not Initialize the Instrument"
+          }
+        }
+      }
+    },
+    "測定器を動かさず、遮光状態を確認してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the instrument still and check the light-blocking condition, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "測定器を動かさないでください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the instrument still."
+          }
+        }
+      }
+    },
+    "測定器を固定し、対象や光源が変化していないことを確認してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secure the instrument and confirm that the target or light source is stable, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "測定器を接続し直し、macOSに認識されるのを待ってから続行してください。復旧しない場合はspotreadを再起動してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnect the instrument and wait for macOS to recognize it before continuing. If it does not recover, restart spotread."
+          }
+        }
+      }
+    },
+    "測定器を接続し直してからspotreadを再起動してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reconnect the instrument, then restart spotread."
+          }
+        }
+      }
+    },
+    "測定器を操作してください" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Operate the Instrument"
+          }
+        }
+      }
+    },
+    "測定器を校正位置へ" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move the Instrument to the Calibration Position"
+          }
+        }
+      }
+    },
+    "測定器を校正位置へ移動してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move the instrument to its calibration position."
+          }
+        }
+      }
+    },
+    "測定器を透過白基準光源に置き、光路を安定させてください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Place the instrument on the transmission white-reference source and stabilize the optical path."
+          }
+        }
+      }
+    },
+    "測定器を遮光" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block Light from the Instrument"
+          }
+        }
+      }
+    },
+    "測定器を黒色光沢基準に置いてください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Place the instrument on the glossy black reference."
+          }
+        }
+      }
+    },
+    "測定器名（シリアル）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instrument (Serial Number)"
+          }
+        }
+      }
+    },
+    "測定完了" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measurement Complete"
+          }
+        }
+      }
+    },
+    "本体の設定を環境光測定位置にし、測定位置に静置して測定ボタンまたは測定器本体のスイッチを押してください" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set the instrument to the ambient-light measurement position, place it stably at the measurement position, then press Measure or the switch on the instrument."
+          }
+        }
+      }
+    },
+    "測定対象に測定器を置き、測定ボタンまたは測定器本体のスイッチを押してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Place the instrument on the target, then press Measure or the switch on the instrument."
+          }
+        }
+      }
+    },
+    "測定履歴" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measurement History"
+          }
+        }
+      }
+    },
+    "測定履歴の高さ" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measurement History Height"
+          }
+        }
+      }
+    },
+    "測定履歴はありません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Measurement History"
+          }
+        }
+      }
+    },
+    "測定履歴を書き出し" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export Measurement History"
+          }
+        }
+      }
+    },
+    "測定待機へ戻る" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Return to Measurement Standby"
+          }
+        }
+      }
+    },
+    "測定待機中" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready to Measure"
+          }
+        }
+      }
+    },
+    "測定後、解析した値をここへ表示します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyzed values will appear here after measurement."
+          }
+        }
+      }
+    },
+    "測定後に表示" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shown After Measurement"
+          }
+        }
+      }
+    },
+    "測定時間が不足しています" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading Was Too Short"
+          }
+        }
+      }
+    },
+    "測定範囲と走査方法を確認してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the measurement area and scanning method, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "測定結果" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measurement Results"
+          }
+        }
+      }
+    },
+    "測定結果はまだありません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Measurement Results Yet"
+          }
+        }
+      }
+    },
+    "測定開始後に環境光を保持してからフラッシュを発光してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After starting the measurement, maintain the ambient light before firing the flash."
+          }
+        }
+      }
+    },
+    "測色値" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colorimetric Values"
+          }
+        }
+      }
+    },
+    "演色性の測定項目" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measured color-rendition criteria"
+          }
+        }
+      }
+    },
+    "演色評価を待っています" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for Color Rendering Evaluation"
+          }
+        }
+      }
+    },
+    "演色評価数" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color Rendering Index"
+          }
+        }
+      }
+    },
+    "演色評価数（Color Rendering Index / CRI）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color Rendering Index (CRI)"
+          }
+        }
+      }
+    },
+    "照度" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Illuminance"
+          }
+        }
+      }
+    },
+    "照度・CRI・TLCI・TM-30" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Illuminance, CRI, TLCI, and TM-30"
+          }
+        }
+      }
+    },
+    "現在のワークスペースを保存しますか？" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save the Current Workspace?"
+          }
+        }
+      }
+    },
+    "現在の測定履歴とワークスペースを保存します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save the current measurement history and workspace."
+          }
+        }
+      }
+    },
+    "環境光" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ambient Light"
+          }
+        }
+      }
+    },
+    "環境光アダプターを取り付け、キャップで遮光してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attach the ambient-light adapter and block it with the cap."
+          }
+        }
+      }
+    },
+    "環境光アダプターを取り付け、センサーを環境光測定位置に合わせてください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attach the ambient-light adapter and move the sensor to the ambient measurement position."
+          }
+        }
+      }
+    },
+    "環境光アダプターを遮光" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block the Ambient-Light Adapter"
+          }
+        }
+      }
+    },
+    "環境光または発光を測定するとTM-30のRf・Rgと各グラフを表示します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measure ambient light or an emissive source to display TM-30 Rf, Rg, and the associated charts."
+          }
+        }
+      }
+    },
+    "環境光モードで測定" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measure in Ambient Mode"
+          }
+        }
+      }
+    },
+    "用紙の上で走査を開始し、用紙の上で終了するように再測定してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan again, starting and ending the swipe on the paper."
+          }
+        }
+      }
+    },
+    "発光" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Emissive"
+          }
+        }
+      }
+    },
+    "白色パッチを測定" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measure a White Patch"
+          }
+        }
+      }
+    },
+    "白色基準、測定位置、測定器の固定を確認してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the white reference, measurement position, and instrument stability, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "白色基準でキャリブレーション" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibrate with the White Reference"
+          }
+        }
+      }
+    },
+    "白色基準への置き方と測定器の固定を確認してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check placement on the white reference and instrument stability, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "白色基準を読み取れません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could Not Read the White Reference"
+          }
+        }
+      }
+    },
+    "白色校正値が安定しません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "White Calibration Reading Is Inconsistent"
+          }
+        }
+      }
+    },
+    "目標 %@ K（許容幅規定なし）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target: %@ K (no specified tolerance)"
+          }
+        }
+      }
+    },
+    "相関色温度" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Correlated Color Temperature"
+          }
+        }
+      }
+    },
+    "第三者著作物とライセンス" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Third-Party Works and Licenses"
+          }
+        }
+      }
+    },
+    "系列" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Series"
+          }
+        }
+      }
+    },
+    "終了要求（SIGTERM、250 ms後も動作中ならSIGKILL）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termination requested (SIGTERM, then SIGKILL if still running after 250 ms)"
+          }
+        }
+      }
+    },
+    "色相ビンの変位" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hue-Angle Bin Displacement"
+          }
+        }
+      }
+    },
+    "色評価用試料（CES）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color Evaluation Sample (CES)"
+          }
+        }
+      }
+    },
+    "表示上限を超えたため、古い通信記録を省略しました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Older communication records were omitted because the display limit was exceeded"
+          }
+        }
+      }
+    },
+    "表示機器の切り替わりと測定位置を確認してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the display transition and measurement position, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "表示機器の状態と測定器の向きを確認してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the display state and instrument orientation, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "表示遷移を検出できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could Not Detect the Display Transition"
+          }
+        }
+      }
+    },
+    "設定を直しました" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configuration Corrected"
+          }
+        }
+      }
+    },
+    "試料別忠実度" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sample Color Fidelity"
+          }
+        }
+      }
+    },
+    "試料範囲の始点" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sample Range Start"
+          }
+        }
+      }
+    },
+    "試料範囲の終点" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sample Range End"
+          }
+        }
+      }
+    },
+    "試験色" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test Color Sample"
+          }
+        }
+      }
+    },
+    "読み取ったパッチ数が一致しません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incorrect Number of Patches Read"
+          }
+        }
+      }
+    },
+    "読み取り値が安定しません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading Is Inconsistent"
+          }
+        }
+      }
+    },
+    "走査範囲が正しくありません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incorrect Scan Range"
+          }
+        }
+      }
+    },
+    "起動" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch"
+          }
+        }
+      }
+    },
+    "起動要求\n実行ファイル: %@\n引数: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch request\nExecutable: %@\nArguments: %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "起動要求\n実行ファイル: %1$@\n引数: %2$@"
+          }
+        }
+      }
+    },
+    "送信中" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sending"
+          }
+        }
+      }
+    },
+    "送信失敗" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send Failed"
+          }
+        }
+      }
+    },
+    "送信済み" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sent"
+          }
+        }
+      }
+    },
+    "透過光源、白基準、光路を確認してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the transmission light source, white reference, and optical path, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "透過暗部キャリブレーション" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmission Dark Calibration"
+          }
+        }
+      }
+    },
+    "透過白基準でキャリブレーション" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibrate with the Transmission White Reference"
+          }
+        }
+      }
+    },
+    "透過白基準の光量が不足しています" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transmission White Level Is Too Low"
+          }
+        }
+      }
+    },
+    "透過白基準の光量と配置を確認してから測定待機へ戻ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the transmission white level and placement, then return to measurement standby."
+          }
+        }
+      }
+    },
+    "透過白基準を読み取れません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could Not Read the Transmission White Reference"
+          }
+        }
+      }
+    },
+    "適切な遮光材で透過光路を完全に遮ってください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completely block the transmission optical path with suitable opaque material."
+          }
+        }
+      }
+    },
+    "遮光が不十分です" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insufficient Light Blocking"
+          }
+        }
+      }
+    },
+    "選択カードをスウォッチに書き出し" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export Selected Cards as Swatches"
+          }
+        }
+      }
+    },
+    "選択されたスウォッチ数がASE形式の上限を超えています。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The number of selected swatches exceeds the ASE format limit."
+          }
+        }
+      }
+    },
+    "選択した履歴カードの書き出し先を選択してください。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose where to export the selected history cards."
+          }
+        }
+      }
+    },
+    "選択した履歴カードをLab特色スウォッチとして書き出します。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export the selected history cards as Lab spot-color swatches."
+          }
+        }
+      }
+    },
+    "選択した測定モードで動作できません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cannot Operate in the Selected Measurement Mode"
+          }
+        }
+      }
+    },
+    "選択した項目に書き出せる測定データがありません。" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The selected items contain no exportable measurement data."
+          }
+        }
+      }
+    },
+    "選択中" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected"
+          }
+        }
+      }
+    },
+    "選択中、測定値を表示中" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected; displaying measurement values"
+          }
+        }
+      }
+    },
+    "選択後にspotreadを高解像度モードで起動します" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After selection, spotread will launch in high-resolution spectral mode"
+          }
+        }
+      }
+    },
+    "領域1はプランク軌跡上の光源、領域2は実用光源のおおよその範囲です。適合範囲ではありません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Region 1 approximates sources on the Planckian locus; Region 2 approximates practical light sources. These are not conformance regions."
+          }
+        }
+      }
+    },
+    "黒体軌跡の最近接温度を算出できませんでした" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The nearest temperature on the Planckian locus could not be calculated"
+          }
+        }
+      }
+    },
+    "黒色光沢基準でキャリブレーション" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibrate with the Glossy Black Reference"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
