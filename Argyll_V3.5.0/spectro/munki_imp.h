@@ -457,6 +457,12 @@ inst_code munki_imp_white_change(munki *p, int init);
 /* return nz if high res is supported */
 int munki_imp_highres(munki *p);
 
+/* Return the practical wavelength range for the current mode and resolution. */
+munki_code munki_imp_get_practical_wavelength_range(
+	munki *p,
+	inst_wavelength_range *range
+);
+
 /* Set to high resolution mode */
 munki_code munki_set_highres(munki *p);
 

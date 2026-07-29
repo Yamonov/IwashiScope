@@ -460,6 +460,12 @@ typedef struct _inst_disptypesel {
 
 /* - - - - - - - - - - - - - - - - - - - */
 
+/* Wavelength range whose spectral values are suitable for direct use. */
+typedef struct {
+	double short_nm;
+	double long_nm;
+} inst_wavelength_range;
+
 /* Instrument options for get_set_opt() */
 typedef enum {
 	inst_opt_unknown            = 0x0000,	/* Option not specified */
@@ -552,9 +558,13 @@ typedef enum {
 											/*                             [xcalstd *standard] */
 	inst_opt_lamp_remediate     = 0x0027,	/* Remediate i1Pro lamp           [double seconds] */
 
-	inst_opt_set_averages       = 0x0028	/* Set the number of measurements to average [int] */
+	inst_opt_set_averages       = 0x0028,	/* Set the number of measurements to average [int] */
 											/* 0 for default */
 
+	inst_opt_get_practical_wl_range = 0x0029
+											/* Get the practical spectral wavelength range */
+											/* for the current mode and resolution. */
+											/* [inst_wavelength_range *range] */
 
 } inst_opt_type;
 

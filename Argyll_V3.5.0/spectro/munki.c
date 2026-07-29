@@ -901,6 +901,20 @@ munki_get_set_opt(inst *pp, inst_opt_type m, ...) {
 		return munki_interp_code(p, munki_set_stdres(p));
 	}
 
+	if (m == inst_opt_get_practical_wl_range) {
+		inst_wavelength_range *range;
+		va_list args;
+
+		va_start(args, m);
+		range = va_arg(args, inst_wavelength_range *);
+		va_end(args);
+
+		return munki_interp_code(
+			p,
+			munki_imp_get_practical_wavelength_range(p, range)
+		);
+	}
+
 	if (m == inst_opt_get_gen_ledmask) {
 		va_list args;
 		int *mask = NULL;
@@ -1104,4 +1118,3 @@ extern munki *new_munki(icoms *icom, instType dtype) {
 
 	return p;
 }
-

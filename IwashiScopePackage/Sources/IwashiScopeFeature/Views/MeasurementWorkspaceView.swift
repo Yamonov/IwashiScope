@@ -13,6 +13,7 @@ struct MeasurementWorkspaceView: View {
     @State private var showsExportError = false
     @State private var isExporting = false
     @State private var analysisContentHeight: CGFloat = 0
+    @State private var usesPracticalSpectrumRange = false
 
     let mode: MeasurementMode
     let session: MeasurementSession
@@ -64,7 +65,8 @@ struct MeasurementWorkspaceView: View {
                             SpectrumChartView(
                                 mode: mode,
                                 measurement: displayedMeasurement,
-                                calibrationCompleted: session.calibrationCompleted
+                                calibrationCompleted: session.calibrationCompleted,
+                                usesPracticalSpectrumRange: usesPracticalSpectrumRange
                             )
 
                             if mode != .reflectance {
@@ -113,6 +115,7 @@ struct MeasurementWorkspaceView: View {
                     displayedMeasurement: displayedMeasurement,
                     displayedInstrumentIdentity: displayedEntry?.instrumentIdentity
                         ?? session.instrumentIdentity,
+                    usesPracticalSpectrumRange: $usesPracticalSpectrumRange,
                     onConnectInstrument: onConnectInstrument
                 )
                     .padding(16)

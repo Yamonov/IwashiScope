@@ -1,4 +1,5 @@
 import Charts
+import Foundation
 import SwiftUI
 
 struct SpectrumChartView: View {
@@ -6,15 +7,18 @@ struct SpectrumChartView: View {
     let measurement: SpotMeasurement?
     let calibrationCompleted: Bool
     let showsReferenceControls: Bool
+    let usesPracticalSpectrumRange: Bool
 
     @State private var showsD50Reference = false
     @State private var showsD65Reference = false
+    @State private var hoveredWavelength: Double?
 
     init(
         mode: MeasurementMode,
         measurement: SpotMeasurement?,
         calibrationCompleted: Bool,
         showsReferenceControls: Bool = true,
+        usesPracticalSpectrumRange: Bool = false,
         initialShowsD50Reference: Bool = false,
         initialShowsD65Reference: Bool = false
     ) {
@@ -22,27 +26,67 @@ struct SpectrumChartView: View {
         self.measurement = measurement
         self.calibrationCompleted = calibrationCompleted
         self.showsReferenceControls = showsReferenceControls
+        self.usesPracticalSpectrumRange = usesPracticalSpectrumRange
         _showsD50Reference = State(initialValue: initialShowsD50Reference)
         _showsD65Reference = State(initialValue: initialShowsD65Reference)
     }
 
-    private var samples: [SpectralSample] {
+    private var allSamples: [SpectralSample] {
         measurement?.spectrum ?? []
+    }
+
+    private var samples: [SpectralSample] {
+        samplesWithinDisplayRange(allSamples)
+    }
+
+    private var displayRange: ClosedRange<Double> {
+        if usesPracticalSpectrumRange,
+           let range = measurement?.validatedPracticalSpectrumRange {
+            return range.closedRange
+        }
+        guard let measurement,
+              measurement.spectrumStart.isFinite,
+              measurement.spectrumEnd.isFinite,
+              measurement.spectrumStart <= measurement.spectrumEnd else {
+            return SpectrumChartStyle.visibleSpectrumRange
+        }
+        return measurement.spectrumStart...measurement.spectrumEnd
+    }
+
+    private var visiblePeak: SpectralSample? {
+        samples.max { lhs, rhs in
+            lhs.value < rhs.value
+        }
+    }
+
+    private var hoveredSample: SpectralSample? {
+        guard let hoveredWavelength,
+              displayRange.contains(hoveredWavelength) else {
+            return nil
+        }
+        return SpectrumChartInteraction.nearestSample(
+            to: hoveredWavelength,
+            in: samples
+        )
     }
 
     private var d50ReferenceSamples: [SpectralSample] {
         guard showsD50Reference else { return [] }
-        return SpectrumOverlayNormalizer.scale(
-            referenceSamples: CIEStandardIlluminant.d50.samples,
-            to: samples
+        return samplesWithinDisplayRange(
+            SpectrumOverlayNormalizer.scale(
+                referenceSamples: CIEStandardIlluminant.d50.samples,
+                to: allSamples
+            )
         )
     }
 
     private var d65ReferenceSamples: [SpectralSample] {
         guard showsD65Reference else { return [] }
-        return SpectrumOverlayNormalizer.scale(
-            referenceSamples: CIEStandardIlluminant.d65.samples,
-            to: samples
+        return samplesWithinDisplayRange(
+            SpectrumOverlayNormalizer.scale(
+                referenceSamples: CIEStandardIlluminant.d65.samples,
+                to: allSamples
+            )
         )
     }
 
@@ -52,6 +96,16 @@ struct SpectrumChartView: View {
             .map(\.value)
             .max() ?? 1
         return max(1, maximum * 1.08)
+    }
+
+    private func samplesWithinDisplayRange(
+        _ source: [SpectralSample]
+    ) -> [SpectralSample] {
+        let tolerance = 0.000_001
+        return source.filter { sample in
+            sample.wavelength >= displayRange.lowerBound - tolerance
+                && sample.wavelength <= displayRange.upperBound + tolerance
+        }
     }
 
     var body: some View {
@@ -133,7 +187,9 @@ struct SpectrumChartView: View {
     }
 
     private var chart: some View {
-        Chart {
+        let spectrumGradient = SpectrumChartStyle.gradient(for: displayRange)
+
+        return Chart {
             ForEach(samples) { sample in
                 AreaMark(
                     x: .value("波長（nm）", sample.wavelength),
@@ -141,7 +197,7 @@ struct SpectrumChartView: View {
                     yEnd: .value("スペクトル値", sample.value)
                 )
                 .interpolationMethod(.linear)
-                .foregroundStyle(SpectrumChartStyle.gradient)
+                .foregroundStyle(spectrumGradient)
                 .alignsMarkStylesWithPlotArea()
 
                 LineMark(
@@ -176,13 +232,23 @@ struct SpectrumChartView: View {
                 .foregroundStyle(Color.blue)
             }
         }
-        .chartXScale(domain: (measurement?.spectrumStart ?? 380)...(measurement?.spectrumEnd ?? 730))
+        .chartXScale(domain: displayRange)
         .chartYScale(domain: 0...yUpperBound)
         .chartXAxis {
-            AxisMarks(values: .stride(by: 50)) {
+            AxisMarks(
+                values: SpectrumChartScale.axisValues(for: displayRange)
+            ) { value in
                 AxisGridLine()
                 AxisTick()
-                AxisValueLabel()
+                if let wavelength = value.as(Double.self),
+                   SpectrumChartScale.isEndpoint(
+                       wavelength,
+                       of: displayRange
+                   ) == false {
+                    AxisValueLabel {
+                        Text(SpectrumChartScale.format(wavelength))
+                    }
+                }
             }
         }
         .chartYAxis {
@@ -191,17 +257,19 @@ struct SpectrumChartView: View {
         .chartXAxisLabel("(nm)", position: .bottom, alignment: .trailing, spacing: 0)
         .chartPlotStyle { plotArea in
             plotArea
-                .background(SpectrumChartStyle.gradient.opacity(0.17))
+                .background(spectrumGradient.opacity(0.17))
                 .compositingGroup()
                 .clipShape(.rect(cornerRadius: 6))
+        }
+        .chartOverlay { proxy in
+            spectrumHoverOverlay(proxy: proxy)
         }
         .frame(height: 400)
         .accessibilityLabel("スペクトル分布グラフ")
         .accessibilityHint("波長ごとの測定値と、選択したD50またはD65の基準分光分布を表示します")
         .overlay(alignment: .topTrailing) {
-            if let peakValue = measurement?.peakValue,
-               let peakWavelength = measurement?.peakWavelength {
-                Text("Peak \(peakValue.formatted(.number.precision(.fractionLength(2)))) @ \(peakWavelength.formatted(.number.precision(.fractionLength(1)))) nm")
+            if let visiblePeak {
+                Text("Peak \(visiblePeak.value.formatted(.number.precision(.fractionLength(2)))) @ \(visiblePeak.wavelength.formatted(.number.precision(.fractionLength(1)))) nm")
                     .font(.caption.monospacedDigit())
                     .padding(.horizontal, 8)
                     .padding(.vertical, 5)
@@ -215,9 +283,105 @@ struct SpectrumChartView: View {
         }
     }
 
+    private func spectrumHoverOverlay(proxy: ChartProxy) -> some View {
+        GeometryReader { geometry in
+            if let plotFrame = proxy.plotFrame {
+                let plotRectangle = geometry[plotFrame]
+
+                ZStack {
+                    SpectrumEndpointLabels(
+                        wavelengthRange: displayRange,
+                        plotRectangle: plotRectangle
+                    )
+
+                    Rectangle()
+                        .fill(.clear)
+                        .contentShape(Rectangle())
+                        .frame(
+                            width: plotRectangle.width,
+                            height: plotRectangle.height
+                        )
+                        .position(
+                            x: plotRectangle.midX,
+                            y: plotRectangle.midY
+                        )
+                        .onContinuousHover { phase in
+                            switch phase {
+                            case let .active(location):
+                                guard let wavelength = proxy.value(
+                                    atX: location.x,
+                                    as: Double.self
+                                ),
+                                let nearestSample = SpectrumChartInteraction
+                                    .nearestSample(
+                                        to: wavelength,
+                                        in: samples
+                                    ) else {
+                                    hoveredWavelength = nil
+                                    return
+                                }
+                                if hoveredWavelength
+                                    != nearestSample.wavelength {
+                                    hoveredWavelength =
+                                        nearestSample.wavelength
+                                }
+                            case .ended:
+                                hoveredWavelength = nil
+                            }
+                        }
+
+                    if let hoveredSample,
+                       let sampleX = proxy.position(
+                           forX: hoveredSample.wavelength
+                       ),
+                       let sampleY = proxy.position(
+                           forY: hoveredSample.value
+                       ) {
+                        let point = CGPoint(
+                            x: plotRectangle.minX + sampleX,
+                            y: plotRectangle.minY + sampleY
+                        )
+                        let placement = SpectrumHoverCalloutPlacement.resolve(
+                            point: point,
+                            plotRectangle: plotRectangle,
+                            containerSize: geometry.size
+                        )
+
+                        Circle()
+                            .fill(.background)
+                            .overlay {
+                                Circle()
+                                    .stroke(
+                                        .primary.opacity(0.75),
+                                        lineWidth: 1.5
+                                    )
+                            }
+                            .frame(width: 7, height: 7)
+                            .position(point)
+                            .allowsHitTesting(false)
+
+                        SpectrumHoverCallout(
+                            sample: hoveredSample,
+                            pointerEdge: placement.pointerEdge,
+                            pointerX: placement.pointerX
+                        )
+                        .frame(
+                            width: SpectrumHoverCalloutPlacement.calloutSize.width,
+                            height: SpectrumHoverCalloutPlacement.calloutSize.height
+                        )
+                        .position(placement.center)
+                    }
+                }
+            }
+        }
+    }
+
     private var emptyState: some View {
         ZStack {
-            SpectrumChartStyle.gradient.opacity(0.12)
+            SpectrumChartStyle.gradient(
+                for: SpectrumChartStyle.visibleSpectrumRange
+            )
+            .opacity(0.12)
             ContentUnavailableView(
                 calibrationCompleted ? "測定結果はまだありません" : "キャリブレーション待ち",
                 systemImage: "waveform.path.ecg",
@@ -235,22 +399,396 @@ struct SpectrumChartView: View {
 
 }
 
+enum SpectrumChartScale {
+    private static let majorTickSpacing = 50.0
+    private static let equalityTolerance = 0.000_001
+
+    static func axisValues(
+        for wavelengthRange: ClosedRange<Double>
+    ) -> [Double] {
+        let lowerBound = wavelengthRange.lowerBound
+        let upperBound = wavelengthRange.upperBound
+        guard lowerBound.isFinite, upperBound.isFinite else {
+            return []
+        }
+
+        var values = [lowerBound]
+        var wavelength = ceil(lowerBound / majorTickSpacing)
+            * majorTickSpacing
+
+        while wavelength < upperBound - equalityTolerance {
+            if wavelength > lowerBound + equalityTolerance {
+                values.append(wavelength)
+            }
+            wavelength += majorTickSpacing
+        }
+
+        if upperBound > lowerBound + equalityTolerance {
+            values.append(upperBound)
+        }
+        return values
+    }
+
+    static func isEndpoint(
+        _ wavelength: Double,
+        of wavelengthRange: ClosedRange<Double>
+    ) -> Bool {
+        abs(wavelength - wavelengthRange.lowerBound) <= equalityTolerance
+            || abs(wavelength - wavelengthRange.upperBound) <= equalityTolerance
+    }
+
+    static func format(_ wavelength: Double) -> String {
+        wavelength.formatted(
+            .number.precision(.fractionLength(0...1))
+        )
+    }
+}
+
+enum SpectrumChartInteraction {
+    static func nearestSample(
+        to wavelength: Double,
+        in samples: [SpectralSample]
+    ) -> SpectralSample? {
+        guard wavelength.isFinite else { return nil }
+        return samples.min { lhs, rhs in
+            let lhsDistance = abs(lhs.wavelength - wavelength)
+            let rhsDistance = abs(rhs.wavelength - wavelength)
+            if lhsDistance == rhsDistance {
+                return lhs.wavelength < rhs.wavelength
+            }
+            return lhsDistance < rhsDistance
+        }
+    }
+}
+
 enum SpectrumChartStyle {
+    static let visibleSpectrumRange = 380.0...730.0
+
     static var gradient: LinearGradient {
-        LinearGradient(
-            gradient: Gradient(stops: [
-                .init(color: Color(red: 0.42, green: 0.18, blue: 0.85), location: 0.00),
-                .init(color: Color(red: 0.16, green: 0.30, blue: 0.95), location: 0.17),
-                .init(color: Color(red: 0.05, green: 0.72, blue: 0.95), location: 0.31),
-                .init(color: Color(red: 0.12, green: 0.82, blue: 0.35), location: 0.45),
-                .init(color: Color(red: 0.94, green: 0.88, blue: 0.12), location: 0.58),
-                .init(color: Color(red: 1.00, green: 0.47, blue: 0.08), location: 0.72),
-                .init(color: Color(red: 0.95, green: 0.08, blue: 0.12), location: 0.84),
-                .init(color: Color(red: 0.55, green: 0.00, blue: 0.04), location: 1.00),
-            ]),
+        gradient(for: visibleSpectrumRange)
+    }
+
+    private static let colorStops = [
+        SpectrumColorStop(wavelength: 380.0, red: 0.42, green: 0.18, blue: 0.85),
+        SpectrumColorStop(wavelength: 439.5, red: 0.16, green: 0.30, blue: 0.95),
+        SpectrumColorStop(wavelength: 488.5, red: 0.05, green: 0.72, blue: 0.95),
+        SpectrumColorStop(wavelength: 537.5, red: 0.12, green: 0.82, blue: 0.35),
+        SpectrumColorStop(wavelength: 583.0, red: 0.94, green: 0.88, blue: 0.12),
+        SpectrumColorStop(wavelength: 632.0, red: 1.00, green: 0.47, blue: 0.08),
+        SpectrumColorStop(wavelength: 674.0, red: 0.95, green: 0.08, blue: 0.12),
+        SpectrumColorStop(wavelength: 730.0, red: 0.55, green: 0.00, blue: 0.04),
+    ]
+
+    static func gradient(for wavelengthRange: ClosedRange<Double>) -> LinearGradient {
+        let lowerBound = wavelengthRange.lowerBound
+        let upperBound = wavelengthRange.upperBound
+        let width = max(upperBound - lowerBound, Double.ulpOfOne)
+        let wavelengths = [lowerBound]
+            + colorStops
+                .map(\.wavelength)
+                .filter { $0 > lowerBound && $0 < upperBound }
+            + [upperBound]
+
+        return LinearGradient(
+            gradient: Gradient(
+                stops: wavelengths.map { wavelength in
+                    Gradient.Stop(
+                        color: color(at: wavelength),
+                        location: CGFloat(
+                            (wavelength - lowerBound) / width
+                        )
+                    )
+                }
+            ),
             startPoint: .leading,
             endPoint: .trailing
         )
+    }
+
+    private static func color(at wavelength: Double) -> Color {
+        guard let first = colorStops.first,
+              let last = colorStops.last else {
+            return .clear
+        }
+        if wavelength <= first.wavelength {
+            return first.color
+        }
+        if wavelength >= last.wavelength {
+            return last.color
+        }
+
+        for (lower, upper) in zip(colorStops, colorStops.dropFirst())
+        where wavelength <= upper.wavelength {
+            let progress = (wavelength - lower.wavelength)
+                / (upper.wavelength - lower.wavelength)
+            return Color(
+                red: lower.red + (upper.red - lower.red) * progress,
+                green: lower.green + (upper.green - lower.green) * progress,
+                blue: lower.blue + (upper.blue - lower.blue) * progress
+            )
+        }
+        return last.color
+    }
+}
+
+private enum SpectrumHoverPointerEdge {
+    case top
+    case bottom
+}
+
+private struct SpectrumEndpointLabels: View {
+    let wavelengthRange: ClosedRange<Double>
+    let plotRectangle: CGRect
+
+    private static let labelWidth: CGFloat = 46
+
+    var body: some View {
+        Group {
+            Text(SpectrumChartScale.format(wavelengthRange.lowerBound))
+                .frame(width: Self.labelWidth, alignment: .leading)
+                .position(
+                    x: plotRectangle.minX + Self.labelWidth / 2,
+                    y: plotRectangle.maxY + 13
+                )
+
+            Text(SpectrumChartScale.format(wavelengthRange.upperBound))
+                .frame(width: Self.labelWidth, alignment: .trailing)
+                .position(
+                    x: plotRectangle.maxX - Self.labelWidth / 2,
+                    y: plotRectangle.maxY + 13
+                )
+        }
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+        .accessibilityHidden(true)
+        .allowsHitTesting(false)
+    }
+}
+
+private struct SpectrumHoverCalloutPlacement {
+    static let calloutSize = CGSize(width: 124, height: 52)
+
+    let center: CGPoint
+    let pointerEdge: SpectrumHoverPointerEdge
+    let pointerX: CGFloat
+
+    static func resolve(
+        point: CGPoint,
+        plotRectangle: CGRect,
+        containerSize: CGSize
+    ) -> SpectrumHoverCalloutPlacement {
+        let calloutWidth = calloutSize.width
+        let calloutHeight = calloutSize.height
+        let showsAbove = point.y - plotRectangle.minY >= calloutHeight
+        let pointerEdge: SpectrumHoverPointerEdge = showsAbove
+            ? .bottom
+            : .top
+        let centerY = showsAbove
+            ? point.y - calloutHeight / 2
+            : point.y + calloutHeight / 2
+        let halfWidth = calloutWidth / 2
+        let centerX = min(
+            max(point.x, halfWidth),
+            max(halfWidth, containerSize.width - halfWidth)
+        )
+        let pointerX = point.x - (centerX - halfWidth)
+
+        return SpectrumHoverCalloutPlacement(
+            center: CGPoint(x: centerX, y: centerY),
+            pointerEdge: pointerEdge,
+            pointerX: pointerX
+        )
+    }
+}
+
+private struct SpectrumHoverCallout: View {
+    let sample: SpectralSample
+    let pointerEdge: SpectrumHoverPointerEdge
+    let pointerX: CGFloat
+
+    private static let pointerHeight: CGFloat = 7
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(
+                "\(sample.wavelength.formatted(.number.precision(.fractionLength(1)))) nm"
+            )
+            Text(
+                "測定値 \(sample.value.formatted(.number.precision(.fractionLength(2))))"
+            )
+        }
+        .font(.caption.monospacedDigit())
+        .lineLimit(1)
+        .minimumScaleFactor(0.75)
+        .padding(.horizontal, 9)
+        .padding(.top, pointerEdge == .top ? Self.pointerHeight + 5 : 5)
+        .padding(.bottom, pointerEdge == .bottom ? Self.pointerHeight + 5 : 5)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .background {
+            SpectrumHoverCalloutShape(
+                pointerEdge: pointerEdge,
+                pointerX: pointerX,
+                pointerHeight: Self.pointerHeight
+            )
+            .fill(.regularMaterial)
+            .overlay {
+                SpectrumHoverCalloutShape(
+                    pointerEdge: pointerEdge,
+                    pointerX: pointerX,
+                    pointerHeight: Self.pointerHeight
+                )
+                .stroke(.primary.opacity(0.18), lineWidth: 0.75)
+            }
+            .shadow(color: .black.opacity(0.18), radius: 4, y: 2)
+        }
+        .accessibilityHidden(true)
+        .allowsHitTesting(false)
+    }
+}
+
+private struct SpectrumHoverCalloutShape: Shape {
+    let pointerEdge: SpectrumHoverPointerEdge
+    let pointerX: CGFloat
+    let pointerHeight: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let bubbleRectangle = CGRect(
+            x: rect.minX,
+            y: pointerEdge == .top
+                ? rect.minY + pointerHeight
+                : rect.minY,
+            width: rect.width,
+            height: rect.height - pointerHeight
+        )
+        let cornerRadius = min(7, bubbleRectangle.height / 2)
+        let pointerHalfWidth = 6.0
+        let resolvedPointerX = min(
+            max(pointerX, pointerHalfWidth + 2),
+            rect.width - pointerHalfWidth - 2
+        )
+
+        var path = Path()
+        path.move(
+            to: CGPoint(
+                x: bubbleRectangle.minX + cornerRadius,
+                y: bubbleRectangle.minY
+            )
+        )
+
+        if pointerEdge == .top {
+            path.addLine(
+                to: CGPoint(
+                    x: resolvedPointerX - pointerHalfWidth,
+                    y: bubbleRectangle.minY
+                )
+            )
+            path.addLine(
+                to: CGPoint(x: resolvedPointerX, y: rect.minY)
+            )
+            path.addLine(
+                to: CGPoint(
+                    x: resolvedPointerX + pointerHalfWidth,
+                    y: bubbleRectangle.minY
+                )
+            )
+        }
+
+        path.addLine(
+            to: CGPoint(
+                x: bubbleRectangle.maxX - cornerRadius,
+                y: bubbleRectangle.minY
+            )
+        )
+        path.addQuadCurve(
+            to: CGPoint(
+                x: bubbleRectangle.maxX,
+                y: bubbleRectangle.minY + cornerRadius
+            ),
+            control: CGPoint(
+                x: bubbleRectangle.maxX,
+                y: bubbleRectangle.minY
+            )
+        )
+        path.addLine(
+            to: CGPoint(
+                x: bubbleRectangle.maxX,
+                y: bubbleRectangle.maxY - cornerRadius
+            )
+        )
+        path.addQuadCurve(
+            to: CGPoint(
+                x: bubbleRectangle.maxX - cornerRadius,
+                y: bubbleRectangle.maxY
+            ),
+            control: CGPoint(
+                x: bubbleRectangle.maxX,
+                y: bubbleRectangle.maxY
+            )
+        )
+
+        if pointerEdge == .bottom {
+            path.addLine(
+                to: CGPoint(
+                    x: resolvedPointerX + pointerHalfWidth,
+                    y: bubbleRectangle.maxY
+                )
+            )
+            path.addLine(
+                to: CGPoint(x: resolvedPointerX, y: rect.maxY)
+            )
+            path.addLine(
+                to: CGPoint(
+                    x: resolvedPointerX - pointerHalfWidth,
+                    y: bubbleRectangle.maxY
+                )
+            )
+        }
+
+        path.addLine(
+            to: CGPoint(
+                x: bubbleRectangle.minX + cornerRadius,
+                y: bubbleRectangle.maxY
+            )
+        )
+        path.addQuadCurve(
+            to: CGPoint(
+                x: bubbleRectangle.minX,
+                y: bubbleRectangle.maxY - cornerRadius
+            ),
+            control: CGPoint(
+                x: bubbleRectangle.minX,
+                y: bubbleRectangle.maxY
+            )
+        )
+        path.addLine(
+            to: CGPoint(
+                x: bubbleRectangle.minX,
+                y: bubbleRectangle.minY + cornerRadius
+            )
+        )
+        path.addQuadCurve(
+            to: CGPoint(
+                x: bubbleRectangle.minX + cornerRadius,
+                y: bubbleRectangle.minY
+            ),
+            control: CGPoint(
+                x: bubbleRectangle.minX,
+                y: bubbleRectangle.minY
+            )
+        )
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct SpectrumColorStop {
+    let wavelength: Double
+    let red: Double
+    let green: Double
+    let blue: Double
+
+    var color: Color {
+        Color(red: red, green: green, blue: blue)
     }
 }
 

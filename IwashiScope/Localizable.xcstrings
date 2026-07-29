@@ -1716,6 +1716,17 @@
         }
       }
     },
+    "スペクトルグラフを実用波長範囲に絞って表示します" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limits the spectrum chart to the practical wavelength range."
+          }
+        }
+      }
+    },
     "スペクトルと測色値を取得しています。測定器を動かさないでください。" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2689,6 +2700,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Do not move or operate the instrument until the operation completes."
+          }
+        }
+      }
+    },
+    "実用エリアを使用する" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use Practical Range"
+          }
+        }
+      }
+    },
+    "実用波長範囲" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Practical Wavelength Range"
+          }
+        }
+      }
+    },
+    "実用波長範囲を含む測定データがありません" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No measurement data includes a practical wavelength range."
           }
         }
       }
@@ -3811,6 +3855,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Measurement Complete"
+          }
+        }
+      }
+    },
+    "本体の設定を環境光測定位置にし、測定位置に静置して測定ボタンまたは測定器本体のスイッチを押してください" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set the instrument to the ambient-light measurement position, place it stably at the measurement position, then press Measure or the switch on the instrument."
           }
         }
       }

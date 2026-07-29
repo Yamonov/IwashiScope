@@ -5,6 +5,7 @@ struct CalibrationStatusView: View {
     let session: MeasurementSession
     let displayedMeasurement: SpotMeasurement?
     let displayedInstrumentIdentity: SpotreadInstrumentIdentity?
+    @Binding var usesPracticalSpectrumRange: Bool
     let onConnectInstrument: () -> Void
 
     var body: some View {
@@ -62,7 +63,8 @@ struct CalibrationStatusView: View {
                 InstrumentMetadataView(
                     identity: displayedInstrumentIdentity,
                     measurement: displayedMeasurement,
-                    isWorkspace: session.phase == .workspace
+                    isWorkspace: session.phase == .workspace,
+                    usesPracticalSpectrumRange: $usesPracticalSpectrumRange
                 )
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -255,7 +257,7 @@ struct CalibrationStatusView: View {
         case .ready:
             StatusPresentation(
                 title: localized("測定待機中"),
-                detail: localized("測定対象に測定器を置き、測定ボタンまたは測定器本体のスイッチを押してください。"),
+                detail: readyMeasurementInstruction,
                 systemImage: "checkmark.circle.fill",
                 color: .green
             )
@@ -311,6 +313,13 @@ struct CalibrationStatusView: View {
         }
     }
 
+    private var readyMeasurementInstruction: String {
+        if mode == .ambient {
+            return localized("本体の設定を環境光測定位置にし、測定位置に静置して測定ボタンまたは測定器本体のスイッチを押してください")
+        }
+        return localized("測定対象に測定器を置き、測定ボタンまたは測定器本体のスイッチを押してください。")
+    }
+
     private var calibrationSetupDetail: String {
         let instruction = session.calibrationPrompt?.instruction
             ?? localized("測定器を校正位置へ移動してください。")
@@ -331,6 +340,7 @@ private struct InstrumentMetadataView: View {
     let identity: SpotreadInstrumentIdentity?
     let measurement: SpotMeasurement?
     let isWorkspace: Bool
+    @Binding var usesPracticalSpectrumRange: Bool
 
     var body: some View {
         VStack(spacing: 6) {
@@ -346,6 +356,16 @@ private struct InstrumentMetadataView: View {
                 label: String(localized: "データ点数"),
                 value: dataPointCount
             )
+            InstrumentMetadataRow(
+                label: String(localized: "実用波長範囲"),
+                value: practicalWavelengthRange
+            )
+            InstrumentMetadataToggleRow(
+                label: String(localized: "実用エリアを使用する"),
+                isOn: practicalRangeToggle
+            )
+            .disabled(hasPracticalWavelengthRange == false)
+            .help(practicalRangeToggleHelp)
         }
         .font(.caption)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -378,8 +398,52 @@ private struct InstrumentMetadataView: View {
         return "\(measurement.spectrum.count)"
     }
 
+    private var practicalWavelengthRange: String {
+        guard let measurement else {
+            return isWorkspace ? String(localized: "保存データなし") : String(localized: "測定後に表示")
+        }
+        guard let range = measurement.validatedPracticalSpectrumRange else {
+            return String(localized: "保存データなし")
+        }
+        return "\(format(range.start))–\(format(range.end)) nm"
+    }
+
+    private var hasPracticalWavelengthRange: Bool {
+        measurement?.validatedPracticalSpectrumRange != nil
+    }
+
+    private var practicalRangeToggle: Binding<Bool> {
+        Binding(
+            get: {
+                hasPracticalWavelengthRange && usesPracticalSpectrumRange
+            },
+            set: { newValue in
+                usesPracticalSpectrumRange = newValue
+            }
+        )
+    }
+
+    private var practicalRangeToggleHelp: String {
+        if hasPracticalWavelengthRange {
+            return String(localized: "スペクトルグラフを実用波長範囲に絞って表示します")
+        }
+        return String(localized: "実用波長範囲を含む測定データがありません")
+    }
+
     private func format(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(0)))
+        value.formatted(.number.precision(.fractionLength(0...1)))
+    }
+}
+
+private struct InstrumentMetadataToggleRow: View {
+    let label: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        Toggle(label, isOn: $isOn)
+            .toggleStyle(.checkbox)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier("use-practical-spectrum-range-toggle")
     }
 }
 

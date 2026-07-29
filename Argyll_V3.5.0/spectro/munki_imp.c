@@ -7954,6 +7954,33 @@ int munki_imp_highres(munki *p) {
 #endif /* HIGH_RES */
 }
 
+/* Return the practical wavelength range for the current mode and resolution. */
+munki_code munki_imp_get_practical_wavelength_range(
+	munki *p,
+	inst_wavelength_range *range
+) {
+	munkiimp *m = (munkiimp *)p->m;
+	munki_state *s;
+
+	if (m == NULL || range == NULL)
+		return MUNKI_INT_ASSERT;
+
+	range->short_nm = m->wl_short;
+	range->long_nm = m->wl_long;
+
+	/*
+	 * The standard-resolution tables report their native range directly.
+	 * High-resolution filters below these limits deliberately duplicate the
+	 * first usable value because the source data is too noisy.
+	 */
+	if (m->highres) {
+		s = &m->ms[m->mmode];
+		range->short_nm = s->reflective ? WL_REF_MIN : WL_EMIS_MIN;
+	}
+
+	return MUNKI_OK;
+}
+
 /* Set to high resolution mode */
 munki_code munki_set_highres(munki *p) {
 	int i;

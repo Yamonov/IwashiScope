@@ -25,6 +25,9 @@ typedef struct {
 	int reading_index;
 	const char *mode;
 	const xspect *spectrum;
+	int has_practical_spectrum_range;
+	double practical_spectrum_start_nm;
+	double practical_spectrum_end_nm;
 	int has_xyz;
 	double xyz[3];
 	int has_lab;

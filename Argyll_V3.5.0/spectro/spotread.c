@@ -3374,6 +3374,30 @@ remediate:;
 			}
 
 			protocol_measurement.spectrum = sp.spec_n > 0 ? &sp : NULL;
+			if (sp.spec_n > 0) {
+				inst_wavelength_range practical_range;
+
+				practical_range.short_nm = sp.spec_wl_short;
+				practical_range.long_nm = sp.spec_wl_long;
+				if (it->get_set_opt(
+						it,
+						inst_opt_get_practical_wl_range,
+						&practical_range
+					) != inst_ok
+				 || !isfinite(practical_range.short_nm)
+				 || !isfinite(practical_range.long_nm)
+				 || practical_range.short_nm < sp.spec_wl_short
+				 || practical_range.long_nm > sp.spec_wl_long
+				 || practical_range.short_nm > practical_range.long_nm) {
+					practical_range.short_nm = sp.spec_wl_short;
+					practical_range.long_nm = sp.spec_wl_long;
+				}
+				protocol_measurement.has_practical_spectrum_range = 1;
+				protocol_measurement.practical_spectrum_start_nm =
+					practical_range.short_nm;
+				protocol_measurement.practical_spectrum_end_nm =
+					practical_range.long_nm;
+			}
 			if (ambient && (cap2 & inst2_ambient_mono)) {
 				protocol_measurement.has_monochrome = 1;
 				protocol_measurement.monochrome_y = XYZ[1];

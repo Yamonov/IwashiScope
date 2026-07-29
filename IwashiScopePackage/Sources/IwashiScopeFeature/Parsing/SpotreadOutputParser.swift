@@ -243,6 +243,11 @@ struct SpotreadOutputParser {
             start: spectrumStart,
             end: spectrumEnd
         )
+        let practicalSpectrumRange = try Self.practicalSpectrumRange(
+            from: spectrumPayload,
+            spectrumStart: spectrumStart,
+            spectrumEnd: spectrumEnd
+        )
         let peak = spectrum.max { lhs, rhs in lhs.value < rhs.value }
 
         let xyz = try record.xyz.map(Self.vector3(from:))
@@ -295,6 +300,7 @@ struct SpotreadOutputParser {
             mode: mode,
             spectrumStart: spectrumStart,
             spectrumEnd: spectrumEnd,
+            practicalSpectrumRange: practicalSpectrumRange,
             declaredStepCount: spectrum.count,
             spectrum: spectrum,
             peakValue: peak?.value,
@@ -461,6 +467,34 @@ struct SpotreadOutputParser {
         }
     }
 
+    private static func practicalSpectrumRange(
+        from payload: SpectrumPayload?,
+        spectrumStart: Double,
+        spectrumEnd: Double
+    ) throws -> WavelengthRange? {
+        guard let payload else { return nil }
+
+        switch (payload.practicalStartNm, payload.practicalEndNm) {
+        case (nil, nil):
+            return nil
+        case let (start?, end?):
+            guard start.isFinite,
+                  end.isFinite,
+                  start <= end,
+                  start >= spectrumStart,
+                  end <= spectrumEnd else {
+                throw ProtocolValidationError.invalidValue(
+                    "practical spectrum range"
+                )
+            }
+            return WavelengthRange(start: start, end: end)
+        default:
+            throw ProtocolValidationError.missingValue(
+                "practical spectrum range boundary"
+            )
+        }
+    }
+
     private static func vector3(from values: [Double]) throws -> Vector3 {
         guard values.count == 3 else {
             throw ProtocolValidationError.invalidCount("three-component vector")
@@ -568,6 +602,8 @@ private struct ProtocolRecord: Decodable {
 private struct SpectrumPayload: Decodable {
     let startNm: Double
     let endNm: Double
+    let practicalStartNm: Double?
+    let practicalEndNm: Double?
     let values: [Double]
 }
 

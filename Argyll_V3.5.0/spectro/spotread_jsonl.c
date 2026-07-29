@@ -396,6 +396,12 @@ int spotread_jsonl_emit_measurement(
 		json_double(&writer, measurement->spectrum->spec_wl_short);
 		json_key(&writer, "endNm");
 		json_double(&writer, measurement->spectrum->spec_wl_long);
+		if (measurement->has_practical_spectrum_range) {
+			json_key(&writer, "practicalStartNm");
+			json_double(&writer, measurement->practical_spectrum_start_nm);
+			json_key(&writer, "practicalEndNm");
+			json_double(&writer, measurement->practical_spectrum_end_nm);
+		}
 		json_key(&writer, "values");
 		json_array_open(&writer);
 		for (i = 0; i < measurement->spectrum->spec_n; i++)
