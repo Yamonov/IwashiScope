@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+     xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+    <channel>
+        <title>IwashiScope for Windows Updates</title>
+        <link>https://github.com/Yamonov/IwashiScope/releases</link>
+        <description>Signed x64 updates for IwashiScope on Windows.</description>
+        <language>en</language>
+        <!--
+          Add only an EdDSA-signed Windows installer here. The existing portable
+          ZIP is not an installer and must not be offered to WinSparkle.
+          Each enclosure must set sparkle:os="windows-x64".
+        -->
+    </channel>
+</rss>

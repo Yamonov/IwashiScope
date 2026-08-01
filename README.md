@@ -91,7 +91,7 @@ macOS版のローカルテストは公開リポジトリへ含めていません
 
 macOS版に必要な環境と手順は[BUILDING.md](BUILDING.md)を参照してください。Xcodeでは`IwashiScope.xcworkspace`を開きます。初回ビルド時にSparkle 2.9.4を取得し、`Scripts/build-spotread.sh`が同梱ソースからUniversal Binaryの`iwashiscope-spotread`を作成します。
 
-Windows版は.NET 10とWPFを使用します。ビルド、テスト、自己完結型x64 ZIPの作成方法は[Windows/README.md](Windows/README.md)を参照してください。
+Windows版は.NET 10、WPF、WinSparkle 0.9.4を使用します。ビルド、テスト、自己完結型x64 ZIP、更新機能の構成は[Windows/README.md](Windows/README.md)を参照してください。
 
 ## Sandboxと配布
 
@@ -107,7 +107,7 @@ IwashiScopeのSwiftアプリと改変版`iwashiscope-spotread`は、第三者著
 
 - ArgyllCMS 3.5.0の原著作権と個別ライセンスは維持されています。
 - IwashiScopeによるArgyllCMSの改変内容は[ARGYLL_CHANGES.md](ARGYLL_CHANGES.md)に記録しています。
-- Sparkle、CIE標準光源データ、ArgyllCMS内の各構成要素は[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)を参照してください。
+- Sparkle、WinSparkle、CIE標準光源データ、ArgyllCMS内の各構成要素は[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)を参照してください。
 - バイナリの作成・署名・公証・Sparkle配信は[RELEASING.md](RELEASING.md)を参照してください。
 - 更新確認を含む通信とデータの扱いは[PRIVACY.md](PRIVACY.md)を参照してください。
 - 名称とロゴの扱いは[TRADEMARKS.md](TRADEMARKS.md)を参照してください。

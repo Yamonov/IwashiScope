@@ -515,7 +515,8 @@ Windows 版の完了は「画面が似ている」ではなく、次をすべて
 - **実機検証中:** 環境光・発光実測、抜去・再接続、sleep/resume、測定精度比較。
 - **削除済み:** fake helper、fake runtime切替、`IWASHISCOPE_USE_FAKE`、製品コード内の
   ダミー測定値生成。アプリは実機helperだけを起動する。
-- **未実装:** Windows更新方式、installer、Authenticode署名。
+- **実装・自動テスト済み:** WinSparkle 0.9.4 x64、app-local DLL検索制限、macOSと同じEdDSA公開鍵、Windows専用appcast、表示version/build version、ja/en手動確認UI、起動/cleanup、未保存workspace・測定中の終了拒否、current-user installer、ZIP traversal/link/予約名/重複名検証、transactional置換・rollback、設定保持、uninstall、appcast履歴・署名・byte数・HTTPS・platform検証、一時鍵sign/verifyと一時物削除。
+- **本番工程待ち:** 完成installerをMacへ渡して既存Sparkle秘密鍵でEdDSA署名、署名済みWindows feed公開、1つ前の公開版からの実更新試験。信頼された証明書が用意されるまでAuthenticodeは未署名。production秘密鍵はWindowsへ渡さない。
   self-contained x64 ZIPは作成・展開後起動を確認済みだが、別のclean machineでの検証は未完了。
 - **表示上の明示的例外:** Adobe RGBは計算コードが残っていても全モードの通常UIで
   非表示。画像実体のないSF Symbolsは近似せず未表示。タイトル波形だけはユーザー

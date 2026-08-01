@@ -69,7 +69,7 @@ TM-30本文の4点補間、基準輪郭の単位半径化、16 sector、変位�
 | localization | runtime ja/enと430-entry inventory | 一部 | 目視 | 主要VM文言は切替、XAML固定文言の完全resource化は未 |
 | license | ライセンス/ソース表示、AGPL/GPL/CC BY-SA notice同梱 | 済 | build output確認済み、UI操作は未試験 |
 | icon | `IwashiScope.icon`/AppIconを正本に16/20/24/32/40/48/64/128/256 ICO、EXE/Window/title画像 | 済 | 自動+目視 |
-| update | Sparkle相当のWindows更新方式 | 未 | 未試験 | 方式決定まで明示的な未実装。完了扱いしない |
+| update | Sparkle相当のWindows更新方式 | 実装・自動テスト済／本番署名待ち | 自動・起動 | WinSparkle 0.9.4 x64、DLL検索制限、macOSと同じEdDSA公開鍵、Windows専用appcast、ja/en手動確認UI、起動/cleanup、未保存・測定中の終了拒否、transactional current-user installer、ZIP攻撃検証、appcast履歴・署名・byte数検証、一時鍵sign/verifyを実装・試験済。本番installerのMac側EdDSA署名、feed公開、旧版からの実更新、Authenticode署名は待ち |
 | packaging | self-contained x64 ZIP、署名、clean-machine、notice/source offer | 一部 | 自動+目視 | ZIP、notice/source offer、展開後起動は確認。Authenticode署名と別のclean machineは未確認 |
 
 ## C. macOS内部テスト観点とWindowsテスト

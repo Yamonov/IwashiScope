@@ -69,6 +69,7 @@ public sealed class MeasurementSessionStateMachine
         {
             case HelloAcceptedEvent:
                 Phase = MeasurementSessionPhase.WaitingForInstrument;
+                CurrentIssue = null;
                 break;
             case InstrumentIdentityEvent identity:
                 Instrument = identity.Identity;

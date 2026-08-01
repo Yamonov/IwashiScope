@@ -28,7 +28,8 @@ public sealed class UiParityTests
             profile.Shows(UiParitySection.ReflectanceHistory));
         Assert.Equal(showsStandards, profile.Shows(UiParitySection.JspstEvaluation));
         Assert.Equal(showsStandards, profile.Shows(UiParitySection.Iso3664Evaluation));
-        Assert.False(profile.Shows(UiParitySection.AdobeRgbEncoding));
+        Assert.Equal(showsSrgb, profile.Shows(UiParitySection.AdobeRgbEncoding));
+        Assert.Equal(showsSrgb, profile.Shows(UiParitySection.DisplayP3Encoding));
         Assert.True(profile.Shows(UiParitySection.DetailedLog));
     }
 

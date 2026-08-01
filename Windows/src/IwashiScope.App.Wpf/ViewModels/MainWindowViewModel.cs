@@ -83,6 +83,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     private readonly LocalizationCatalog _localization = new();
     private readonly SettingsStore _settingsStore = new();
     private readonly MeasurementSessionController _session;
+    private readonly MeasurementSidebarTabCoordinator _sidebarTabCoordinator = new();
     private AppSettings _settings = new();
     private MeasurementMode _mode = MeasurementMode.Reflectance;
     private SpotMeasurement? _activeMeasurement;
@@ -445,8 +446,15 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         ? $"{range.Start:0}–{range.End:0} nm"
         : T("全波長範囲", "Full wavelength range");
     public string SrgbHex => ColorConversion?.Srgb.Hex ?? "—";
-    public string SrgbText => ColorConversion?.Srgb.RgbDescription ?? "—";
-    public string AdobeRgbText => ColorConversion?.AdobeRgb.RgbDescription ?? "—";
+    public string SrgbRedText => RgbComponentText(ColorConversion?.Srgb.RedByte);
+    public string SrgbGreenText => RgbComponentText(ColorConversion?.Srgb.GreenByte);
+    public string SrgbBlueText => RgbComponentText(ColorConversion?.Srgb.BlueByte);
+    public string AdobeRgbRedText => RgbComponentText(ColorConversion?.AdobeRgb.RedByte);
+    public string AdobeRgbGreenText => RgbComponentText(ColorConversion?.AdobeRgb.GreenByte);
+    public string AdobeRgbBlueText => RgbComponentText(ColorConversion?.AdobeRgb.BlueByte);
+    public string DisplayP3RedText => RgbComponentText(ColorConversion?.DisplayP3.RedByte);
+    public string DisplayP3GreenText => RgbComponentText(ColorConversion?.DisplayP3.GreenByte);
+    public string DisplayP3BlueText => RgbComponentText(ColorConversion?.DisplayP3.BlueByte);
     public string SrgbGamutWarning => ColorConversion?.Srgb.IsOutOfGamut == true
         ? T("sRGB色域外（クリップ表示）", "Outside sRGB gamut (clipped)")
         : string.Empty;
@@ -454,6 +462,11 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public string AdobeGamutWarning => ColorConversion?.AdobeRgb.IsOutOfGamut == true
         ? T("Adobe RGB (1998)色域外（クリップ表示）", "Outside Adobe RGB (1998) gamut (clipped)")
         : string.Empty;
+    public bool HasAdobeGamutWarning => !string.IsNullOrEmpty(AdobeGamutWarning);
+    public string DisplayP3GamutWarning => ColorConversion?.DisplayP3.IsOutOfGamut == true
+        ? T("Display P3色域外（クリップ表示）", "Outside Display P3 gamut (clipped)")
+        : string.Empty;
+    public bool HasDisplayP3GamutWarning => !string.IsNullOrEmpty(DisplayP3GamutWarning);
     public Brush SwatchBrush
     {
         get
@@ -818,6 +831,9 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public string LicensesAndSourceLabel => T(
         "ライセンスとソースコード",
         "Licenses and Source Code");
+    public string CheckForUpdatesLabel => T(
+        "アップデートを確認…",
+        "Check for Updates…");
     public string OpenWorkspaceLabel => T("ワークスペースを復帰...", "Restore Workspace...");
     public string SaveWorkspaceLabel => T("ワークスペースを保存...", "Save Workspace...");
     public string ExportLabel => T("書き出し...", "Export...");
@@ -845,6 +861,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public string RestartLabel => T("spotreadを強制再起動", "Force Restart spotread");
     public string ConnectLabel => T("測定器に接続", "Connect Instrument");
     public string ReturnToModeSelectionLabel => T("モード選択へ戻る", "Back to Mode Selection");
+    public string RgbValuesLabel => T("RGB値", "RGB Values");
     public string SpectrumLabel => T("スペクトル", "Spectrum");
     public string ColorRenderingLabel => T("演色評価", "Color Rendering");
     public string EvaluationLabel => T("規格評価", "Standards");
@@ -1104,6 +1121,18 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
 
     private void RefreshFromSession(string? operationError = null)
     {
+        var currentSidebarTab = SelectedTabIndex == 1
+            ? MeasurementSidebarTab.SpotreadLog
+            : MeasurementSidebarTab.MeasurementValues;
+        var selectedSidebarTab = _sidebarTabCoordinator.Observe(
+            _session.State.Phase,
+            _session.CalibrationCompleted,
+            IsBrowsingRestoredWorkspace,
+            currentSidebarTab);
+        SelectedTabIndex = selectedSidebarTab == MeasurementSidebarTab.SpotreadLog
+            ? 1
+            : 0;
+
         ErrorMessage = SessionErrorPresentation.Resolve(
             _session.State.CurrentIssue,
             operationError);
@@ -1229,9 +1258,14 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
                      nameof(XyzText), nameof(LabGroupLabel), nameof(LabText), nameof(PeakText), nameof(LuxText),
                      nameof(CctText), nameof(DuvText), nameof(EvText), nameof(CriText),
                      nameof(TlciText), nameof(Tm30Text), nameof(PracticalRangeText),
-                     nameof(SrgbHex), nameof(SrgbText), nameof(AdobeRgbText),
+                     nameof(SrgbHex),
+                     nameof(SrgbRedText), nameof(SrgbGreenText), nameof(SrgbBlueText),
+                     nameof(AdobeRgbRedText), nameof(AdobeRgbGreenText), nameof(AdobeRgbBlueText),
+                     nameof(DisplayP3RedText), nameof(DisplayP3GreenText), nameof(DisplayP3BlueText),
                      nameof(SrgbGamutWarning), nameof(HasSrgbGamutWarning),
-                     nameof(AdobeGamutWarning), nameof(SwatchBrush),
+                     nameof(AdobeGamutWarning), nameof(HasAdobeGamutWarning),
+                     nameof(DisplayP3GamutWarning), nameof(HasDisplayP3GamutWarning),
+                     nameof(SwatchBrush),
                      nameof(JspstSummary), nameof(IsoSummary),
                      nameof(ShowsSrgbEncoding), nameof(HasActiveMeasurement),
                      nameof(HasMonochrome), nameof(HasLightingMetrics), nameof(HasCriOrTlci),
@@ -1274,6 +1308,9 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
 
     private static string WorkspaceFingerprint(WorkspaceDocument document) =>
         WorkspaceSerializer.Serialize(document with { SavedAt = DateTimeOffset.UnixEpoch });
+
+    private static string RgbComponentText(byte? component) =>
+        component?.ToString(CultureInfo.InvariantCulture) ?? "—";
 
     private string T(string japanese, string english) => _localization.Text(japanese, english);
 

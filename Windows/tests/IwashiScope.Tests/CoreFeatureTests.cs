@@ -139,12 +139,27 @@ public sealed class CoreFeatureTests
     }
 
     [Fact]
-    public void SrgbAndAdobeRgbGamutWarningsAreIndependent()
+    public void SrgbAdobeRgbAndDisplayP3ConversionsAndGamutWarningsAreIndependent()
     {
-        var conversion = LabColorConverter.Convert(new Vector3(65, 85, 20), "D50");
-        Assert.True(conversion.Srgb.IsOutOfGamut);
-        Assert.False(conversion.AdobeRgb.IsOutOfGamut);
-        Assert.StartsWith("#", conversion.Srgb.Hex);
+        var srgbOnly = LabColorConverter.Convert(new Vector3(20, -35, 20), "D50");
+        Assert.True(srgbOnly.Srgb.IsOutOfGamut);
+        Assert.False(srgbOnly.AdobeRgb.IsOutOfGamut);
+        Assert.False(srgbOnly.DisplayP3.IsOutOfGamut);
+
+        var adobeOnlyComparedWithP3 =
+            LabColorConverter.Convert(new Vector3(20, -35, 30), "D50");
+        Assert.True(adobeOnlyComparedWithP3.AdobeRgb.IsOutOfGamut);
+        Assert.False(adobeOnlyComparedWithP3.DisplayP3.IsOutOfGamut);
+
+        var p3OnlyComparedWithAdobe =
+            LabColorConverter.Convert(new Vector3(20, -45, 25), "D50");
+        Assert.False(p3OnlyComparedWithAdobe.AdobeRgb.IsOutOfGamut);
+        Assert.True(p3OnlyComparedWithAdobe.DisplayP3.IsOutOfGamut);
+
+        Assert.NotEqual(
+            adobeOnlyComparedWithP3.Srgb.RgbDescription,
+            adobeOnlyComparedWithP3.DisplayP3.RgbDescription);
+        Assert.StartsWith("#", adobeOnlyComparedWithP3.Srgb.Hex);
     }
 
     [Fact]

@@ -1,14 +1,18 @@
 [CmdletBinding()]
 param(
-    [ValidatePattern('^\d+\.\d+\.\d+$')]
-    [string] $Version = '0.9.5',
+    [ValidatePattern('^\d+\.\d+\.\d+(?:\.\d+)?$')]
+    [string] $Version = '0.9.5.2',
 
     [Parameter(Mandatory = $true)]
     [string] $JamPath,
 
     [string] $VsDevCmdPath,
 
-    [string] $OutputRoot
+    [string] $OutputRoot,
+
+    [string] $CertificateThumbprint,
+
+    [string] $SignToolPath
 )
 
 Set-StrictMode -Version Latest
@@ -52,11 +56,16 @@ $appProjectPath = Join-Path $windowsRoot `
     'src\IwashiScope.App.Wpf\IwashiScope.App.Wpf.csproj'
 $helperBuildScript = Join-Path $repositoryRoot `
     'Scripts\build-spotread-windows.ps1'
+$installerBuildScript = Join-Path $windowsRoot `
+    'Scripts\Build-WindowsInstaller.ps1'
 
 $JamPath = Resolve-ExistingFile -Path $JamPath -Description 'Jam'
 $helperBuildScript = Resolve-ExistingFile `
     -Path $helperBuildScript `
     -Description 'Common Windows helper build script'
+$installerBuildScript = Resolve-ExistingFile `
+    -Path $installerBuildScript `
+    -Description 'Windows installer build script'
 
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
     $OutputRoot = Join-Path $windowsRoot "artifacts\release-$Version"
@@ -69,9 +78,16 @@ $OutputRoot = $ExecutionContext.SessionState.Path.
 $payloadName = "IwashiScope-$Version-Windows-x64"
 $payloadPath = Join-Path $OutputRoot $payloadName
 $zipPath = Join-Path $OutputRoot "$payloadName.zip"
+$installerPath = Join-Path $OutputRoot `
+    "IwashiScope-$Version-Windows-x64-Setup.exe"
 $manifestPath = Join-Path $OutputRoot 'RELEASE_MANIFEST.txt'
 
-foreach ($reservedPath in @($payloadPath, $zipPath, $manifestPath)) {
+foreach ($reservedPath in @(
+    $payloadPath,
+    $zipPath,
+    $installerPath,
+    $manifestPath
+)) {
     if (Test-Path -LiteralPath $reservedPath) {
         throw "Release output already exists; preserving it: $reservedPath"
     }
@@ -143,7 +159,13 @@ try {
     $publishedHelper = Resolve-ExistingFile `
         -Path (Join-Path $payloadPath 'iwashiscope-spotread.exe') `
         -Description 'Published iwashiscope-spotread.exe'
+    $publishedWinSparkle = Resolve-ExistingFile `
+        -Path (Join-Path $payloadPath 'WinSparkle.dll') `
+        -Description 'Published WinSparkle.dll'
     $publishedHelperHash = (Get-FileHash -LiteralPath $publishedHelper `
+        -Algorithm SHA256).Hash
+    $publishedWinSparkleHash = (Get-FileHash `
+        -LiteralPath $publishedWinSparkle `
         -Algorithm SHA256).Hash
     if ($publishedHelperHash -ne $helperHash) {
         throw 'Published helper hash does not match the helper built from common source.'
@@ -196,18 +218,48 @@ try {
         [Text.UTF8Encoding]::new($false)
     )
 
+    $installerArguments = @{
+        PayloadPath = $payloadPath
+        Version = $Version
+        OutputRoot = $OutputRoot
+    }
+    if (-not [string]::IsNullOrWhiteSpace($CertificateThumbprint)) {
+        $installerArguments.CertificateThumbprint = $CertificateThumbprint
+    }
+    if (-not [string]::IsNullOrWhiteSpace($SignToolPath)) {
+        $installerArguments.SignToolPath = $SignToolPath
+    }
+    & $installerBuildScript @installerArguments
+    $installerPath = Resolve-ExistingFile `
+        -Path $installerPath `
+        -Description 'Windows x64 installer'
+    $installerItem = Get-Item -LiteralPath $installerPath
+    $installerHash = (Get-FileHash -LiteralPath $installerPath `
+        -Algorithm SHA256).Hash
+    $installerSignature = Get-AuthenticodeSignature `
+        -LiteralPath $installerPath
+
     Compress-Archive -LiteralPath $payloadPath -DestinationPath $zipPath
     $zipHash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash
     $executableInfo = (Get-Item -LiteralPath $publishedExecutable).VersionInfo
     $signature = Get-AuthenticodeSignature -LiteralPath $publishedExecutable
+    $winSparkleSignature = Get-AuthenticodeSignature `
+        -LiteralPath $publishedWinSparkle
 
     $manifest = @(
         "Artifact: $zipPath"
         "Artifact SHA-256: $zipHash"
+        "Installer: $installerPath"
+        "Installer bytes: $($installerItem.Length)"
+        "Installer SHA-256: $installerHash"
+        "Installer Authenticode: $($installerSignature.Status)"
         "Application version: $($executableInfo.ProductVersion)"
         "Application file version: $($executableInfo.FileVersion)"
         "Application Authenticode: $($signature.Status)"
         "Helper SHA-256: $publishedHelperHash"
+        "WinSparkle version: 0.9.4"
+        "WinSparkle SHA-256: $publishedWinSparkleHash"
+        "WinSparkle Authenticode: $($winSparkleSignature.Status)"
         "Source commit: $sourceCommit"
         "Runtime: self-contained win-x64"
     )
@@ -220,6 +272,8 @@ try {
     Write-Host "Created release payload: $payloadPath"
     Write-Host "Created release archive: $zipPath"
     Write-Host "Archive SHA-256: $zipHash"
+    Write-Host "Created Windows installer: $installerPath"
+    Write-Host "Installer SHA-256: $installerHash"
     Write-Host "Helper SHA-256: $publishedHelperHash"
 }
 finally {

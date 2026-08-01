@@ -1,6 +1,6 @@
 # IwashiScope for Windows
 
-IwashiScope 0.9.5 for Windows is the .NET 10 + WPF port of the macOS
+IwashiScope 0.9.5.2 for Windows is the .NET 10 + WPF port of the macOS
 application in this repository. It uses the same modified ArgyllCMS 3.5.0
 source and JSON Lines protocol version 3 as the macOS build.
 
@@ -29,7 +29,12 @@ a separate .NET installation on the target computer.
 - `src/IwashiScope.Protocol`: JSON Lines version 3 parser
 - `src/IwashiScope.Infrastructure.Windows`: process, pipe, storage, and logging
 - `tests/IwashiScope.Tests`: automated tests
-- `Scripts/Build-Release.ps1`: helper build, test, publish, and ZIP packaging
+- `Scripts/Build-Release.ps1`: helper build, test, publish, portable ZIP, and
+  Windows installer packaging
+- `Scripts/Build-WindowsInstaller.ps1`: creates the per-user installer from an
+  already-published payload
+- `Scripts/New-WindowsAppcast.ps1`: creates a signed Windows x64 appcast after
+  the installer has been uploaded
 - `tools/Generate-WindowsIcon.ps1`: regenerates Windows icons from the
   top-level macOS AppIcon assets
 
@@ -54,30 +59,112 @@ measurement backend.
 
 The release script builds and runs the common C helper test, builds and tests
 the WPF solution, publishes a self-contained win-x64 application, includes
-the common licenses and corresponding-source metadata, and creates
-`IwashiScope-0.9.5-Windows-x64.zip`.
+the common licenses and corresponding-source metadata, and creates both
+`IwashiScope-0.9.5.2-Windows-x64.zip` and the directly executable
+`IwashiScope-0.9.5.2-Windows-x64-Setup.exe`.
 
 ```powershell
 .\Windows\Scripts\Build-Release.ps1 `
-  -Version 0.9.5 `
+  -Version 0.9.5.2 `
   -JamPath C:\path\to\jam.exe `
-  -OutputRoot C:\path\to\artifacts\release-0.9.5
+  -OutputRoot C:\path\to\artifacts\release-0.9.5.2
 ```
 
-The script refuses to overwrite an existing payload, ZIP, or manifest.
+The installer follows the established Scripta for Windows pattern: it installs
+without elevation for the current user under
+`%LOCALAPPDATA%\Programs\IwashiScope`, creates a Start Menu shortcut and HKCU
+uninstall entry, and leaves settings and `.iwashiscope` files outside the
+installation folder untouched. The release script refuses to overwrite an
+existing payload, ZIP, installer, or manifest.
+Unlike the earlier Scripta implementation, the IwashiScope installer validates
+every ZIP entry, rejects traversal, absolute/alternate-stream, reserved-name,
+duplicate, and link entries, stages beside the destination, and swaps the
+application directory transactionally. A failed shortcut, registry, launch, or
+file replacement restores the previous application and metadata. The uninstall
+cleanup validates the exact per-user path and deletes its temporary executable
+without elevation after the installed process exits.
+
+The installer security and isolated update/uninstall tests can be run without
+changing the actual user installation:
+
+```powershell
+.\Windows\Scripts\Test-WindowsInstaller.ps1
+```
+
 Generated executables, `bin`, `obj`, test results, release artifacts, user
 settings, logs, and `.iwashiscope` workspace files are excluded from source
 control.
 
+## Application updates
+
+The Windows app integrates WinSparkle 0.9.4 from the fixed NuGet package and
+ships its x64 native DLL app-local. Native loading is restricted to the
+application directory. It uses the Windows-only HTTPS feed at
+`https://yamonov.github.io/IwashiScope/appcast-windows.xml` and the same EdDSA
+public key as the macOS Sparkle integration. The Help menu contains
+`アップデートを確認…` / `Check for Updates…`; WinSparkle also manages its
+per-user automatic-check consent and schedule under HKCU.
+
+WinSparkle accepts only correctly EdDSA-signed payloads. The feed must contain
+only a Windows x64 installer enclosure with `sparkle:os="windows-x64"`. The
+portable ZIP is not an installer and must not be added to this feed. Sign the
+installer on the Mac release host using Sparkle's existing `sign_update` and
+the production key already held there. The IwashiScope production private key
+must never be copied to, requested by, or stored on Windows. Transfer only the
+detached signature back to Windows, then generate a checked feed file:
+
+```sh
+/path/to/Sparkle/bin/sign_update \
+  IwashiScope-0.9.5.2-Windows-x64-Setup.exe
+```
+
+```powershell
+.\Windows\Scripts\New-WindowsAppcast.ps1 `
+  -Version 0.9.5.2 `
+  -TagName v0.9.5.2 `
+  -InstallerPath .\Windows\artifacts\release-0.9.5.2\IwashiScope-0.9.5.2-Windows-x64-Setup.exe `
+  -EdSignature SIGNATURE_FROM_MAC
+```
+
+`New-WindowsAppcast.ps1` refuses a wrong filename or version, verifies the
+detached signature with the production public key, preserves older items, and
+checks the exact byte length, HTTPS URL, and `windows-x64` platform before it
+writes a new file. `Test-WindowsAppcast.ps1` performs the same validation on an
+existing feed. Upload the installer first, verify its URL and signature, and only then replace
+`docs/appcast-windows.xml` with the generated file and publish GitHub Pages.
+The signing private key is never stored in this repository or on the Windows
+release host. The tracked feed intentionally contains no publishable item until
+the production signature and public release URL exist.
+
+The signing path can be tested on Windows without production material. This
+command generates a random temporary key, signs and verifies a temporary copy,
+checks a one-item and history-preserving appcast, and removes the key and all
+temporary signed artifacts:
+
+```powershell
+.\Windows\Scripts\Test-WinSparkleSigning.ps1 `
+  -InstallerPath .\Windows\artifacts\release-0.9.5.2\IwashiScope-0.9.5.2-Windows-x64-Setup.exe
+```
+
+The macOS and Windows feeds are separate files in the same repository. This
+allows either platform to release first and to use a different version number.
+A single shared feed is technically possible by marking each separate item as
+`sparkle:os="macos"` or `sparkle:os="windows-x64"`, but separate feeds are the
+layout recommended by the Sparkle project and prevent one platform's generator
+from overwriting the other platform's release history.
+
 ## Version and signing
 
 The Windows product, assembly, file, and informational versions are defined in
-`Directory.Build.props`. Release 0.9.5 uses `0.9.5` and `0.9.5.0`.
+`Directory.Build.props`. Release 0.9.5.2 uses `0.9.5.2` for product, file,
+assembly, and informational versions.
 
 The release process does not create or trust a certificate automatically.
 Official Authenticode signing requires a separately provisioned, trusted
 code-signing certificate and an approved signing procedure. An unsigned build
-is identified as such in `RELEASE_MANIFEST.txt`.
+is identified as such in `RELEASE_MANIFEST.txt`. EdDSA update signing and
+Authenticode signing are separate: a valid WinSparkle signature does not make
+the installer Authenticode-signed.
 
 ## Licenses and corresponding source
 

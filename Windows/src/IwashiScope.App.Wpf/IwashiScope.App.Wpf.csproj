@@ -6,6 +6,15 @@
     <ProjectReference Include="..\IwashiScope.Infrastructure.Windows\IwashiScope.Infrastructure.Windows.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="WinSparkle" Version="0.9.4"
+                      GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="IwashiScope.Tests" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
@@ -15,11 +24,17 @@
     <AssemblyName>IwashiScope</AssemblyName>
     <RootNamespace>IwashiScope.App.Wpf</RootNamespace>
     <ApplicationIcon>Resources\Icons\IwashiScope.ico</ApplicationIcon>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
     <Resource Include="Resources\Icons\IwashiScope.ico" />
     <Resource Include="Resources\Icons\IwashiScope-128.png" />
+    <Content Include="$(PkgWinSparkle)\runtimes\win-x64\native\WinSparkle.dll"
+             Link="WinSparkle.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
     <EmbeddedResource Include="Resources\Localizable.xcstrings"
                       LogicalName="IwashiScope.Localizable.xcstrings" />
     <Content Include="..\..\..\LICENSE" Link="LICENSE">

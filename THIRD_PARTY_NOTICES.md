@@ -18,6 +18,16 @@ ArgyllCMSにはGPL、LGPL、MIT、BSD系など、個別条件を持つ構成要�
 
 アプリには主ライセンスに加え、直接使用するCGATSおよびICC構成要素のMIT Licenseも同梱します。
 
+## WinSparkle 0.9.4（Windows版）
+
+- プロジェクト: <https://github.com/vslavik/winsparkle>
+- 配布パッケージ: NuGet `WinSparkle` 0.9.4
+- ライセンス: MIT License
+- ライセンス本文: `LICENSES/WinSparkle-MIT.txt`
+
+Windows版は更新確認と署名済み更新インストーラーの検証にWinSparkleを使用します。
+更新ファイルはEdDSA署名が正しい場合だけ受け入れます。
+
 ## Sparkle 2.9.4
 
 - プロジェクト: <https://github.com/sparkle-project/Sparkle>

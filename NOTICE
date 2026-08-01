@@ -19,7 +19,7 @@ changes are identified in ARGYLL_CHANGES.md and in the modified source files.
 IwashiScope is not an official ArgyllCMS project and is not endorsed by its
 original authors.
 
-This distribution also uses Sparkle and CIE standard illuminant data. The
+This distribution also uses Sparkle, WinSparkle, and CIE standard illuminant data. The
 unaltered CIE source datasets remain under CC BY-SA 4.0. The generated Swift
 adaptation is licensed under GPL version 3 only and is combined with the
 AGPL-3.0-only portions of IwashiScope under section 13 of GPLv3 and AGPLv3.

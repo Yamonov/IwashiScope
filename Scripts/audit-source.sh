@@ -34,6 +34,7 @@ required_files="
 .gitattributes
 LICENSE
 LICENSES/GPL-3.0-only.txt
+LICENSES/WinSparkle-MIT.txt
 NOTICE
 THIRD_PARTY_NOTICES.md
 ARGYLL_CHANGES.md
@@ -62,9 +63,19 @@ Windows/README.md
 Windows/Directory.Build.props
 Windows/IwashiScope.Windows.slnx
 Windows/Scripts/Build-Release.ps1
+Windows/Scripts/Build-WindowsInstaller.ps1
+Windows/Scripts/New-WindowsAppcast.ps1
+Windows/Scripts/Test-WinSparkleSigning.ps1
+Windows/Scripts/Test-WindowsAppcast.ps1
+Windows/Scripts/Test-WindowsInstaller.ps1
+Windows/Scripts/installer/IwashiScopeAppInstaller.cs
+Windows/Scripts/installer/IwashiScopeInstallerCore.cs
+Windows/Scripts/installer/IwashiScopeInstallerCoreTests.cs
 Windows/src/IwashiScope.App.Wpf/IwashiScope.App.Wpf.csproj
 Windows/src/IwashiScope.App.Wpf/MainWindow.xaml
 Windows/src/IwashiScope.App.Wpf/MainWindow.xaml.cs
+Windows/src/IwashiScope.App.Wpf/Updates/UpdateShutdownPolicy.cs
+Windows/src/IwashiScope.App.Wpf/Updates/WinSparkleUpdater.cs
 Windows/src/IwashiScope.App.Wpf/Resources/Icons/IwashiScope.ico
 Windows/src/IwashiScope.App.Wpf/Resources/Icons/IwashiScope-128.png
 Windows/src/IwashiScope.App.Wpf/Resources/Localizable.xcstrings
@@ -74,6 +85,8 @@ Windows/src/IwashiScope.Protocol/IwashiScope.Protocol.csproj
 Windows/tests/IwashiScope.Tests/IwashiScope.Tests.csproj
 Windows/tests/IwashiScope.Tests/ProtocolTests.cs
 Windows/tests/IwashiScope.Tests/ReleaseMetadataTests.cs
+Windows/tests/IwashiScope.Tests/WinSparkleIntegrationTests.cs
+docs/appcast-windows.xml
 Windows/tools/Generate-WindowsIcon.ps1
 Windows/tools/Compare-UiParityEvidence.ps1
 Argyll_V3.5.0/spectro/spotread_jsonl.c
