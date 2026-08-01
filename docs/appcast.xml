@@ -6,6 +6,48 @@
         <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
         <item>
+            <title>0.9.5.2</title>
+            <pubDate>Sun, 02 Aug 2026 00:39:03 +0900</pubDate>
+            <link>https://yamonov.github.io/IwashiScope/</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.5.2</sparkle:fullReleaseNotesLink>
+            <sparkle:version>28</sparkle:version>
+            <sparkle:shortVersionString>0.9.5.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# IwashiScope 0.9.5.2
+
+色空間値、校正中の表示、測定復旧時の案内、Windows版の履歴サムネイルと更新機能を改善した更新です。
+
+- RGB値をsRGB、Adobe RGB、Display P3の表形式で表示し、各色空間の色域外警告を追加
+- 全測定モードで校正完了まではspotread詳細ログ、完了後は測定値を表示するようタブ切替を改善
+- spotreadの正常復旧後に、不要な再起動メッセージが画面へ残らないよう修正
+- Windows版の環境光・発光履歴サムネイルへ波長色とCRI固有色を反映
+- Windows版へWinSparkleによる更新確認と、ユーザー単位の更新用installerを追加
+- Intel MacとAppleシリコンMacに対応するUniversal Binary
+- macOS 14.6以降に対応
+
+macOS版はDeveloper IDで署名し、Appleの公証を完了しています。
+
+Windows版は.NETランタイムを含む自己完結型x64版です。標準installerとportable ZIPを収録しています。公開用Authenticode証明書がないため未署名で、初回起動時にMicrosoft Defender SmartScreenの警告が表示される場合があります。WinSparkleによる更新ファイルはEdDSA署名で検証されます。
+
+このReleaseには、macOS版・Windows版・両OSのhelperに正確に対応する完全なソース一式を含めています。ライセンス、第三者著作物、ArgyllCMSからの変更内容は、ソースZIP内の `LICENSE`、`NOTICE`、`THIRD_PARTY_NOTICES.md`、`ARGYLL_CHANGES.md`を参照してください。
+
+[v0.9.5.2のソースコード](https://github.com/Yamonov/IwashiScope/tree/v0.9.5.2)
+
+## SHA-256
+
+- `IwashiScope-0.9.5.2.zip`: `444a3ff65d4712e5ba96d2d7229c45f5018755aad223bda2ed46e4b170dd3252`
+- `IwashiScope-0.9.5.2-Windows-x64-Setup.exe`: `899d69617024645e05cecae107da7b58fc22fd1b42bd3d295e10ad7466e782c8`
+- `IwashiScope-0.9.5.2-Windows-x64.zip`: `88cb262a7266d432c28fa4d632f8d560557ec4e81fe0fafc840d5e89638230df`
+- `IwashiScope-0.9.5.2-source.zip`: `0cb87d87f899d28241a36652ec112448a216c40b9031b1ad81f811a8e7cafa53`
+]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v0.9.5.2/IwashiScope-0.9.5.2.zip"
+                length="10590977"
+                type="application/octet-stream"
+                sparkle:edSignature="AqRg/HmTdVdzvKtO1eR1mDh8vRLdtFYA8eWAis5JWrohgJff32AwI0oqnWMVh+5aPJuiEyJGPen/6xuW409TCw=="
+            />
+        </item>
+        <item>
             <title>0.9.5</title>
             <pubDate>Thu, 30 Jul 2026 03:06:23 +0900</pubDate>
             <link>https://yamonov.github.io/IwashiScope/</link>
