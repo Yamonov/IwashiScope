@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0"
-     xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
     <channel>
         <title>IwashiScope for Windows Updates</title>
         <link>https://github.com/Yamonov/IwashiScope/releases</link>
@@ -11,5 +10,14 @@
           ZIP is not an installer and must not be offered to WinSparkle.
           Each enclosure must set sparkle:os="windows-x64".
         -->
+        <item xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <title>IwashiScope 0.9.5.2 for Windows</title>
+  <pubDate>Sat, 01 Aug 2026 15:36:48 GMT</pubDate>
+  <sparkle:releaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.5.2</sparkle:releaseNotesLink>
+  <sparkle:version>0.9.5.2</sparkle:version>
+  <sparkle:shortVersionString>0.9.5.2</sparkle:shortVersionString>
+  <sparkle:minimumSystemVersion>10.0</sparkle:minimumSystemVersion>
+  <enclosure url="https://github.com/Yamonov/IwashiScope/releases/download/v0.9.5.2/IwashiScope-0.9.5.2-Windows-x64-Setup.exe" length="67069440" type="application/octet-stream" sparkle:os="windows-x64" sparkle:edSignature="pd5flRDnFxWwM4bq6pZTwbPDJu8rBO0VM09PAqNLerM50VhjOAPh/u0YTCMzP4s3LTkLt8OIXY1XXPRDv7u/DQ==" />
+</item>
     </channel>
 </rss>
