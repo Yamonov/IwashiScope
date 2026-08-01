@@ -14,7 +14,10 @@ public sealed record RgbColor(double Red, double Green, double Blue, bool IsOutO
         (byte)Math.Round(Math.Clamp(value, 0, 1) * 255, MidpointRounding.AwayFromZero);
 }
 
-public sealed record LabColorConversion(RgbColor Srgb, RgbColor AdobeRgb);
+public sealed record LabColorConversion(
+    RgbColor Srgb,
+    RgbColor AdobeRgb,
+    RgbColor DisplayP3);
 
 public static class LabColorConverter
 {
@@ -60,6 +63,16 @@ public static class LabColorConverter
         var adobeLinearG = -0.9692660 * x + 1.8760108 * y + 0.0415560 * z;
         var adobeLinearB = 0.0134474 * x - 0.1183897 * y + 1.0154096 * z;
 
+        // Display P3 uses D65 and the sRGB transfer function, but has its own
+        // primaries. Keep the extended linear values for an independent gamut
+        // test before clipping the values used for display.
+        var displayP3LinearR =
+            2.493496911941425 * x - 0.931383617919124 * y - 0.402710784450717 * z;
+        var displayP3LinearG =
+            -0.829488969561575 * x + 1.762664060318346 * y + 0.023624685841943 * z;
+        var displayP3LinearB =
+            0.035845830243784 * x - 0.076172389268041 * y + 0.956884524007687 * z;
+
         return new LabColorConversion(
             new RgbColor(
                 Math.Clamp(SrgbGamma(linearR), 0, 1),
@@ -70,7 +83,15 @@ public static class LabColorConverter
                 Math.Clamp(AdobeGamma(adobeLinearR), 0, 1),
                 Math.Clamp(AdobeGamma(adobeLinearG), 0, 1),
                 Math.Clamp(AdobeGamma(adobeLinearB), 0, 1),
-                IsOutOfGamut(adobeLinearR, adobeLinearG, adobeLinearB)));
+                IsOutOfGamut(adobeLinearR, adobeLinearG, adobeLinearB)),
+            new RgbColor(
+                Math.Clamp(SrgbGamma(displayP3LinearR), 0, 1),
+                Math.Clamp(SrgbGamma(displayP3LinearG), 0, 1),
+                Math.Clamp(SrgbGamma(displayP3LinearB), 0, 1),
+                IsOutOfGamut(
+                    displayP3LinearR,
+                    displayP3LinearG,
+                    displayP3LinearB)));
     }
 
     private static double PivotInverse(double value)

@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using IwashiScope.App.Wpf.Export;
 using IwashiScope.App.Wpf.Layout;
+using IwashiScope.App.Wpf.Updates;
 using IwashiScope.App.Wpf.ViewModels;
 using IwashiScope.Core.Models;
 using Microsoft.Win32;
@@ -21,6 +22,7 @@ public partial class MainWindow : Window
     private readonly MainWindowViewModel _viewModel = new();
     private readonly MeasurementExportService _exportService = new();
     private readonly DragExportCache _dragExportCache = new();
+    private readonly WinSparkleUpdater _updater;
     private Point _dragStart;
     private bool _isApplyingSelection;
     private bool _historyExpanded;
@@ -30,6 +32,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        _updater = ((App)Application.Current).Updater;
         DataContext = _viewModel;
         SpotreadLogTextBox.Text = _viewModel.LogText;
         _viewModel.LogAppended += AppendLog;
@@ -44,6 +47,10 @@ public partial class MainWindow : Window
         await _viewModel.InitializeAsync();
         ResetAdaptiveHistoryHeight();
         ApplyHistorySelection();
+        _updater.TryInitialize(
+            _viewModel.Language,
+            CanCloseForUpdate,
+            RequestCloseForUpdate);
     }
 
     private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -202,7 +209,7 @@ public partial class MainWindow : Window
         var source = "https://github.com/Yamonov/IwashiScope";
         var version = Assembly.GetEntryAssembly()?
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-            .InformationalVersion ?? "0.9.5";
+            .InformationalVersion ?? "0.9.5.2";
         var result = MessageBox.Show(
             this,
             $"IwashiScope {version}: AGPL-3.0-only\n" +
@@ -223,6 +230,58 @@ public partial class MainWindow : Window
                 UseShellExecute = false,
             });
         }
+    }
+
+    private void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            _updater.CheckForUpdates();
+        }
+        catch (Exception exception)
+        {
+            MessageBox.Show(
+                this,
+                _viewModel.Language == "ja"
+                    ? $"アップデートを確認できませんでした。\n{exception.Message}"
+                    : $"Unable to check for updates.\n{exception.Message}",
+                "IwashiScope",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
+    private bool CanCloseForUpdate()
+    {
+        if (Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
+        {
+            return false;
+        }
+        return Dispatcher.Invoke(() =>
+            UpdateShutdownPolicy.CanShutdown(
+                _viewModel.HasUnsavedChanges,
+                _viewModel.IsBusy));
+    }
+
+    private void RequestCloseForUpdate()
+    {
+        if (Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
+        {
+            return;
+        }
+        Dispatcher.BeginInvoke(CloseForUpdateAsync);
+    }
+
+    private async void CloseForUpdateAsync()
+    {
+        if (!CanCloseForUpdate())
+        {
+            return;
+        }
+        _shutdownApproved = true;
+        _dragExportCache.Dispose();
+        await _viewModel.DisposeAsync();
+        Close();
     }
 
     private void HistoryList_SelectionChanged(object sender, SelectionChangedEventArgs e)

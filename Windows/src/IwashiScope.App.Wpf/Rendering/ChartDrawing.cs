@@ -20,6 +20,22 @@ internal static class ChartDrawing
             EndLineCap = PenLineCap.Round,
             LineJoin = PenLineJoin.Round,
         });
+    private static readonly Pen HistorySpectrumPen =
+        Freeze(new Pen(new SolidColorBrush(Color.FromRgb(128, 128, 128)), 1.25)
+        {
+            StartLineCap = PenLineCap.Round,
+            EndLineCap = PenLineCap.Round,
+            LineJoin = PenLineJoin.Round,
+        });
+    private static readonly Brush HistoryBackgroundBrush =
+        Freeze(new SolidColorBrush(Color.FromRgb(249, 250, 250)));
+    private static readonly Pen HistoryDividerPen =
+        Freeze(new Pen(new SolidColorBrush(Color.FromRgb(222, 224, 226)), 1));
+    private static readonly Pen HistoryCriRulePen =
+        Freeze(new Pen(new SolidColorBrush(Color.FromArgb(89, 91, 102, 112)), 0.75)
+        {
+            DashStyle = new DashStyle([3, 3], 0),
+        });
     private static readonly Pen D50Pen =
         Freeze(new Pen(new SolidColorBrush(Color.FromRgb(238, 150, 44)), 1.5)
         {
@@ -49,6 +65,8 @@ internal static class ChartDrawing
         (674.0, RgbColor(0.95, 0.08, 0.12)),
         (730.0, RgbColor(0.55, 0.00, 0.04)),
     ];
+    private static readonly Brush[] HistoryCriBrushes =
+        CriBrushes.Select(CreateHistoryCriGradient).ToArray();
 
     public static Rect PlotRect(Rect bounds) =>
         new(
@@ -56,6 +74,18 @@ internal static class ChartDrawing
             bounds.Top + Math.Max(24, bounds.Height * 0.06),
             Math.Max(1, bounds.Width - Math.Max(80, bounds.Width * 0.1)),
             Math.Max(1, bounds.Height - Math.Max(66, bounds.Height * 0.15)));
+
+    internal static Color LightingHistorySpectrumColor(double wavelength) =>
+        SpectrumColor(wavelength);
+
+    internal static Color LightingHistoryCriColor(int index)
+    {
+        if (index is < 1 or > 15)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+        return ((SolidColorBrush)CriBrushes[index - 1]).Color;
+    }
 
     public static void DrawSpectrum(
         DrawingContext drawing,
@@ -326,6 +356,168 @@ internal static class ChartDrawing
         drawing.DrawLine(SpectrumPen, new Point(rangeStart, lineY), new Point(rangeStart, plot.Top));
         drawing.DrawLine(SpectrumPen, new Point(rangeEnd, lineY), new Point(rangeEnd, plot.Top));
         drawing.DrawText(raText, new Point(raCenter - raText.Width / 2, raY));
+    }
+
+    public static void DrawLightingHistoryThumbnail(
+        DrawingContext drawing,
+        Rect bounds,
+        SpotMeasurement? measurement)
+    {
+        drawing.DrawRectangle(HistoryBackgroundBrush, null, bounds);
+        if (measurement is null || bounds.Width <= 0 || bounds.Height <= 0)
+        {
+            return;
+        }
+
+        const double spectrumHeight = 44;
+        const double dividerHeight = 1;
+        const double criHeight = 44;
+        const double totalHeight = spectrumHeight + dividerHeight + criHeight;
+        var verticalScale = bounds.Height / totalHeight;
+        var spectrumBounds = new Rect(
+            bounds.Left,
+            bounds.Top,
+            bounds.Width,
+            spectrumHeight * verticalScale);
+        var dividerY = spectrumBounds.Bottom + dividerHeight * verticalScale / 2;
+        var criBounds = new Rect(
+            bounds.Left,
+            spectrumBounds.Bottom + dividerHeight * verticalScale,
+            bounds.Width,
+            Math.Max(0, bounds.Bottom - spectrumBounds.Bottom - dividerHeight * verticalScale));
+
+        DrawLightingHistorySpectrum(drawing, spectrumBounds, measurement);
+        drawing.DrawLine(
+            HistoryDividerPen,
+            new Point(bounds.Left, dividerY),
+            new Point(bounds.Right, dividerY));
+        DrawLightingHistoryCri(drawing, criBounds, measurement.Cri);
+    }
+
+    private static void DrawLightingHistorySpectrum(
+        DrawingContext drawing,
+        Rect bounds,
+        SpotMeasurement measurement)
+    {
+        var samples = measurement.Spectrum
+            .Where(sample =>
+                double.IsFinite(sample.Wavelength) &&
+                double.IsFinite(sample.Value))
+            .OrderBy(sample => sample.Wavelength)
+            .ToArray();
+        var minimumWavelength =
+            double.IsFinite(measurement.SpectrumStart) &&
+            double.IsFinite(measurement.SpectrumEnd) &&
+            measurement.SpectrumEnd > measurement.SpectrumStart
+                ? measurement.SpectrumStart
+                : samples.FirstOrDefault()?.Wavelength ?? 380;
+        var maximumWavelength =
+            double.IsFinite(measurement.SpectrumStart) &&
+            double.IsFinite(measurement.SpectrumEnd) &&
+            measurement.SpectrumEnd > measurement.SpectrumStart
+                ? measurement.SpectrumEnd
+                : samples.LastOrDefault()?.Wavelength ?? 730;
+        drawing.DrawRectangle(
+            SpectrumGradient(minimumWavelength, maximumWavelength, 0.10),
+            null,
+            bounds);
+        if (samples.Length < 2)
+        {
+            return;
+        }
+
+        var plot = new Rect(
+            bounds.Left + 4,
+            bounds.Top + 4,
+            Math.Max(1, bounds.Width - 8),
+            Math.Max(1, bounds.Height - 8));
+        var clip = new RectangleGeometry(plot, 5, 5);
+        drawing.PushClip(clip);
+        drawing.DrawRoundedRectangle(
+            SpectrumGradient(minimumWavelength, maximumWavelength, 0.13),
+            null,
+            plot,
+            5,
+            5);
+
+        var yUpperBound = Math.Max(1, samples.Max(sample => sample.Value) * 1.08);
+        var points = samples.Select(sample => new Point(
+            MapX(sample.Wavelength, minimumWavelength, maximumWavelength, plot),
+            plot.Bottom - Math.Clamp(sample.Value / yUpperBound, 0, 1) * plot.Height))
+            .ToArray();
+        var area = new StreamGeometry();
+        using (var context = area.Open())
+        {
+            context.BeginFigure(new Point(points[0].X, plot.Bottom), true, true);
+            context.LineTo(points[0], true, false);
+            context.PolyLineTo(points[1..], true, false);
+            context.LineTo(new Point(points[^1].X, plot.Bottom), true, false);
+        }
+        area.Freeze();
+        drawing.DrawGeometry(
+            SpectrumGradient(minimumWavelength, maximumWavelength, 1),
+            null,
+            area);
+        DrawPolyline(drawing, points, HistorySpectrumPen);
+        drawing.Pop();
+    }
+
+    private static void DrawLightingHistoryCri(
+        DrawingContext drawing,
+        Rect bounds,
+        CriResult? cri)
+    {
+        drawing.DrawRectangle(HistoryBackgroundBrush, null, bounds);
+        if (cri is null)
+        {
+            return;
+        }
+
+        var scores = Enumerable.Range(1, 15)
+            .Where(index =>
+                cri.Individual.TryGetValue(index, out var value) &&
+                double.IsFinite(value))
+            .Select(index => (Index: index, Value: cri.Individual[index]))
+            .ToArray();
+        if (scores.Length == 0)
+        {
+            return;
+        }
+
+        var plot = new Rect(
+            bounds.Left + 4,
+            bounds.Top + 4,
+            Math.Max(1, bounds.Width - 8),
+            Math.Max(1, bounds.Height - 8));
+        var minimum = Math.Min(0, scores.Min(score => score.Value));
+        var maximum = Math.Max(100, scores.Max(score => score.Value));
+        var range = Math.Max(maximum - minimum, double.Epsilon);
+        double ScoreY(double value) =>
+            plot.Bottom - (Math.Clamp(value, minimum, maximum) - minimum) / range * plot.Height;
+
+        var zeroY = ScoreY(0);
+        var slot = plot.Width / 15;
+        foreach (var score in scores)
+        {
+            var valueY = ScoreY(score.Value);
+            var rectangle = new Rect(
+                plot.Left + (score.Index - 1) * slot + slot * 0.16,
+                Math.Min(valueY, zeroY),
+                Math.Max(1, slot * 0.68),
+                Math.Max(1, Math.Abs(zeroY - valueY)));
+            drawing.DrawRoundedRectangle(
+                HistoryCriBrushes[score.Index - 1],
+                null,
+                rectangle,
+                1.5,
+                1.5);
+        }
+
+        var ruleY = ScoreY(80);
+        drawing.DrawLine(
+            HistoryCriRulePen,
+            new Point(plot.Left, ruleY),
+            new Point(plot.Right, ruleY));
     }
 
     public static void DrawTm30Vector(
@@ -750,6 +942,22 @@ internal static class ChartDrawing
             (byte)Math.Round((green + m) * 255),
             (byte)Math.Round((blue + m) * 255));
     }
+
+    private static Brush CreateHistoryCriGradient(Brush source)
+    {
+        var color = ((SolidColorBrush)source).Color;
+        var brush = new LinearGradientBrush(
+            Mix(color, Colors.White, 0.16),
+            Mix(color, Colors.Black, 0.06),
+            90);
+        return Freeze(brush);
+    }
+
+    private static Color Mix(Color source, Color target, double fraction) =>
+        Color.FromRgb(
+            (byte)Math.Round(source.R + (target.R - source.R) * fraction),
+            (byte)Math.Round(source.G + (target.G - source.G) * fraction),
+            (byte)Math.Round(source.B + (target.B - source.B) * fraction));
 
     private static Brush Rgb(double red, double green, double blue) =>
         Freeze(new SolidColorBrush(RgbColor(red, green, blue)));

@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Runtime.CompilerServices;
 
 namespace IwashiScope.Tests;
 
@@ -124,6 +125,54 @@ public sealed class UiAssetParityTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void RgbTableHasThreeAlignedColorSpacesAndPerRowWarnings()
+    {
+        var root = FindRepositoryRoot();
+        var xaml = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "IwashiScope.App.Wpf",
+            "MainWindow.xaml"));
+
+        Assert.Contains("Text=\"{Binding RgbValuesLabel}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"HEX（sRGB）\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"sRGB\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"Adobe RGB\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"Display P3\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"R\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"G\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"B\"", xaml, StringComparison.Ordinal);
+        Assert.Equal(
+            3,
+            CountOccurrences(
+                xaml,
+                "Template=\"{StaticResource GamutWarningIconTemplate}\""));
+        Assert.Contains("<ColumnDefinition Width=\"20\" />", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "Grid.Row=\"0\" Grid.Column=\"4\"",
+            xaml,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ReflectanceAndLightingHistoryKeepSeparateThumbnailRenderers()
+    {
+        var root = FindRepositoryRoot();
+        var xaml = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "IwashiScope.App.Wpf",
+            "MainWindow.xaml"));
+
+        Assert.Contains("Background=\"{Binding SwatchBrush}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains(
+            "<controls:LightingHistoryChart Measurement=\"{Binding Measurement}\" />",
+            xaml,
+            StringComparison.Ordinal);
+        Assert.Equal(1, CountOccurrences(xaml, "<controls:LightingHistoryChart"));
+    }
+
     private static ushort ReadUInt16(byte[] bytes, int offset) =>
         BitConverter.ToUInt16(bytes, offset);
 
@@ -142,19 +191,29 @@ public sealed class UiAssetParityTests
         return count;
     }
 
-    private static string FindRepositoryRoot()
+    private static string FindRepositoryRoot(
+        [CallerFilePath] string sourceFilePath = "")
     {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null)
+        foreach (var start in new[]
+                 {
+                     Path.GetDirectoryName(sourceFilePath),
+                     AppContext.BaseDirectory,
+                     Environment.CurrentDirectory,
+                 }.Where(path => !string.IsNullOrWhiteSpace(path)))
         {
-            if (File.Exists(Path.Combine(directory.FullName, "IwashiScope.Windows.slnx")))
+            var directory = new DirectoryInfo(start!);
+            while (directory is not null)
             {
-                return directory.FullName;
+                if (File.Exists(Path.Combine(directory.FullName, "IwashiScope.Windows.slnx")))
+                {
+                    return directory.FullName;
+                }
+                directory = directory.Parent;
             }
-            directory = directory.Parent;
         }
 
         throw new DirectoryNotFoundException(
-            $"Repository root was not found from {AppContext.BaseDirectory}.");
+            $"Repository root was not found from {sourceFilePath}, " +
+            $"{AppContext.BaseDirectory}, or {Environment.CurrentDirectory}.");
     }
 }

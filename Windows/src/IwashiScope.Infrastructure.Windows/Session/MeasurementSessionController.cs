@@ -15,6 +15,7 @@ public sealed class MeasurementSessionController : IAsyncDisposable
     private long _generation;
     private bool _intentionalStop;
     private bool _recoveryScheduled;
+    private bool _awaitingRecoveryConfirmation;
     private long _savedReadingResponseGeneration = -1;
     private CancellationTokenSource? _watchdog;
 
@@ -49,6 +50,7 @@ public sealed class MeasurementSessionController : IAsyncDisposable
             await StopCoreAsync(cancellationToken).ConfigureAwait(false);
             _intentionalStop = false;
             _recoveryScheduled = false;
+            _awaitingRecoveryConfirmation = false;
             CalibrationCompleted = false;
             State = new MeasurementSessionStateMachine(mode);
             State.Start(mode);
@@ -72,6 +74,7 @@ public sealed class MeasurementSessionController : IAsyncDisposable
 
     public async Task BeginCalibrationAsync(CancellationToken cancellationToken = default)
     {
+        CalibrationCompleted = false;
         State.Apply(new CalibrationStartedEvent());
         Changed?.Invoke();
         RefreshWatchdog(_generation);
@@ -186,7 +189,20 @@ public sealed class MeasurementSessionController : IAsyncDisposable
         }
 
         State.Apply(@event);
-        if (@event is CalibrationCompletedEvent)
+        if (@event is HelloAcceptedEvent && _awaitingRecoveryConfirmation)
+        {
+            _awaitingRecoveryConfirmation = false;
+            Log.Append(
+                new SpotreadLogEntry(
+                    DateTimeOffset.UtcNow,
+                    SpotreadLogKind.Lifecycle,
+                    "Automatic recovery completed; spotread handshake succeeded."));
+        }
+        if (@event is CalibrationStartedEvent)
+        {
+            CalibrationCompleted = false;
+        }
+        else if (@event is CalibrationCompletedEvent)
         {
             CalibrationCompleted = true;
         }
@@ -233,6 +249,12 @@ public sealed class MeasurementSessionController : IAsyncDisposable
             return;
         }
 
+        CalibrationCompleted = false;
+        Log.Append(
+            new SpotreadLogEntry(
+                DateTimeOffset.UtcNow,
+                SpotreadLogKind.Lifecycle,
+                "Automatic recovery started after spotread exited unexpectedly."));
         Changed?.Invoke();
         RefreshWatchdog(generation);
         try
@@ -250,6 +272,7 @@ public sealed class MeasurementSessionController : IAsyncDisposable
                     await _process.DisposeAsync().ConfigureAwait(false);
                 }
                 _recoveryScheduled = false;
+                _awaitingRecoveryConfirmation = true;
                 await StartCoreAsync(State.Mode, CancellationToken.None).ConfigureAwait(false);
                 RefreshWatchdog(_generation);
             }
@@ -343,9 +366,16 @@ public sealed class MeasurementSessionController : IAsyncDisposable
                 return;
             }
 
+            CalibrationCompleted = false;
+            Log.Append(
+                new SpotreadLogEntry(
+                    DateTimeOffset.UtcNow,
+                    SpotreadLogKind.Lifecycle,
+                    $"Automatic recovery started after {kind} timeout."));
             Changed?.Invoke();
             await StopCoreAsync(CancellationToken.None).ConfigureAwait(false);
             _recoveryScheduled = false;
+            _awaitingRecoveryConfirmation = true;
             await StartCoreAsync(State.Mode, CancellationToken.None).ConfigureAwait(false);
             RefreshWatchdog(_generation);
         }

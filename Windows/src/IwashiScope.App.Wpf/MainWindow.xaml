@@ -21,6 +21,15 @@
             <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
             <Setter Property="TextAlignment" Value="Right" />
         </Style>
+        <ControlTemplate x:Key="GamutWarningIconTemplate" TargetType="{x:Type Control}">
+            <Viewbox Width="15" Height="15" Stretch="Uniform">
+                <Grid Width="16" Height="14">
+                    <Path Fill="#E5A900" Data="M 8,0 L 16,14 L 0,14 Z" />
+                    <Path Fill="#332800"
+                          Data="M 7.2,3.5 L 8.8,3.5 L 8.5,9.2 L 7.5,9.2 Z M 7.3,10.4 L 8.7,10.4 L 8.7,11.8 L 7.3,11.8 Z" />
+                </Grid>
+            </Viewbox>
+        </ControlTemplate>
         <Style x:Key="RequirementText" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}" />
             <Setter Property="FontSize" Value="10" />
@@ -63,6 +72,9 @@
             </MenuItem>
             <MenuItem Header="{Binding HelpLabel}">
                 <MenuItem Header="{Binding LicensesAndSourceLabel}" Click="Licenses_Click" />
+                <Separator />
+                <MenuItem Header="{Binding CheckForUpdatesLabel}"
+                          Click="CheckForUpdates_Click" />
             </MenuItem>
         </Menu>
 
@@ -571,31 +583,85 @@
                                                            Margin="0,8,0,0" />
                                                 <TextBlock Text="{Binding LabText}" Margin="0,4,0,0"
                                                            FontFamily="Cascadia Mono, Consolas" />
-                                                <Grid Margin="0,9,0,0"
-                                                      Visibility="{Binding ShowsSrgbEncoding, Converter={StaticResource BoolToVisibility}}">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="HEX（sRGB）"
-                                                               Style="{StaticResource MetricLabel}" />
-                                                    <TextBlock Grid.Column="1" Text="{Binding SrgbHex}"
-                                                               ToolTip="{Binding SrgbGamutWarning}"
-                                                               AutomationProperties.HelpText="{Binding SrgbGamutWarning}">
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock"
-                                                                   BasedOn="{StaticResource MetricValue}">
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding HasSrgbGamutWarning}"
-                                                                                 Value="True">
-                                                                        <Setter Property="Foreground"
-                                                                                Value="#B06B00" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
-                                                </Grid>
+                                                <StackPanel Margin="0,9,0,0"
+                                                            Visibility="{Binding ShowsSrgbEncoding, Converter={StaticResource BoolToVisibility}}">
+                                                    <TextBlock Text="{Binding RgbValuesLabel}"
+                                                               FontSize="15" FontWeight="SemiBold" />
+                                                    <Grid Margin="0,4,0,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="36" />
+                                                            <ColumnDefinition Width="36" />
+                                                            <ColumnDefinition Width="36" />
+                                                            <ColumnDefinition Width="20" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
+
+                                                        <TextBlock Grid.Row="0" Text="HEX（sRGB）"
+                                                                   Style="{StaticResource MetricLabel}" />
+                                                        <TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"
+                                                                   Text="{Binding SrgbHex}"
+                                                                   Style="{StaticResource MetricValue}" />
+
+                                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="R"
+                                                                   Style="{StaticResource MetricLabel}"
+                                                                   HorizontalAlignment="Right" />
+                                                        <TextBlock Grid.Row="1" Grid.Column="2" Text="G"
+                                                                   Style="{StaticResource MetricLabel}"
+                                                                   HorizontalAlignment="Right" />
+                                                        <TextBlock Grid.Row="1" Grid.Column="3" Text="B"
+                                                                   Style="{StaticResource MetricLabel}"
+                                                                   HorizontalAlignment="Right" />
+
+                                                        <TextBlock Grid.Row="2" Text="sRGB"
+                                                                   Style="{StaticResource MetricLabel}" />
+                                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SrgbRedText}"
+                                                                   Style="{StaticResource MetricValue}" />
+                                                        <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding SrgbGreenText}"
+                                                                   Style="{StaticResource MetricValue}" />
+                                                        <TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding SrgbBlueText}"
+                                                                   Style="{StaticResource MetricValue}" />
+                                                        <Control Grid.Row="2" Grid.Column="4"
+                                                                 Template="{StaticResource GamutWarningIconTemplate}"
+                                                                 ToolTip="{Binding SrgbGamutWarning}"
+                                                                 AutomationProperties.HelpText="{Binding SrgbGamutWarning}"
+                                                                 Visibility="{Binding HasSrgbGamutWarning, Converter={StaticResource BoolToVisibility}}" />
+
+                                                        <TextBlock Grid.Row="3" Text="Adobe RGB"
+                                                                   Style="{StaticResource MetricLabel}" />
+                                                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding AdobeRgbRedText}"
+                                                                   Style="{StaticResource MetricValue}" />
+                                                        <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding AdobeRgbGreenText}"
+                                                                   Style="{StaticResource MetricValue}" />
+                                                        <TextBlock Grid.Row="3" Grid.Column="3" Text="{Binding AdobeRgbBlueText}"
+                                                                   Style="{StaticResource MetricValue}" />
+                                                        <Control Grid.Row="3" Grid.Column="4"
+                                                                 Template="{StaticResource GamutWarningIconTemplate}"
+                                                                 ToolTip="{Binding AdobeGamutWarning}"
+                                                                 AutomationProperties.HelpText="{Binding AdobeGamutWarning}"
+                                                                 Visibility="{Binding HasAdobeGamutWarning, Converter={StaticResource BoolToVisibility}}" />
+
+                                                        <TextBlock Grid.Row="4" Text="Display P3"
+                                                                   Style="{StaticResource MetricLabel}" />
+                                                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding DisplayP3RedText}"
+                                                                   Style="{StaticResource MetricValue}" />
+                                                        <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding DisplayP3GreenText}"
+                                                                   Style="{StaticResource MetricValue}" />
+                                                        <TextBlock Grid.Row="4" Grid.Column="3" Text="{Binding DisplayP3BlueText}"
+                                                                   Style="{StaticResource MetricValue}" />
+                                                        <Control Grid.Row="4" Grid.Column="4"
+                                                                 Template="{StaticResource GamutWarningIconTemplate}"
+                                                                 ToolTip="{Binding DisplayP3GamutWarning}"
+                                                                 AutomationProperties.HelpText="{Binding DisplayP3GamutWarning}"
+                                                                 Visibility="{Binding HasDisplayP3GamutWarning, Converter={StaticResource BoolToVisibility}}" />
+                                                    </Grid>
+                                                </StackPanel>
                                                 <Grid Margin="0,8,0,0"
                                                       Visibility="{Binding HasMonochrome, Converter={StaticResource BoolToVisibility}}">
                                                     <Grid.ColumnDefinitions>

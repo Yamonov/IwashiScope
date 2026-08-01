@@ -52,4 +52,21 @@ public sealed class SessionErrorPresentationTests
             "Transport exception",
             SessionErrorPresentation.Resolve(null, "Transport exception"));
     }
+
+    [Fact]
+    public void SuccessfulAutomaticRecoveryClearsThePreviousIssueFromTheUi()
+    {
+        var state = new MeasurementSessionStateMachine(MeasurementMode.Reflectance);
+        state.Start(MeasurementMode.Reflectance);
+        state.Timeout(SessionTimeoutKind.Recovery);
+
+        Assert.NotNull(state.CurrentIssue);
+        Assert.True(state.TryBeginAutomaticRecovery());
+
+        state.Apply(new HelloAcceptedEvent(3, "iwashiscope-spotread", 1, "3.5.0"));
+
+        Assert.Equal(MeasurementSessionPhase.WaitingForInstrument, state.Phase);
+        Assert.Null(state.CurrentIssue);
+        Assert.Empty(SessionErrorPresentation.Resolve(state.CurrentIssue));
+    }
 }

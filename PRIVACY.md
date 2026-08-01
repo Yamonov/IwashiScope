@@ -1,6 +1,6 @@
 # プライバシー
 
-IwashiScopeは、測定値、スペクトル、測定履歴、ワークスペース、spotread詳細ログを開発者のサーバーへ送信しません。これらのデータは、利用者が明示的に保存または書き出した場合を除き、利用者のMac上で処理されます。
+IwashiScopeは、測定値、スペクトル、測定履歴、ワークスペース、spotread詳細ログを開発者のサーバーへ送信しません。これらのデータは、利用者が明示的に保存または書き出した場合を除き、利用者のMacまたはWindows PC上で処理されます。
 
 ## アプリ内更新
 
@@ -8,9 +8,10 @@ IwashiScopeはSparkleを使用して、次の更新情報へアクセスしま�
 
 ```text
 https://yamonov.github.io/IwashiScope/appcast.xml
+https://yamonov.github.io/IwashiScope/appcast-windows.xml
 ```
 
-更新確認時には、HTTP通信に必要な情報と、Sparkleが更新判定に使用するアプリのバージョンおよびmacOS環境情報が送信先サーバーへ伝わる場合があります。IwashiScope独自のアクセス解析、広告識別子、クラッシュ解析、利用状況の追跡は実装していません。
+更新確認時には、HTTP通信に必要な情報と、SparkleまたはWinSparkleが更新判定に使用するアプリのバージョンおよびOS環境情報が送信先サーバーへ伝わる場合があります。IwashiScope独自のアクセス解析、広告識別子、クラッシュ解析、利用状況の追跡は実装していません。
 
 アプリの更新ファイルはGitHub Releasesから取得します。GitHubおよびGitHub Pages側のログやデータ処理には、GitHubのプライバシーに関する条件が適用されます。
 
@@ -18,4 +19,4 @@ https://yamonov.github.io/IwashiScope/appcast.xml
 
 ワークスペース、PNG、CSV、ASEなどは、利用者が選択した保存先へだけ書き出します。測定器メーカーが提供するファームウェアや校正データを利用する場合、その取得と使用には各メーカーの条件が適用されます。
 
-最終更新日: 2026-07-23
+最終更新日: 2026-08-01
