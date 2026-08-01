@@ -351,8 +351,7 @@ final class MeasurementSession {
             mode: mode,
             resetsMeasurements: false,
             resetsInteractionLog: false,
-            resetsRecoveryBudget: true,
-            noticeMessage: String(localized: "spotreadを強制終了して再起動しました。")
+            resetsRecoveryBudget: true
         )
     }
 
@@ -678,9 +677,7 @@ final class MeasurementSession {
             mode: mode,
             resetsMeasurements: false,
             resetsInteractionLog: false,
-            resetsRecoveryBudget: false,
-            noticeMessage: String(localized: "spotreadが応答しなかったため、強制終了して自動再起動しました。"),
-            noticeRawText: issue.rawText
+            resetsRecoveryBudget: false
         )
     }
 
@@ -688,9 +685,7 @@ final class MeasurementSession {
         mode: MeasurementMode,
         resetsMeasurements: Bool,
         resetsInteractionLog: Bool,
-        resetsRecoveryBudget: Bool,
-        noticeMessage: String,
-        noticeRawText: String = ""
+        resetsRecoveryBudget: Bool
     ) {
         relaunchTask?.cancel()
         relaunchTask = nil
@@ -717,10 +712,6 @@ final class MeasurementSession {
                 resetsMeasurements: resetsMeasurements,
                 resetsInteractionLog: resetsInteractionLog,
                 resetsRecoveryBudget: resetsRecoveryBudget
-            )
-            self.notice = SpotreadNotice(
-                message: noticeMessage,
-                rawText: noticeRawText
             )
         }
     }

@@ -299,17 +299,6 @@
         }
       }
     },
-    "Adobe RGB (1998) RGB値" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Adobe RGB (1998) RGB Values"
-          }
-        }
-      }
-    },
     "ASEデータブロックが形式の上限を超えています。" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -853,6 +842,17 @@
         }
       }
     },
+    "RGB値" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RGB Values"
+          }
+        }
+      }
+    },
     "Spectral & Color Measurement" : {
       "localizations" : {
         "en" : {
@@ -931,17 +931,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "spotread is not running."
-          }
-        }
-      }
-    },
-    "spotreadが応答しなかったため、強制終了して自動再起動しました。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "spotread did not respond, so it was forcibly terminated and restarted automatically."
           }
         }
       }
@@ -1107,17 +1096,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Force Restart spotread"
-          }
-        }
-      }
-    },
-    "spotreadを強制終了して再起動しました。" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "spotread was forcibly terminated and restarted."
           }
         }
       }
@@ -3056,6 +3034,17 @@
         }
       }
     },
+    "本体の設定を環境光測定位置にし、測定位置に静置して測定ボタンまたは測定器本体のスイッチを押してください" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set the instrument to the ambient-light measurement position, place it stably at the measurement position, then press Measure or the switch on the instrument."
+          }
+        }
+      }
+    },
     "校正位置、アダプター、白色基準または遮光状態を確認して再試行してください。\nspotread: %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3855,17 +3844,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Measurement Complete"
-          }
-        }
-      }
-    },
-    "本体の設定を環境光測定位置にし、測定位置に静置して測定ボタンまたは測定器本体のスイッチを押してください" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Set the instrument to the ambient-light measurement position, place it stably at the measurement position, then press Measure or the switch on the instrument."
           }
         }
       }

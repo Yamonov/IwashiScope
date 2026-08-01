@@ -31,7 +31,7 @@ public struct ContentView: View {
                     selectedSidebarTab: $selectedSidebarTab,
                     onChangeMode: returnToModeSelection,
                     onConnectInstrument: {
-                        model.connectInstrument(mode: selectedMode)
+                        connectInstrument(mode: selectedMode)
                     }
                 )
             } else {
@@ -87,13 +87,20 @@ public struct ContentView: View {
     }
 
     private func selectMode(_ mode: MeasurementMode) {
-        selectedSidebarTab = .measurementValues
+        selectedSidebarTab = model.isBrowsingRestoredWorkspace
+            ? .measurementValues
+            : .spotreadLog
         selectedMode = mode
         if model.isBrowsingRestoredWorkspace {
             model.presentRestoredWorkspace(mode: mode)
         } else {
             model.session.start(mode: mode)
         }
+    }
+
+    private func connectInstrument(mode: MeasurementMode) {
+        selectedSidebarTab = .spotreadLog
+        model.connectInstrument(mode: mode)
     }
 
     private var windowTitle: String {

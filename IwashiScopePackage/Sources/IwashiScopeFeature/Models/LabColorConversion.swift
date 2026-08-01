@@ -15,10 +15,6 @@ struct RGBColorValue: Equatable, Sendable {
         String(format: "#%02X%02X%02X", red8Bit, green8Bit, blue8Bit)
     }
 
-    var rgbDescription: String {
-        "R \(red8Bit)  G \(green8Bit)  B \(blue8Bit)"
-    }
-
     private func quantized(_ component: Double) -> Int {
         Int((component.clamped(to: 0...1) * 255).rounded())
     }
@@ -29,6 +25,7 @@ struct LabColorConversion {
     let managedColor: CGColor
     let sRGB: RGBColorValue
     let adobeRGB: RGBColorValue
+    let displayP3: RGBColorValue
 }
 
 enum LabColorConverter {
@@ -51,6 +48,13 @@ enum LabColorConverter {
                 options: nil
               ),
               let extendedSRGB = rgbComponents(of: extendedSRGBColor),
+              let extendedDisplayP3Space = CGColorSpace(name: CGColorSpace.extendedDisplayP3),
+              let extendedDisplayP3Color = managedColor.converted(
+                to: extendedDisplayP3Space,
+                intent: .relativeColorimetric,
+                options: nil
+              ),
+              let extendedDisplayP3 = rgbComponents(of: extendedDisplayP3Color),
               let adobeRGBSpace = CGColorSpace(name: CGColorSpace.adobeRGB1998),
               let adobeRGBColor = managedColor.converted(
                 to: adobeRGBSpace,
@@ -82,6 +86,12 @@ enum LabColorConverter {
                 green: adobeRGB.green.clamped(to: 0...1),
                 blue: adobeRGB.blue.clamped(to: 0...1),
                 isOutOfGamut: isOutOfGamut(linearAdobeRGB)
+            ),
+            displayP3: RGBColorValue(
+                red: extendedDisplayP3.red.clamped(to: 0...1),
+                green: extendedDisplayP3.green.clamped(to: 0...1),
+                blue: extendedDisplayP3.blue.clamped(to: 0...1),
+                isOutOfGamut: isOutOfGamut(extendedDisplayP3)
             )
         )
     }

@@ -196,44 +196,91 @@ private struct ColorEncodingMetricsView: View {
     let conversion: LabColorConversion
 
     var body: some View {
-        VStack(spacing: 8) {
-            GamutMetricRow(
-                label: "HEX（sRGB）",
-                value: conversion.sRGB.hex,
-                colorSpaceName: "sRGB",
-                isOutOfGamut: conversion.sRGB.isOutOfGamut
-            )
-            GamutMetricRow(
-                label: String(localized: "Adobe RGB (1998) RGB値"),
-                value: conversion.adobeRGB.rgbDescription,
-                colorSpaceName: "Adobe RGB (1998)",
-                isOutOfGamut: conversion.adobeRGB.isOutOfGamut
-            )
+        VStack(alignment: .leading, spacing: 7) {
+            Text("RGB値")
+                .font(.headline)
+
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("HEX（sRGB）")
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 8)
+                Text(conversion.sRGB.hex)
+                    .font(.body.monospacedDigit())
+                    .textSelection(.enabled)
+            }
+            .accessibilityElement(children: .combine)
+
+            Grid(horizontalSpacing: 14, verticalSpacing: 5) {
+                GridRow {
+                    Color.clear
+                        .frame(minWidth: 88, maxHeight: 0)
+                        .accessibilityHidden(true)
+                    columnHeader("R")
+                    columnHeader("G")
+                    columnHeader("B")
+                    warningPlaceholder
+                }
+
+                rgbRow(
+                    label: "sRGB",
+                    value: conversion.sRGB,
+                    colorSpaceName: "sRGB"
+                )
+                rgbRow(
+                    label: "Adobe RGB",
+                    value: conversion.adobeRGB,
+                    colorSpaceName: "Adobe RGB (1998)"
+                )
+                rgbRow(
+                    label: "Display P3",
+                    value: conversion.displayP3,
+                    colorSpaceName: "Display P3"
+                )
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
-}
 
-private struct GamutMetricRow: View {
-    let label: String
-    let value: String
-    let colorSpaceName: String
-    let isOutOfGamut: Bool
+    private func columnHeader(_ label: String) -> some View {
+        Text(label)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
 
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
+    private func rgbRow(
+        label: String,
+        value: RGBColorValue,
+        colorSpaceName: String
+    ) -> some View {
+        GridRow {
             Text(label)
                 .foregroundStyle(.secondary)
-            Spacer(minLength: 8)
-            Text(value)
-                .font(.body.monospacedDigit())
-                .multilineTextAlignment(.trailing)
-                .textSelection(.enabled)
-            if isOutOfGamut {
+                .frame(minWidth: 88, alignment: .leading)
+            component(value.red8Bit)
+            component(value.green8Bit)
+            component(value.blue8Bit)
+            if value.isOutOfGamut {
                 GamutWarningIcon(colorSpaceName: colorSpaceName)
                     .font(.caption)
+            } else {
+                warningPlaceholder
             }
         }
         .accessibilityElement(children: .combine)
+    }
+
+    private func component(_ value: Int) -> some View {
+        Text(value.formatted())
+            .font(.body.monospacedDigit())
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .textSelection(.enabled)
+    }
+
+    private var warningPlaceholder: some View {
+        Color.clear
+            .frame(width: 14, height: 14)
+            .accessibilityHidden(true)
     }
 }
 

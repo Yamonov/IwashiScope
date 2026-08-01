@@ -8,6 +8,16 @@ enum MeasurementSidebarTab: String, Codable, Hashable, Sendable {
     case spotreadLog
 }
 
+enum MeasurementSidebarTabSelectionPolicy {
+    static func tab(
+        for phase: MeasurementSessionPhase,
+        calibrationCompleted: Bool
+    ) -> MeasurementSidebarTab? {
+        guard phase != .workspace else { return nil }
+        return calibrationCompleted ? .measurementValues : .spotreadLog
+    }
+}
+
 struct MeasurementWorkspaceView: View {
     @State private var exportErrorMessage = ""
     @State private var showsExportError = false
@@ -48,6 +58,21 @@ struct MeasurementWorkspaceView: View {
         } message: {
             Text(exportErrorMessage)
         }
+        .onChange(of: session.calibrationCompleted, initial: true) {
+            synchronizeSidebarTabWithCalibration()
+        }
+        .onChange(of: session.phase) { _, phase in
+            guard phase == .launching else { return }
+            synchronizeSidebarTabWithCalibration()
+        }
+    }
+
+    private func synchronizeSidebarTabWithCalibration() {
+        guard let tab = MeasurementSidebarTabSelectionPolicy.tab(
+            for: session.phase,
+            calibrationCompleted: session.calibrationCompleted
+        ) else { return }
+        selectedSidebarTab = tab
     }
 
     private var workspaceContent: some View {
