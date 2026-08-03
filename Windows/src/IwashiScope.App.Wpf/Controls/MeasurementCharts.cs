@@ -41,6 +41,15 @@ public sealed class SpectrumChart : FrameworkElement
             typeof(SpectrumChart),
             new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
 
+    public static readonly DependencyProperty YAxisConfigurationProperty =
+        DependencyProperty.Register(
+            nameof(YAxisConfiguration),
+            typeof(SpectrumYAxisConfiguration),
+            typeof(SpectrumChart),
+            new FrameworkPropertyMetadata(
+                SpectrumYAxisConfiguration.ForMeasurementMode(MeasurementMode.Reflectance),
+                FrameworkPropertyMetadataOptions.AffectsRender));
+
     private SpectralSample? _hover;
 
     public SpotMeasurement? Measurement
@@ -67,6 +76,12 @@ public sealed class SpectrumChart : FrameworkElement
         set => SetValue(ShowD65Property, value);
     }
 
+    public SpectrumYAxisConfiguration YAxisConfiguration
+    {
+        get => (SpectrumYAxisConfiguration)GetValue(YAxisConfigurationProperty);
+        set => SetValue(YAxisConfigurationProperty, value);
+    }
+
     protected override void OnRender(DrawingContext drawingContext)
     {
         base.OnRender(drawingContext);
@@ -83,6 +98,7 @@ public sealed class SpectrumChart : FrameworkElement
             UsePracticalRange,
             ShowD50,
             ShowD65,
+            YAxisConfiguration,
             _hover,
             VisualTreeHelper.GetDpi(this).PixelsPerDip);
     }

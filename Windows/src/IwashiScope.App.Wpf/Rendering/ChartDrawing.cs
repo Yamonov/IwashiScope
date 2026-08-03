@@ -94,6 +94,7 @@ internal static class ChartDrawing
         bool practicalRange,
         bool showD50,
         bool showD65,
+        SpectrumYAxisConfiguration yAxisConfiguration,
         SpectralSample? hover = null,
         double pixelsPerDip = 1)
     {
@@ -138,7 +139,8 @@ internal static class ChartDrawing
                 maximumValue = Math.Max(maximumValue, inRange.Max(sample => sample.Value));
             }
         }
-        maximumValue = maximumValue <= 0 ? 1 : maximumValue * 1.08;
+        var yAxisScale = yAxisConfiguration.ResolveScale(maximumValue);
+        maximumValue = yAxisScale.UpperBound;
 
         var spectrumPoints = SeriesPoints(
             samples,
@@ -160,13 +162,13 @@ internal static class ChartDrawing
                 ClosedGeometry(areaPoints));
         }
 
-        for (var tick = 0; tick <= 4; tick++)
+        foreach (var tickValue in yAxisScale.TickValues)
         {
-            var y = plot.Bottom - plot.Height * tick / 4;
+            var y = MapY(tickValue, maximumValue, plot);
             drawing.DrawLine(GridPen, new Point(plot.Left, y), new Point(plot.Right, y));
             DrawText(
                 drawing,
-                (maximumValue * tick / 4).ToString("0.###", CultureInfo.InvariantCulture),
+                tickValue.ToString("0", CultureInfo.InvariantCulture),
                 new Point(bounds.Left + 4, y - 8),
                 11,
                 AxisBrush,

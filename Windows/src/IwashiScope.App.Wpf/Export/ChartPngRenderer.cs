@@ -26,7 +26,8 @@ public static class ChartPngRenderer
         SpotMeasurement measurement,
         bool practicalRange,
         bool showD50,
-        bool showD65) =>
+        bool showD65,
+        SpectrumYAxisConfiguration? yAxisConfiguration = null) =>
         Render(drawing =>
             ChartDrawing.DrawSpectrum(
                 drawing,
@@ -35,6 +36,7 @@ public static class ChartPngRenderer
                 practicalRange,
                 showD50,
                 showD65,
+                yAxisConfiguration ?? SpectrumYAxisConfiguration.ForMeasurementMode(measurement.Mode),
                 pixelsPerDip: 1));
 
     public static byte[] Cri(SpotMeasurement measurement) =>

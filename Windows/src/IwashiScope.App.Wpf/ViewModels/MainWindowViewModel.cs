@@ -88,6 +88,8 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     private MeasurementMode _mode = MeasurementMode.Reflectance;
     private SpotMeasurement? _activeMeasurement;
     private bool _usePracticalRange;
+    private SpectrumYAxisConfiguration _spectrumYAxisConfiguration =
+        SpectrumYAxisConfiguration.ForMeasurementMode(MeasurementMode.Reflectance);
     private bool _showD50;
     private bool _showD65;
     private int _instrumentIndex = 1;
@@ -161,6 +163,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         {
             if (Set(ref _mode, value))
             {
+                YAxisConfiguration = SpectrumYAxisConfiguration.ForMeasurementMode(value);
                 OnPropertyChanged(nameof(IsReflectance));
                 OnPropertyChanged(nameof(IsLighting));
                 OnPropertyChanged(nameof(ModeTitle));
@@ -234,6 +237,50 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
                 SaveSettingsSoon();
             }
         }
+    }
+
+    public SpectrumYAxisConfiguration YAxisConfiguration
+    {
+        get => _spectrumYAxisConfiguration;
+        private set
+        {
+            if (Set(ref _spectrumYAxisConfiguration, value.Normalize()))
+            {
+                OnPropertyChanged(nameof(IsSpectrumYAxisAutomatic));
+                OnPropertyChanged(nameof(IsSpectrumYAxisFixed));
+                OnPropertyChanged(nameof(SpectrumYAxisFixedUpperBound));
+            }
+        }
+    }
+
+    public bool IsSpectrumYAxisAutomatic
+    {
+        get => YAxisConfiguration.Mode == SpectrumYAxisMode.Automatic;
+        set
+        {
+            if (value)
+            {
+                YAxisConfiguration = YAxisConfiguration with { Mode = SpectrumYAxisMode.Automatic };
+            }
+        }
+    }
+
+    public bool IsSpectrumYAxisFixed
+    {
+        get => YAxisConfiguration.Mode == SpectrumYAxisMode.Fixed;
+        set
+        {
+            if (value)
+            {
+                YAxisConfiguration = YAxisConfiguration with { Mode = SpectrumYAxisMode.Fixed };
+            }
+        }
+    }
+
+    public double SpectrumYAxisFixedUpperBound
+    {
+        get => YAxisConfiguration.FixedUpperBound;
+        set => YAxisConfiguration = YAxisConfiguration with { FixedUpperBound = value };
     }
 
     public bool ShowD50
@@ -583,6 +630,12 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public string DataPointCountLabel => T("データ点数", "Data Points");
     public string PracticalWavelengthRangeLabel => T("実用波長範囲", "Practical Wavelength Range");
     public string UsePracticalAreaLabel => T("実用エリアを使用する", "Use Practical Area");
+    public string SpectrumYAxisLabel => T("縦軸", "Vertical Axis");
+    public string SpectrumYAxisAutomaticLabel => T("自動", "Automatic");
+    public string SpectrumYAxisFixedLabel => T("固定", "Fixed");
+    public string SpectrumYAxisSliderAccessibilityLabel => T(
+        "スペクトル縦軸の固定上限",
+        "Fixed spectrum vertical-axis upper bound");
     public string ReferenceSpectrumLabel => T("基準分光分布", "Reference Spectral Distribution");
     public string ReferenceNormalizationLabel => T(
         "560 nmで測定値に合わせて表示",
