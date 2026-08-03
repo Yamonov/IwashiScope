@@ -178,6 +178,8 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
                 OnPropertyChanged(nameof(ShowsLightingHistory));
                 OnPropertyChanged(nameof(ShowsReflectanceExport));
                 OnPropertyChanged(nameof(ShowsLightingExport));
+                OnPropertyChanged(nameof(ShowsMunsellValue));
+                OnPropertyChanged(nameof(MunsellValueText));
             }
         }
     }
@@ -475,6 +477,16 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public string XyzText => VectorText(ActiveMeasurement?.Xyz, "X", "Y", "Z");
     public string LabGroupLabel => $"{ActiveMeasurement?.LabWhitePoint ?? "D50"} Lab";
     public string LabText => VectorText(ActiveMeasurement?.Lab, "L*", "a*", "b*");
+    public string XText => VectorComponent(ActiveMeasurement?.Xyz?.First);
+    public string YText => VectorComponent(ActiveMeasurement?.Xyz?.Second);
+    public string ZText => VectorComponent(ActiveMeasurement?.Xyz?.Third);
+    public string LStarText => VectorComponent(ActiveMeasurement?.Lab?.First);
+    public string AStarText => VectorComponent(ActiveMeasurement?.Lab?.Second);
+    public string BStarText => VectorComponent(ActiveMeasurement?.Lab?.Third);
+    public string MunsellValueText =>
+        Mode == MeasurementMode.Reflectance && ActiveMeasurement is { Lab: not null } measurement
+            ? MunsellConverter.Convert(measurement.Spectrum)?.Formatted ?? "—"
+            : "—";
     public string PeakText => ActiveMeasurement?.PeakValue is { } peak
         ? $"{peak:0.####} @ {ActiveMeasurement.PeakWavelength:0.#} nm"
         : "—";
@@ -543,6 +555,9 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public bool ShowsLightingExport =>
         UiProfile.ExportSection == UiParitySection.LightingExport;
     public bool HasActiveMeasurement => ActiveMeasurement is not null;
+    public bool HasLab => ActiveMeasurement?.Lab is not null;
+    public bool ShowsMunsellValue =>
+        Mode == MeasurementMode.Reflectance && ActiveMeasurement?.Lab is not null;
     public bool HasMonochrome => ActiveMeasurement?.Monochrome is not null;
     public bool HasLightingMetrics => ActiveMeasurement is { } measurement &&
         (measurement.Lux is not null ||
@@ -624,6 +639,11 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         "クリックで展開・縮小、上下ドラッグで高さを調整",
         "Click to expand or collapse; drag vertically to resize");
     public string ColorimetricValuesLabel => T("測色値", "Colorimetric Values");
+    public string MunsellValueLabel => T("マンセル値", "Munsell Value");
+    public string LabChartAccessibilityLabel => T("a*b*グラフ", "a*b* Graph");
+    public string LabChartAccessibilityValue => ActiveMeasurement?.Lab is { } lab
+        ? $"a* {lab.Second:0.000}, b* {lab.Third:0.000}"
+        : T("データなし", "No data");
     public string LightingInformationLabel => T("光源情報", "Lighting Information");
     public string InstrumentAndSerialLabel => T("測定器名（シリアル）", "Instrument (Serial)");
     public string WavelengthRangeLabel => T("波長範囲", "Wavelength Range");
@@ -1308,7 +1328,11 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     {
         foreach (var property in new[]
                  {
-                     nameof(XyzText), nameof(LabGroupLabel), nameof(LabText), nameof(PeakText), nameof(LuxText),
+                     nameof(XyzText), nameof(LabGroupLabel), nameof(LabText),
+                     nameof(XText), nameof(YText), nameof(ZText),
+                     nameof(LStarText), nameof(AStarText), nameof(BStarText),
+                     nameof(MunsellValueText), nameof(LabChartAccessibilityValue),
+                     nameof(PeakText), nameof(LuxText),
                      nameof(CctText), nameof(DuvText), nameof(EvText), nameof(CriText),
                      nameof(TlciText), nameof(Tm30Text), nameof(PracticalRangeText),
                      nameof(SrgbHex),
@@ -1320,7 +1344,8 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
                      nameof(DisplayP3GamutWarning), nameof(HasDisplayP3GamutWarning),
                      nameof(SwatchBrush),
                      nameof(JspstSummary), nameof(IsoSummary),
-                     nameof(ShowsSrgbEncoding), nameof(HasActiveMeasurement),
+                     nameof(ShowsSrgbEncoding), nameof(HasActiveMeasurement), nameof(HasLab),
+                     nameof(ShowsMunsellValue),
                      nameof(HasMonochrome), nameof(HasLightingMetrics), nameof(HasCriOrTlci),
                      nameof(HasCri), nameof(HasTlci), nameof(HasTm30), nameof(HasLux),
                      nameof(HasCct), nameof(HasDuv), nameof(HasEv),
@@ -1364,6 +1389,9 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
 
     private static string RgbComponentText(byte? component) =>
         component?.ToString(CultureInfo.InvariantCulture) ?? "—";
+
+    private static string VectorComponent(double? component) =>
+        component?.ToString("0.000", CultureInfo.CurrentCulture) ?? "—";
 
     private string T(string japanese, string english) => _localization.Text(japanese, english);
 

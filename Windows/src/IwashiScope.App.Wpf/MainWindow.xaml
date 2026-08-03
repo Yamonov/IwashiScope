@@ -611,16 +611,72 @@
 
                                         <GroupBox Header="{Binding ColorimetricValuesLabel}" Margin="0,12,0,0">
                                             <StackPanel Margin="8,5">
-                                                <TextBlock Text="XYZ" FontSize="15" FontWeight="SemiBold" />
-                                                <TextBlock Text="{Binding XyzText}" Margin="0,4,0,8"
-                                                           FontFamily="Cascadia Mono, Consolas" />
-                                                <Separator />
-                                                <TextBlock Text="{Binding LabGroupLabel}" FontSize="15" FontWeight="SemiBold"
-                                                           Margin="0,8,0,0" />
-                                                <TextBlock Text="{Binding LabText}" Margin="0,4,0,0"
-                                                           FontFamily="Cascadia Mono, Consolas" />
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="150" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                                        <TextBlock Text="XYZ" FontSize="15" FontWeight="SemiBold" />
+                                                        <UniformGrid Columns="3" Margin="0,4,0,8">
+                                                            <StackPanel>
+                                                                <TextBlock Text="X" Style="{StaticResource MetricLabel}" />
+                                                                <TextBlock Text="{Binding XText}" FontFamily="Cascadia Mono, Consolas" />
+                                                            </StackPanel>
+                                                            <StackPanel>
+                                                                <TextBlock Text="Y" Style="{StaticResource MetricLabel}" />
+                                                                <TextBlock Text="{Binding YText}" FontFamily="Cascadia Mono, Consolas" />
+                                                            </StackPanel>
+                                                            <StackPanel>
+                                                                <TextBlock Text="Z" Style="{StaticResource MetricLabel}" />
+                                                                <TextBlock Text="{Binding ZText}" FontFamily="Cascadia Mono, Consolas" />
+                                                            </StackPanel>
+                                                        </UniformGrid>
+                                                        <Separator />
+                                                        <TextBlock Text="{Binding LabGroupLabel}" FontSize="15" FontWeight="SemiBold"
+                                                                   Margin="0,8,0,0" />
+                                                        <UniformGrid Columns="3" Margin="0,4,0,0">
+                                                            <StackPanel>
+                                                                <TextBlock Text="L*" Style="{StaticResource MetricLabel}" />
+                                                                <TextBlock Text="{Binding LStarText}" FontFamily="Cascadia Mono, Consolas" />
+                                                            </StackPanel>
+                                                            <StackPanel>
+                                                                <TextBlock Text="a*" Style="{StaticResource MetricLabel}" />
+                                                                <TextBlock Text="{Binding AStarText}" FontFamily="Cascadia Mono, Consolas" />
+                                                            </StackPanel>
+                                                            <StackPanel>
+                                                                <TextBlock Text="b*" Style="{StaticResource MetricLabel}" />
+                                                                <TextBlock Text="{Binding BStarText}" FontFamily="Cascadia Mono, Consolas" />
+                                                            </StackPanel>
+                                                        </UniformGrid>
+                                                        <StackPanel Visibility="{Binding ShowsMunsellValue, Converter={StaticResource BoolToVisibility}}">
+                                                            <Separator Margin="0,9,0,7" />
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                    <ColumnDefinition Width="*" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Text="{Binding MunsellValueLabel}"
+                                                                           Style="{StaticResource MetricLabel}" />
+                                                                <TextBlock Grid.Column="1" Text="{Binding MunsellValueText}"
+                                                                           Style="{StaticResource MetricValue}" />
+                                                            </Grid>
+                                                        </StackPanel>
+                                                    </StackPanel>
+
+                                                    <controls:LabABChart Grid.Column="1"
+                                                                         Width="150" Height="150"
+                                                                         HorizontalAlignment="Right"
+                                                                         VerticalAlignment="Top"
+                                                                         Measurement="{Binding ActiveMeasurement}"
+                                                                         AutomationProperties.Name="{Binding LabChartAccessibilityLabel}"
+                                                                         AutomationProperties.HelpText="{Binding LabChartAccessibilityValue}"
+                                                                         Visibility="{Binding HasLab, Converter={StaticResource BoolToVisibility}}" />
+                                                </Grid>
                                                 <StackPanel Margin="0,9,0,0"
                                                             Visibility="{Binding ShowsSrgbEncoding, Converter={StaticResource BoolToVisibility}}">
+                                                    <Separator Margin="0,0,0,8" />
                                                     <TextBlock Text="{Binding RgbValuesLabel}"
                                                                FontSize="15" FontWeight="SemiBold" />
                                                     <Grid Margin="0,4,0,0">

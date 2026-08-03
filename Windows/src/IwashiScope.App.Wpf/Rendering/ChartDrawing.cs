@@ -396,6 +396,69 @@ internal static class ChartDrawing
         DrawLightingHistoryCri(drawing, criBounds, measurement.Cri);
     }
 
+    public static void DrawLabAB(
+        DrawingContext drawing,
+        Rect bounds,
+        SpotMeasurement? measurement,
+        double pixelsPerDip = 1)
+    {
+        const double domainMinimum = -128;
+        const double domainMaximum = 128;
+        var plotSize = Math.Max(1, Math.Min(bounds.Width - 34, bounds.Height - 34));
+        var plot = new Rect(
+            bounds.Left + 28,
+            bounds.Top + Math.Max(4, (bounds.Height - plotSize - 24) / 2),
+            plotSize,
+            plotSize);
+        var plotBackground = new SolidColorBrush(Color.FromArgb(9, 91, 102, 112));
+        plotBackground.Freeze();
+        drawing.DrawRectangle(plotBackground, AxisPen, plot);
+
+        double X(double value) =>
+            plot.Left + (value - domainMinimum) / (domainMaximum - domainMinimum) * plot.Width;
+        double Y(double value) =>
+            plot.Bottom - (value - domainMinimum) / (domainMaximum - domainMinimum) * plot.Height;
+
+        foreach (var tick in new[] { -100, 0, 100 })
+        {
+            var x = X(tick);
+            var y = Y(tick);
+            var pen = tick == 0
+                ? new Pen(new SolidColorBrush(Color.FromArgb(128, 91, 102, 112)), 1)
+                : GridPen;
+            if (pen.CanFreeze) pen.Freeze();
+            drawing.DrawLine(pen, new Point(x, plot.Top), new Point(x, plot.Bottom));
+            drawing.DrawLine(pen, new Point(plot.Left, y), new Point(plot.Right, y));
+
+            var xLabel = Formatted(tick.ToString(CultureInfo.InvariantCulture), 9, AxisBrush, pixelsPerDip);
+            drawing.DrawText(xLabel, new Point(x - xLabel.Width / 2, plot.Bottom + 4));
+            var yLabel = Formatted(tick.ToString(CultureInfo.InvariantCulture), 9, AxisBrush, pixelsPerDip);
+            drawing.DrawText(yLabel, new Point(plot.Left - yLabel.Width - 4, y - yLabel.Height / 2));
+        }
+
+        DrawText(drawing, "b*", new Point(plot.Left + 3, plot.Top + 2), 9, AxisBrush, pixelsPerDip);
+        var aLabel = Formatted("a*", 9, AxisBrush, pixelsPerDip);
+        drawing.DrawText(aLabel, new Point(plot.Right - aLabel.Width - 2, plot.Bottom + 15));
+
+        if (measurement?.Lab is not { } lab || !lab.IsFinite)
+        {
+            return;
+        }
+
+        var point = new Point(
+            X(Math.Clamp(lab.Second, domainMinimum, domainMaximum)),
+            Y(Math.Clamp(lab.Third, domainMinimum, domainMaximum)));
+        var color = LabColorConverter.Convert(lab, measurement.LabWhitePoint).Srgb;
+        var pointBrush = new SolidColorBrush(Color.FromRgb(
+            color.RedByte,
+            color.GreenByte,
+            color.BlueByte));
+        pointBrush.Freeze();
+        var outline = new Pen(Brushes.White, 2);
+        outline.Freeze();
+        drawing.DrawEllipse(pointBrush, outline, point, 5, 5);
+    }
+
     private static void DrawLightingHistorySpectrum(
         DrawingContext drawing,
         Rect bounds,

@@ -126,6 +126,29 @@ public sealed class UiAssetParityTests
     }
 
     [Fact]
+    public void LabChartIsSharedByEveryModeAndMunsellIsConditionallyVisible()
+    {
+        var root = FindRepositoryRoot();
+        var xaml = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "IwashiScope.App.Wpf",
+            "MainWindow.xaml"));
+
+        Assert.Contains("<controls:LabABChart", xaml, StringComparison.Ordinal);
+        Assert.Contains("Measurement=\"{Binding ActiveMeasurement}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains(
+            "Visibility=\"{Binding HasLab, Converter={StaticResource BoolToVisibility}}\"",
+            xaml,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "Visibility=\"{Binding ShowsMunsellValue, Converter={StaticResource BoolToVisibility}}\"",
+            xaml,
+            StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding MunsellValueText}\"", xaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void RgbTableHasThreeAlignedColorSpacesAndPerRowWarnings()
     {
         var root = FindRepositoryRoot();

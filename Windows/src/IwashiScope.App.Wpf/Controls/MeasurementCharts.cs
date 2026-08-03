@@ -217,3 +217,16 @@ public sealed class LightingHistoryChart : MeasurementChartElement
             Measurement);
     }
 }
+
+public sealed class LabABChart : MeasurementChartElement
+{
+    protected override void OnRender(DrawingContext drawingContext)
+    {
+        base.OnRender(drawingContext);
+        ChartDrawing.DrawLabAB(
+            drawingContext,
+            new Rect(RenderSize),
+            Measurement,
+            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+    }
+}

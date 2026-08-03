@@ -28,6 +28,18 @@ ArgyllCMSにはGPL、LGPL、MIT、BSD系など、個別条件を持つ構成要�
 Windows版は更新確認と署名済み更新インストーラーの検証にWinSparkleを使用します。
 更新ファイルはEdDSA署名が正しい場合だけ受け入れます。
 
+## Colour 0.4.7のマンセル・リノテーションデータ
+
+- プロジェクト: <https://github.com/colour-science/colour>
+- データ: `colour/notation/datasets/munsell/all.py`
+- 上流データ: Rochester Institute of Technology, Munsell Color Science Laboratory
+- ライセンス: BSD 3-Clause
+- ライセンス本文: `LICENSES/Colour-BSD-3-Clause.txt`
+
+IwashiScopeは反射光測定のマンセル値を補間するために、Colour 0.4.7の
+「All Munsell Colours」データをCSVへ変換して同梱します。取得元、固定した
+SHA-256、変換手順は`ThirdParty/Munsell/README.md`に記録しています。
+
 ## Sparkle 2.9.4
 
 - プロジェクト: <https://github.com/sparkle-project/Sparkle>

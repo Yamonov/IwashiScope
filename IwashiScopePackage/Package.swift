@@ -6,7 +6,10 @@ import PackageDescription
 
 var targets: [Target] = [
     .target(
-        name: "IwashiScopeFeature"
+        name: "IwashiScopeFeature",
+        resources: [
+            .process("Resources")
+        ]
     ),
 ]
 

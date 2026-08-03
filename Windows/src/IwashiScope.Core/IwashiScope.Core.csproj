@@ -6,4 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\IwashiScopePackage\Sources\IwashiScopeFeature\Resources\MunsellRenotationAll.csv"
+                      LogicalName="IwashiScope.MunsellRenotationAll.csv" />
+    <EmbeddedResource Include="..\..\..\IwashiScopePackage\Sources\IwashiScopeFeature\Resources\MunsellColorimetryCIE1931.csv"
+                      LogicalName="IwashiScope.MunsellColorimetryCIE1931.csv" />
+  </ItemGroup>
+
 </Project>

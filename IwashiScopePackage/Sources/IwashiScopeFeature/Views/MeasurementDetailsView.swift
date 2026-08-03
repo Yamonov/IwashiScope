@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 
 struct MeasurementDetailsView: View {
@@ -62,31 +63,61 @@ struct MeasurementDetailsView: View {
     private func colorimetricGroup(_ measurement: SpotMeasurement) -> some View {
         GroupBox("測色値") {
             VStack(spacing: 10) {
-                if let xyz = measurement.xyz {
-                    TripleMetricView(
-                        title: "XYZ",
-                        labels: ("X", "Y", "Z"),
-                        values: (
-                            format(xyz.first, digits: 3),
-                            format(xyz.second, digits: 3),
-                            format(xyz.third, digits: 3)
-                        )
-                    )
-                }
+                if measurement.xyz != nil || measurement.lab != nil {
+                    HStack(alignment: .top, spacing: 12) {
+                        VStack(spacing: 10) {
+                            if let xyz = measurement.xyz {
+                                TripleMetricView(
+                                    title: "XYZ",
+                                    labels: ("X", "Y", "Z"),
+                                    values: (
+                                        format(xyz.first, digits: 3),
+                                        format(xyz.second, digits: 3),
+                                        format(xyz.third, digits: 3)
+                                    )
+                                )
+                            }
 
-                if let lab = measurement.lab {
-                    Divider()
-                    TripleMetricView(
-                        title: "\(measurement.labWhitePoint ?? "D50") Lab",
-                        labels: ("L*", "a*", "b*"),
-                        values: (
-                            format(lab.first, digits: 3),
-                            format(lab.second, digits: 3),
-                            format(lab.third, digits: 3)
-                        )
-                    )
+                            if let lab = measurement.lab {
+                                if measurement.xyz != nil {
+                                    Divider()
+                                }
+                                TripleMetricView(
+                                    title: "\(measurement.labWhitePoint ?? "D50") Lab",
+                                    labels: ("L*", "a*", "b*"),
+                                    values: (
+                                        format(lab.first, digits: 3),
+                                        format(lab.second, digits: 3),
+                                        format(lab.third, digits: 3)
+                                    )
+                                )
 
-                    if measurement.mode != .ambient,
+                                if measurement.mode == .reflectance,
+                                   let munsell = MunsellConverter.convert(
+                                       reflectanceSpectrum: measurement.spectrum
+                                   ) {
+                                    Divider()
+                                    MetricRow(
+                                        label: String(localized: "マンセル値"),
+                                        value: munsell.formatted
+                                    )
+                                }
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .layoutPriority(1)
+
+                        if let lab = measurement.lab {
+                            LabABChartView(
+                                lab: lab,
+                                whitePoint: measurement.labWhitePoint
+                            )
+                            .frame(width: 150, height: 150)
+                        }
+                    }
+
+                    if let lab = measurement.lab,
+                       measurement.mode != .ambient,
                        let colorConversion = LabColorConverter.convert(
                            lab: lab,
                            whitePoint: measurement.labWhitePoint
@@ -189,6 +220,84 @@ struct MeasurementDetailsView: View {
 
     private func format(_ value: Double, digits: Int) -> String {
         value.formatted(.number.precision(.fractionLength(digits)))
+    }
+}
+
+private struct LabABChartView: View {
+    let lab: Vector3
+    let whitePoint: String?
+
+    private let domain = -128.0...128.0
+    private let ticks = [-100, 0, 100]
+
+    var body: some View {
+        Chart {
+            RuleMark(x: .value("a*", 0))
+                .foregroundStyle(.secondary.opacity(0.5))
+            RuleMark(y: .value("b*", 0))
+                .foregroundStyle(.secondary.opacity(0.5))
+            PointMark(
+                x: .value("a*", plottedA),
+                y: .value("b*", plottedB)
+            )
+            .symbolSize(78)
+            .foregroundStyle(pointColor)
+        }
+        .chartXScale(domain: domain)
+        .chartYScale(domain: domain)
+        .chartXAxis {
+            AxisMarks(values: ticks) { _ in
+                AxisGridLine()
+                    .foregroundStyle(.secondary.opacity(0.15))
+                AxisTick()
+                AxisValueLabel()
+            }
+        }
+        .chartYAxis {
+            AxisMarks(position: .leading, values: ticks) { _ in
+                AxisGridLine()
+                    .foregroundStyle(.secondary.opacity(0.15))
+                AxisTick()
+                AxisValueLabel()
+            }
+        }
+        .chartPlotStyle { plotArea in
+            plotArea
+                .background(.secondary.opacity(0.035))
+                .border(.secondary.opacity(0.2), width: 1)
+        }
+        .overlay(alignment: .topLeading) {
+            Text("b*")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .padding(.leading, 4)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            Text("a*")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .padding(.trailing, 2)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "a*b*グラフ"))
+        .accessibilityValue(
+            "a* \(lab.second.formatted(.number.precision(.fractionLength(3))))、b* \(lab.third.formatted(.number.precision(.fractionLength(3))))"
+        )
+    }
+
+    private var plottedA: Double {
+        min(max(lab.second, domain.lowerBound), domain.upperBound)
+    }
+
+    private var plottedB: Double {
+        min(max(lab.third, domain.lowerBound), domain.upperBound)
+    }
+
+    private var pointColor: Color {
+        guard let conversion = LabColorConverter.convert(lab: lab, whitePoint: whitePoint) else {
+            return .accentColor
+        }
+        return Color(cgColor: conversion.managedColor)
     }
 }
 
@@ -311,7 +420,7 @@ private struct TripleMetricView: View {
         VStack(alignment: .leading, spacing: 7) {
             Text(title)
                 .font(.headline)
-            Grid(horizontalSpacing: 14, verticalSpacing: 4) {
+            Grid(horizontalSpacing: 10, verticalSpacing: 4) {
                 GridRow {
                     metric(labels.0, values.0)
                     metric(labels.1, values.1)
