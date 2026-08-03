@@ -1,6 +1,8 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using IwashiScope.Core.Calculations;
 using IwashiScope.Core.Models;
 
@@ -13,6 +15,10 @@ internal static class ChartDrawing
     private static readonly Brush GridBrush = Freeze(new SolidColorBrush(Color.FromRgb(225, 230, 234)));
     private static readonly Pen AxisPen = Freeze(new Pen(AxisBrush, 1));
     private static readonly Pen GridPen = Freeze(new Pen(GridBrush, 1));
+    private static readonly Pen LabCenterPen = Freeze(
+        new Pen(new SolidColorBrush(Color.FromArgb(128, 91, 102, 112)), 1));
+    private static readonly ConcurrentDictionary<LabPlaneCacheKey, BitmapSource>
+        LabPlaneCache = new();
     private static readonly Pen SpectrumPen =
         Freeze(new Pen(new SolidColorBrush(Color.FromRgb(128, 128, 128)), 2)
         {
@@ -402,12 +408,19 @@ internal static class ChartDrawing
         SpotMeasurement? measurement,
         double pixelsPerDip = 1)
     {
-        const double domainMinimum = -128;
-        const double domainMaximum = 128;
-        var plotSize = Math.Max(1, Math.Min(bounds.Width - 34, bounds.Height - 34));
+        var lab = measurement?.Lab;
+        var limit = lab is { } finiteLab && finiteLab.IsFinite
+            ? LabABChartScale.ResolveLimit(finiteLab.Second, finiteLab.Third)
+            : 100;
+        var domainMinimum = -limit;
+        var domainMaximum = limit;
+        const double inset = 2;
+        var plotSize = Math.Max(
+            1,
+            Math.Min(bounds.Width - inset * 2, bounds.Height - inset * 2));
         var plot = new Rect(
-            bounds.Left + 28,
-            bounds.Top + Math.Max(4, (bounds.Height - plotSize - 24) / 2),
+            bounds.Left + (bounds.Width - plotSize) / 2,
+            bounds.Top + (bounds.Height - plotSize) / 2,
             plotSize,
             plotSize);
         var plotBackground = new SolidColorBrush(Color.FromArgb(9, 91, 102, 112));
@@ -420,7 +433,8 @@ internal static class ChartDrawing
                 drawing,
                 plot,
                 backgroundLab.First,
-                measurement.LabWhitePoint);
+                measurement.LabWhitePoint,
+                limit);
         }
 
         double X(double value) =>
@@ -428,22 +442,27 @@ internal static class ChartDrawing
         double Y(double value) =>
             plot.Bottom - (value - domainMinimum) / (domainMaximum - domainMinimum) * plot.Height;
 
-        foreach (var tick in new[] { -100, 0, 100 })
-        {
-            var x = X(tick);
-            var y = Y(tick);
-            var pen = tick == 0
-                ? new Pen(new SolidColorBrush(Color.FromArgb(128, 91, 102, 112)), 1)
-                : GridPen;
-            if (pen.CanFreeze) pen.Freeze();
-            drawing.DrawLine(pen, new Point(x, plot.Top), new Point(x, plot.Bottom));
-            drawing.DrawLine(pen, new Point(plot.Left, y), new Point(plot.Right, y));
+        var centerX = X(0);
+        var centerY = Y(0);
+        drawing.DrawLine(LabCenterPen, new Point(centerX, plot.Top), new Point(centerX, plot.Bottom));
+        drawing.DrawLine(LabCenterPen, new Point(plot.Left, centerY), new Point(plot.Right, centerY));
 
-            var xLabel = Formatted(tick.ToString(CultureInfo.InvariantCulture), 9, AxisBrush, pixelsPerDip);
-            drawing.DrawText(xLabel, new Point(x - xLabel.Width / 2, plot.Bottom + 4));
-            var yLabel = Formatted(tick.ToString(CultureInfo.InvariantCulture), 9, AxisBrush, pixelsPerDip);
-            drawing.DrawText(yLabel, new Point(plot.Left - yLabel.Width - 4, y - yLabel.Height / 2));
-        }
+        var positiveLimit = Formatted(
+            limit.ToString("0", CultureInfo.InvariantCulture),
+            9,
+            AxisBrush,
+            pixelsPerDip);
+        drawing.DrawText(
+            positiveLimit,
+            new Point(plot.Right - positiveLimit.Width - 3, plot.Top + 2));
+        var negativeLimit = Formatted(
+            (-limit).ToString("0", CultureInfo.InvariantCulture),
+            9,
+            AxisBrush,
+            pixelsPerDip);
+        drawing.DrawText(
+            negativeLimit,
+            new Point(plot.Left + 3, plot.Bottom - negativeLimit.Height - 2));
 
         var positiveB = Formatted("+b", 9, Brushes.Black, pixelsPerDip);
         drawing.DrawText(
@@ -464,14 +483,14 @@ internal static class ChartDrawing
 
         drawing.DrawRectangle(null, AxisPen, plot);
 
-        if (measurement?.Lab is not { } lab || !lab.IsFinite)
+        if (lab is not { } plottedLab || !plottedLab.IsFinite)
         {
             return;
         }
 
         var point = new Point(
-            X(Math.Clamp(lab.Second, domainMinimum, domainMaximum)),
-            Y(Math.Clamp(lab.Third, domainMinimum, domainMaximum)));
+            X(Math.Clamp(plottedLab.Second, domainMinimum, domainMaximum)),
+            Y(Math.Clamp(plottedLab.Third, domainMinimum, domainMaximum)));
         var outline = new Pen(Brushes.White, 2);
         outline.Freeze();
         drawing.DrawEllipse(Brushes.Black, outline, point, 5, 5);
@@ -481,44 +500,77 @@ internal static class ChartDrawing
         DrawingContext drawing,
         Rect plot,
         double lightness,
-        string? whitePoint)
+        string? whitePoint,
+        double limit)
     {
-        const int cellCount = 32;
-        const double domainMinimum = -128;
-        const double domainMaximum = 128;
-        var domainWidth = domainMaximum - domainMinimum;
-        var cellWidth = plot.Width / cellCount;
-        var cellHeight = plot.Height / cellCount;
-
         drawing.PushClip(new RectangleGeometry(plot));
         drawing.PushOpacity(0.5);
-        for (var row = 0; row < cellCount; row++)
-        {
-            for (var column = 0; column < cellCount; column++)
-            {
-                var a = domainMinimum + (column + 0.5) / cellCount * domainWidth;
-                var b = domainMaximum - (row + 0.5) / cellCount * domainWidth;
-                var color = LabColorConverter.Convert(
-                    new Vector3(lightness, a, b),
-                    whitePoint).Srgb;
-                var brush = new SolidColorBrush(Color.FromRgb(
-                    color.RedByte,
-                    color.GreenByte,
-                    color.BlueByte));
-                brush.Freeze();
-                drawing.DrawRectangle(
-                    brush,
-                    null,
-                    new Rect(
-                        plot.Left + column * cellWidth,
-                        plot.Top + row * cellHeight,
-                        cellWidth + 0.5,
-                        cellHeight + 0.5));
-            }
-        }
+        drawing.DrawImage(LabPlaneImage(lightness, whitePoint, limit), plot);
         drawing.Pop();
         drawing.Pop();
     }
+
+    private static BitmapSource LabPlaneImage(
+        double lightness,
+        string? whitePoint,
+        double limit)
+    {
+        var key = new LabPlaneCacheKey(
+            (int)Math.Round(Math.Clamp(lightness, 0, 100) * 2),
+            (int)limit,
+            whitePoint?.Contains("D65", StringComparison.OrdinalIgnoreCase) == true);
+        if (LabPlaneCache.Count > 32)
+        {
+            LabPlaneCache.Clear();
+        }
+        return LabPlaneCache.GetOrAdd(key, static cacheKey => CreateLabPlaneImage(cacheKey));
+    }
+
+    private static BitmapSource CreateLabPlaneImage(LabPlaneCacheKey key)
+    {
+        const int pixelSize = 96;
+        const int bytesPerPixel = 4;
+        var stride = pixelSize * bytesPerPixel;
+        var pixels = new byte[pixelSize * stride];
+        var lightness = key.LightnessHalves / 2.0;
+        var limit = (double)key.Limit;
+        var whitePoint = key.IsD65 ? "D65" : "D50";
+        var denominator = pixelSize - 1.0;
+
+        for (var row = 0; row < pixelSize; row++)
+        {
+            var b = limit - row / denominator * 2 * limit;
+            for (var column = 0; column < pixelSize; column++)
+            {
+                var a = -limit + column / denominator * 2 * limit;
+                var color = LabColorConverter.Convert(
+                    new Vector3(lightness, a, b),
+                    whitePoint).Srgb;
+                var offset = row * stride + column * bytesPerPixel;
+                pixels[offset] = color.BlueByte;
+                pixels[offset + 1] = color.GreenByte;
+                pixels[offset + 2] = color.RedByte;
+                pixels[offset + 3] = 255;
+            }
+        }
+
+        var image = BitmapSource.Create(
+            pixelSize,
+            pixelSize,
+            96,
+            96,
+            PixelFormats.Bgra32,
+            null,
+            pixels,
+            stride);
+        image.Freeze();
+        return image;
+    }
+
+    private readonly record struct LabPlaneCacheKey(
+        int LightnessHalves,
+        int Limit,
+        bool IsD65);
 
     private static void DrawLightingHistorySpectrum(
         DrawingContext drawing,

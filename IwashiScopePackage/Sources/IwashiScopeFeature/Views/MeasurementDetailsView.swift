@@ -98,7 +98,9 @@ struct MeasurementDetailsView: View {
                                    ) {
                                     Divider()
                                     MetricRow(
-                                        label: String(localized: "マンセル値"),
+                                        label: String(
+                                            localized: "マンセル値（CIE標準イルミナントC・CIE 1931 2°標準観測者）"
+                                        ),
                                         value: munsell.formatted
                                     )
                                 }
@@ -227,9 +229,6 @@ private struct LabABChartView: View {
     let lab: Vector3
     let whitePoint: String?
 
-    private let domain = -128.0...128.0
-    private let ticks = [-100, 0, 100]
-
     var body: some View {
         Chart {
             RuleMark(x: .value("a*", 0))
@@ -243,30 +242,17 @@ private struct LabABChartView: View {
             .symbolSize(78)
             .foregroundStyle(.black)
         }
-        .chartXScale(domain: domain)
-        .chartYScale(domain: domain)
-        .chartXAxis {
-            AxisMarks(values: ticks) { _ in
-                AxisGridLine()
-                    .foregroundStyle(.secondary.opacity(0.15))
-                AxisTick()
-                AxisValueLabel()
-            }
-        }
-        .chartYAxis {
-            AxisMarks(position: .leading, values: ticks) { _ in
-                AxisGridLine()
-                    .foregroundStyle(.secondary.opacity(0.15))
-                AxisTick()
-                AxisValueLabel()
-            }
-        }
+        .chartXScale(domain: scale.domain)
+        .chartYScale(domain: scale.domain)
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
         .chartPlotStyle { plotArea in
             plotArea
                 .background {
-                    LabABPlaneBackground(
+                    LabABPlotBackground(
                         lightness: lab.first,
-                        whitePoint: whitePoint
+                        whitePoint: whitePoint,
+                        scale: scale
                     )
                 }
                 .border(.secondary.opacity(0.2), width: 1)
@@ -290,12 +276,16 @@ private struct LabABChartView: View {
         )
     }
 
+    private var scale: LabABChartScale {
+        LabABChartScale.resolve(a: lab.second, b: lab.third)
+    }
+
     private var plottedA: Double {
-        min(max(lab.second, domain.lowerBound), domain.upperBound)
+        min(max(lab.second, scale.domain.lowerBound), scale.domain.upperBound)
     }
 
     private var plottedB: Double {
-        min(max(lab.third, domain.lowerBound), domain.upperBound)
+        min(max(lab.third, scale.domain.lowerBound), scale.domain.upperBound)
     }
 
     private func directionLabel(_ text: String) -> some View {
@@ -306,42 +296,146 @@ private struct LabABChartView: View {
     }
 }
 
+private struct LabABPlotBackground: View {
+    let lightness: Double
+    let whitePoint: String?
+    let scale: LabABChartScale
+
+    var body: some View {
+        LabABPlaneBackground(
+            lightness: lightness,
+            whitePoint: whitePoint,
+            limit: scale.limit
+        )
+        .overlay(alignment: .topTrailing) {
+            limitLabel(scale.positiveLabel)
+        }
+        .overlay(alignment: .bottomLeading) {
+            limitLabel(scale.negativeLabel)
+        }
+        .accessibilityHidden(true)
+    }
+
+    private func limitLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.caption2.monospacedDigit())
+            .foregroundStyle(.black.opacity(0.75))
+            .padding(3)
+    }
+}
+
 private struct LabABPlaneBackground: View {
     let lightness: Double
     let whitePoint: String?
-
-    private let cellCount = 32
-    private let domainMinimum = -128.0
-    private let domainMaximum = 128.0
+    let limit: Double
 
     var body: some View {
-        Canvas(opaque: false, colorMode: .extendedLinear) { context, size in
-            let cellWidth = size.width / Double(cellCount)
-            let cellHeight = size.height / Double(cellCount)
-            let domainWidth = domainMaximum - domainMinimum
-
+        let image = LabABPlaneImageRenderer.image(
+            lightness: lightness,
+            whitePoint: whitePoint,
+            limit: limit
+        )
+        Canvas(opaque: false, colorMode: .nonLinear) { context, size in
             context.opacity = 0.5
-            for row in 0..<cellCount {
-                for column in 0..<cellCount {
-                    let a = domainMinimum
-                        + (Double(column) + 0.5) / Double(cellCount) * domainWidth
-                    let b = domainMaximum
-                        - (Double(row) + 0.5) / Double(cellCount) * domainWidth
-                    let color = LabColorConverter.managedColor(
-                        lab: Vector3(first: lightness, second: a, third: b),
-                        whitePoint: whitePoint
-                    ).map(Color.init(cgColor:)) ?? .clear
-                    let cell = CGRect(
-                        x: Double(column) * cellWidth,
-                        y: Double(row) * cellHeight,
-                        width: cellWidth + 0.5,
-                        height: cellHeight + 0.5
-                    )
-                    context.fill(Path(cell), with: .color(color))
-                }
+            if let image {
+                context.draw(
+                    Image(decorative: image, scale: 1),
+                    in: CGRect(origin: .zero, size: size)
+                )
             }
         }
         .accessibilityHidden(true)
+    }
+}
+
+@MainActor
+private enum LabABPlaneImageRenderer {
+    private static let pixelSize = 96
+    private static let cache: NSCache<NSString, CachedLabABPlaneImage> = {
+        let cache = NSCache<NSString, CachedLabABPlaneImage>()
+        cache.countLimit = 32
+        return cache
+    }()
+
+    static func image(lightness: Double, whitePoint: String?, limit: Double) -> CGImage? {
+        guard lightness.isFinite, limit.isFinite, limit > 0 else { return nil }
+
+        let roundedLightness = (lightness * 2).rounded() / 2
+        let whitePointKey = whitePoint?.localizedLowercase ?? "d50"
+        let key = NSString(
+            string: "\(roundedLightness)|\(whitePointKey)|\(Int(limit))"
+        )
+        if let cached = cache.object(forKey: key) {
+            return cached.image
+        }
+
+        let image = makeImage(
+            lightness: roundedLightness,
+            whitePoint: whitePoint,
+            limit: limit
+        )
+        if let image {
+            cache.setObject(CachedLabABPlaneImage(image), forKey: key)
+        }
+        return image
+    }
+
+    private static func makeImage(
+        lightness: Double,
+        whitePoint: String?,
+        limit: Double
+    ) -> CGImage? {
+        let bytesPerPixel = 4
+        let bytesPerRow = pixelSize * bytesPerPixel
+        let denominator = Double(pixelSize - 1)
+        var pixels = [UInt8](repeating: 0, count: pixelSize * bytesPerRow)
+
+        for row in 0..<pixelSize {
+            let b = limit - Double(row) / denominator * 2 * limit
+            for column in 0..<pixelSize {
+                let a = -limit + Double(column) / denominator * 2 * limit
+                guard let color = LabColorConverter.displaySRGB(
+                    lab: Vector3(first: lightness, second: a, third: b),
+                    whitePoint: whitePoint
+                ) else {
+                    continue
+                }
+
+                let offset = row * bytesPerRow + column * bytesPerPixel
+                pixels[offset] = UInt8(color.red8Bit)
+                pixels[offset + 1] = UInt8(color.green8Bit)
+                pixels[offset + 2] = UInt8(color.blue8Bit)
+                pixels[offset + 3] = 255
+            }
+        }
+
+        guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
+              let provider = CGDataProvider(data: Data(pixels) as CFData) else {
+            return nil
+        }
+        return CGImage(
+            width: pixelSize,
+            height: pixelSize,
+            bitsPerComponent: 8,
+            bitsPerPixel: 32,
+            bytesPerRow: bytesPerRow,
+            space: colorSpace,
+            bitmapInfo: CGBitmapInfo(
+                rawValue: CGImageAlphaInfo.noneSkipLast.rawValue
+            ),
+            provider: provider,
+            decode: nil,
+            shouldInterpolate: true,
+            intent: .relativeColorimetric
+        )
+    }
+}
+
+private final class CachedLabABPlaneImage {
+    let image: CGImage
+
+    init(_ image: CGImage) {
+        self.image = image
     }
 }
 

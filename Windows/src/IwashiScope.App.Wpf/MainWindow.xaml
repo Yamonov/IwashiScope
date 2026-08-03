@@ -654,11 +654,13 @@
                                                             <Separator Margin="0,9,0,7" />
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto" />
                                                                     <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
                                                                 <TextBlock Text="{Binding MunsellValueLabel}"
-                                                                           Style="{StaticResource MetricLabel}" />
+                                                                           Style="{StaticResource MetricLabel}"
+                                                                           TextWrapping="Wrap"
+                                                                           Margin="0,0,8,0" />
                                                                 <TextBlock Grid.Column="1" Text="{Binding MunsellValueText}"
                                                                            Style="{StaticResource MetricValue}" />
                                                             </Grid>

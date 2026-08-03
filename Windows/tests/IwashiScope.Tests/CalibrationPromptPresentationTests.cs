@@ -47,4 +47,19 @@ public sealed class CalibrationPromptPresentationTests
             "Set the sensor dial to the calibration position.",
             presentation.Instruction);
     }
+
+    [Fact]
+    public void MunsellCalculationPremiseIsAvailableInJapaneseAndEnglish()
+    {
+        const string japanese =
+            "マンセル値（CIE標準イルミナントC・CIE 1931 2°標準観測者）";
+        const string english =
+            "Munsell Value (CIE Standard Illuminant C · CIE 1931 2° Standard Observer)";
+        var localization = new LocalizationCatalog();
+
+        Assert.Equal(japanese, localization.Text(japanese));
+
+        localization.SetLanguage("en");
+        Assert.Equal(english, localization.Text(japanese));
+    }
 }

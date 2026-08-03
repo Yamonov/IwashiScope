@@ -146,6 +146,22 @@ public sealed class UiAssetParityTests
             xaml,
             StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding MunsellValueText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("TextWrapping=\"Wrap\"", xaml, StringComparison.Ordinal);
+
+        var viewModel = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "IwashiScope.App.Wpf",
+            "ViewModels",
+            "MainWindowViewModel.cs"));
+        Assert.Contains(
+            "マンセル値（CIE標準イルミナントC・CIE 1931 2°標準観測者）",
+            viewModel,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "Munsell Value (CIE Standard Illuminant C · CIE 1931 2° Standard Observer)",
+            viewModel,
+            StringComparison.Ordinal);
 
         var chartDrawing = File.ReadAllText(Path.Combine(
             root,
@@ -155,6 +171,9 @@ public sealed class UiAssetParityTests
             "ChartDrawing.cs"));
         Assert.Contains("DrawLabPlaneBackground", chartDrawing, StringComparison.Ordinal);
         Assert.Contains("drawing.PushOpacity(0.5)", chartDrawing, StringComparison.Ordinal);
+        Assert.Contains("LabABChartScale.ResolveLimit", chartDrawing, StringComparison.Ordinal);
+        Assert.Contains("drawing.DrawImage", chartDrawing, StringComparison.Ordinal);
+        Assert.DoesNotContain("foreach (var tick", chartDrawing, StringComparison.Ordinal);
         Assert.Contains("Formatted(\"-a\"", chartDrawing, StringComparison.Ordinal);
         Assert.Contains("Formatted(\"+a\"", chartDrawing, StringComparison.Ordinal);
         Assert.Contains("Formatted(\"-b\"", chartDrawing, StringComparison.Ordinal);

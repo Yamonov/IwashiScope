@@ -109,6 +109,22 @@ public sealed class CoreFeatureTests
         Assert.InRange(color.Blue, 0.995, 1.005);
     }
 
+    [Theory]
+    [InlineData(0, 0, 5)]
+    [InlineData(5, -5, 5)]
+    [InlineData(5.01, 0, 10)]
+    [InlineData(-10, 3, 10)]
+    [InlineData(10.01, 0, 25)]
+    [InlineData(25, -20, 25)]
+    [InlineData(25.01, 0, 50)]
+    [InlineData(-50, 40, 50)]
+    [InlineData(50.01, 0, 100)]
+    [InlineData(120, -110, 100)]
+    public void LabChartScaleUsesFiveCleanRanges(double a, double b, double expected)
+    {
+        Assert.Equal(expected, LabABChartScale.ResolveLimit(a, b));
+    }
+
     [Fact]
     public void R15MatchesItsReferenceIlluminantAndRequiresCoverage()
     {

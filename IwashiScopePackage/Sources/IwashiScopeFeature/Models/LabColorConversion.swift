@@ -102,6 +102,26 @@ enum LabColorConverter {
         )
     }
 
+    static func displaySRGB(lab: Vector3, whitePoint: String?) -> RGBColorValue? {
+        guard let managedColor = managedColor(lab: lab, whitePoint: whitePoint),
+              let extendedSRGBSpace = CGColorSpace(name: CGColorSpace.extendedSRGB),
+              let extendedSRGBColor = managedColor.converted(
+                to: extendedSRGBSpace,
+                intent: .relativeColorimetric,
+                options: nil
+              ),
+              let extendedSRGB = rgbComponents(of: extendedSRGBColor) else {
+            return nil
+        }
+
+        return RGBColorValue(
+            red: extendedSRGB.red.clamped(to: 0...1),
+            green: extendedSRGB.green.clamped(to: 0...1),
+            blue: extendedSRGB.blue.clamped(to: 0...1),
+            isOutOfGamut: isOutOfGamut(extendedSRGB)
+        )
+    }
+
     private static func labColorSpace(for whitePoint: String?) -> CGColorSpace? {
         if whitePoint?.localizedCaseInsensitiveContains("D65") == true {
             return CGColorSpace(
