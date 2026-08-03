@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct ModeSelectionView: View {
@@ -8,9 +9,10 @@ struct ModeSelectionView: View {
     var body: some View {
         VStack(spacing: 32) {
             VStack(spacing: 10) {
-                Image(systemName: "waveform.path.ecg.rectangle")
-                    .font(.system(size: 42, weight: .medium))
-                    .foregroundStyle(.tint)
+                Image(nsImage: NSApplication.shared.applicationIconImage)
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: 64, height: 64)
                     .accessibilityHidden(true)
 
                 Text("IwashiScope")
