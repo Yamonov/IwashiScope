@@ -11,12 +11,22 @@
         }
       }
     },
-    "マンセル値（CIE標準イルミナントC・CIE 1931 2°標準観測者）" : {
+    "マンセル値" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Munsell Value (CIE Standard Illuminant C · CIE 1931 2° Standard Observer)"
+            "value" : "Munsell Value"
+          }
+        }
+      }
+    },
+    "（CIE標準イルミナントC・CIE 1931 2°標準観測者）" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(CIE Standard Illuminant C · CIE 1931 2° Standard Observer)"
           }
         }
       }

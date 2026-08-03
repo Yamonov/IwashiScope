@@ -51,15 +51,19 @@ public sealed class CalibrationPromptPresentationTests
     [Fact]
     public void MunsellCalculationPremiseIsAvailableInJapaneseAndEnglish()
     {
-        const string japanese =
-            "マンセル値（CIE標準イルミナントC・CIE 1931 2°標準観測者）";
-        const string english =
-            "Munsell Value (CIE Standard Illuminant C · CIE 1931 2° Standard Observer)";
+        const string japaneseTitle = "マンセル値";
+        const string englishTitle = "Munsell Value";
+        const string japanesePremise =
+            "（CIE標準イルミナントC・CIE 1931 2°標準観測者）";
+        const string englishPremise =
+            "(CIE Standard Illuminant C · CIE 1931 2° Standard Observer)";
         var localization = new LocalizationCatalog();
 
-        Assert.Equal(japanese, localization.Text(japanese));
+        Assert.Equal(japaneseTitle, localization.Text(japaneseTitle));
+        Assert.Equal(japanesePremise, localization.Text(japanesePremise));
 
         localization.SetLanguage("en");
-        Assert.Equal(english, localization.Text(japanese));
+        Assert.Equal(englishTitle, localization.Text(japaneseTitle));
+        Assert.Equal(englishPremise, localization.Text(japanesePremise));
     }
 }

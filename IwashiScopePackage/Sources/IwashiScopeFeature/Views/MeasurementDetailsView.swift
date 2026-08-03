@@ -97,12 +97,7 @@ struct MeasurementDetailsView: View {
                                        reflectanceSpectrum: measurement.spectrum
                                    ) {
                                     Divider()
-                                    MetricRow(
-                                        label: String(
-                                            localized: "マンセル値（CIE標準イルミナントC・CIE 1931 2°標準観測者）"
-                                        ),
-                                        value: munsell.formatted
-                                    )
+                                    MunsellMetricRow(value: munsell.formatted)
                                 }
                             }
                         }
@@ -114,7 +109,7 @@ struct MeasurementDetailsView: View {
                                 lab: lab,
                                 whitePoint: measurement.labWhitePoint
                             )
-                            .frame(width: 150, height: 150)
+                            .frame(width: 146, height: 146)
                         }
                     }
 
@@ -544,6 +539,34 @@ private struct MetricRow: View {
                 .font(.body.monospacedDigit())
                 .multilineTextAlignment(.trailing)
                 .textSelection(.enabled)
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct MunsellMetricRow: View {
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(String(localized: "マンセル値"))
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 8)
+                Text(value)
+                    .font(.body.monospacedDigit())
+                    .multilineTextAlignment(.trailing)
+                    .textSelection(.enabled)
+            }
+
+            Text(
+                String(
+                    localized: "（CIE標準イルミナントC・CIE 1931 2°標準観測者）"
+                )
+            )
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityElement(children: .combine)
     }

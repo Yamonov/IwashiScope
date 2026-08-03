@@ -639,9 +639,10 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         "クリックで展開・縮小、上下ドラッグで高さを調整",
         "Click to expand or collapse; drag vertically to resize");
     public string ColorimetricValuesLabel => T("測色値", "Colorimetric Values");
-    public string MunsellValueLabel => T(
-        "マンセル値（CIE標準イルミナントC・CIE 1931 2°標準観測者）",
-        "Munsell Value (CIE Standard Illuminant C · CIE 1931 2° Standard Observer)");
+    public string MunsellValueLabel => T("マンセル値", "Munsell Value");
+    public string MunsellValuePremiseLabel => T(
+        "（CIE標準イルミナントC・CIE 1931 2°標準観測者）",
+        "(CIE Standard Illuminant C · CIE 1931 2° Standard Observer)");
     public string LabChartAccessibilityLabel => T("a*b*グラフ", "a*b* Graph");
     public string LabChartAccessibilityValue => ActiveMeasurement?.Lab is { } lab
         ? $"a* {lab.Second:0.000}, b* {lab.Third:0.000}"

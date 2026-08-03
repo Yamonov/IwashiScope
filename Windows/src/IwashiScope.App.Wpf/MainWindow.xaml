@@ -614,7 +614,7 @@
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="150" />
+                                                        <ColumnDefinition Width="146" />
                                                     </Grid.ColumnDefinitions>
 
                                                     <StackPanel Grid.Column="0" Margin="0,0,12,0">
@@ -659,16 +659,20 @@
                                                                 </Grid.ColumnDefinitions>
                                                                 <TextBlock Text="{Binding MunsellValueLabel}"
                                                                            Style="{StaticResource MetricLabel}"
-                                                                           TextWrapping="Wrap"
                                                                            Margin="0,0,8,0" />
                                                                 <TextBlock Grid.Column="1" Text="{Binding MunsellValueText}"
                                                                            Style="{StaticResource MetricValue}" />
                                                             </Grid>
+                                                            <TextBlock Text="{Binding MunsellValuePremiseLabel}"
+                                                                       Style="{StaticResource MetricLabel}"
+                                                                       FontSize="10"
+                                                                       TextWrapping="Wrap"
+                                                                       Margin="0,2,0,0" />
                                                         </StackPanel>
                                                     </StackPanel>
 
                                                     <controls:LabABChart Grid.Column="1"
-                                                                         Width="150" Height="150"
+                                                                         Width="146" Height="146"
                                                                          HorizontalAlignment="Right"
                                                                          VerticalAlignment="Top"
                                                                          Measurement="{Binding ActiveMeasurement}"

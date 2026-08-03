@@ -146,7 +146,12 @@ public sealed class UiAssetParityTests
             xaml,
             StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding MunsellValueText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains(
+            "Text=\"{Binding MunsellValuePremiseLabel}\"",
+            xaml,
+            StringComparison.Ordinal);
         Assert.Contains("TextWrapping=\"Wrap\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Width=\"146\" Height=\"146\"", xaml, StringComparison.Ordinal);
 
         var viewModel = File.ReadAllText(Path.Combine(
             root,
@@ -155,11 +160,15 @@ public sealed class UiAssetParityTests
             "ViewModels",
             "MainWindowViewModel.cs"));
         Assert.Contains(
-            "マンセル値（CIE標準イルミナントC・CIE 1931 2°標準観測者）",
+            "MunsellValueLabel => T(\"マンセル値\", \"Munsell Value\")",
             viewModel,
             StringComparison.Ordinal);
         Assert.Contains(
-            "Munsell Value (CIE Standard Illuminant C · CIE 1931 2° Standard Observer)",
+            "（CIE標準イルミナントC・CIE 1931 2°標準観測者）",
+            viewModel,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "(CIE Standard Illuminant C · CIE 1931 2° Standard Observer)",
             viewModel,
             StringComparison.Ordinal);
 

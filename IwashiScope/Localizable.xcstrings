@@ -1,26 +1,6 @@
 {
   "sourceLanguage" : "ja",
   "strings" : {
-    "a*b*グラフ" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "a*b* Graph"
-          }
-        }
-      }
-    },
-    "マンセル値（CIE標準イルミナントC・CIE 1931 2°標準観測者）" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Munsell Value (CIE Standard Illuminant C · CIE 1931 2° Standard Observer)"
-          }
-        }
-      }
-    },
     "(nm)" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -315,6 +295,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "② Practical Light Sources (Approx.)"
+          }
+        }
+      }
+    },
+    "a*b*グラフ" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "a*b* Graph"
           }
         }
       }
@@ -1956,6 +1947,28 @@
         }
       }
     },
+    "マンセル値" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Munsell Value"
+          }
+        }
+      }
+    },
+    "（CIE標準イルミナントC・CIE 1931 2°標準観測者）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(CIE Standard Illuminant C · CIE 1931 2° Standard Observer)"
+          }
+        }
+      }
+    },
     "モード選択へ戻る" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2570,6 +2583,28 @@
         }
       }
     },
+    "固定" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixed"
+          }
+        }
+      }
+    },
+    "固定時の縦軸上限を10から500まで10刻みで設定します" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sets the fixed Y-axis maximum from 10 to 500 in increments of 10."
+          }
+        }
+      }
+    },
     "基準" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2698,61 +2733,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Do not move or operate the instrument until the operation completes."
-          }
-        }
-      }
-    },
-    "固定" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fixed"
-          }
-        }
-      }
-    },
-    "固定時の縦軸上限を10から500まで10刻みで設定します" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sets the fixed Y-axis maximum from 10 to 500 in increments of 10."
-          }
-        }
-      }
-    },
-    "自動" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatic"
-          }
-        }
-      }
-    },
-    "縦軸" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Y Axis"
-          }
-        }
-      }
-    },
-    "縦軸の固定上限" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fixed Y-axis Maximum"
           }
         }
       }
@@ -4381,6 +4361,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Termination requested (SIGTERM, then SIGKILL if still running after 250 ms)"
+          }
+        }
+      }
+    },
+    "縦軸" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Y Axis"
+          }
+        }
+      }
+    },
+    "縦軸の固定上限" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixed Y-axis Maximum"
+          }
+        }
+      }
+    },
+    "自動" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatic"
           }
         }
       }
