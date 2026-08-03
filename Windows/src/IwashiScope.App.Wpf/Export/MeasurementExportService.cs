@@ -17,6 +17,7 @@ public sealed record MeasurementExportOptions
     public bool UsePracticalSpectrumRange { get; init; } = true;
     public bool ShowD50 { get; init; }
     public bool ShowD65 { get; init; }
+    public SpectrumYAxisConfiguration? SpectrumYAxisConfiguration { get; init; }
 }
 
 public sealed class MeasurementExportService
@@ -76,7 +77,8 @@ public sealed class MeasurementExportService
                         measurement,
                         options.UsePracticalSpectrumRange,
                         options.ShowD50,
-                        options.ShowD65),
+                        options.ShowD65,
+                        options.SpectrumYAxisConfiguration),
                     cancellationToken).ConfigureAwait(false);
                 paths.Add(path);
             }

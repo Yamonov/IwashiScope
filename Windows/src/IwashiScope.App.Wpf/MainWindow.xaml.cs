@@ -209,7 +209,7 @@ public partial class MainWindow : Window
         var source = "https://github.com/Yamonov/IwashiScope";
         var version = Assembly.GetEntryAssembly()?
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-            .InformationalVersion ?? "0.9.5.2";
+            .InformationalVersion ?? "0.9.5.3";
         var result = MessageBox.Show(
             this,
             $"IwashiScope {version}: AGPL-3.0-only\n" +
@@ -351,6 +351,7 @@ public partial class MainWindow : Window
                     Tm30Png = false,
                     Csv = false,
                     Ase = true,
+                    SpectrumYAxisConfiguration = _viewModel.YAxisConfiguration,
                 }
                 : CurrentExportOptions() with
                 {
@@ -646,6 +647,7 @@ public partial class MainWindow : Window
                 Csv = ReflectanceCsvCheckBox.IsChecked == true,
                 Ase = ExportAseCheckBox.IsChecked == true,
                 UsePracticalSpectrumRange = _viewModel.UsePracticalRange,
+                SpectrumYAxisConfiguration = _viewModel.YAxisConfiguration,
             }
             : new MeasurementExportOptions
             {
@@ -657,6 +659,7 @@ public partial class MainWindow : Window
                 UsePracticalSpectrumRange = _viewModel.UsePracticalRange,
                 ShowD50 = ExportD50CheckBox.IsChecked == true,
                 ShowD65 = ExportD65CheckBox.IsChecked == true,
+                SpectrumYAxisConfiguration = _viewModel.YAxisConfiguration,
             };
 
     private void ResetExportOptions()

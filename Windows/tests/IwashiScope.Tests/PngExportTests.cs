@@ -83,7 +83,8 @@ public sealed class PngExportTests
             measurement,
             practicalRange: false,
             showD50: false,
-            showD65: false);
+            showD65: false,
+            yAxisConfiguration: new SpectrumYAxisConfiguration(SpectrumYAxisMode.Automatic, 100));
 
         using var stream = new MemoryStream(data);
         var decoder = new PngBitmapDecoder(
@@ -106,7 +107,7 @@ public sealed class PngExportTests
             $"Expected the opaque area below the line to be more saturated; " +
             $"upper={upper}, lower={lower}.");
 
-        var grayLinePixel = Enumerable.Range(225, 10)
+        var grayLinePixel = Enumerable.Range(100, 1200)
             .Select(y => PixelAt(pixels, stride, x: 1644, y))
             .FirstOrDefault(pixel =>
                 Math.Max(pixel.Red, Math.Max(pixel.Green, pixel.Blue)) -

@@ -173,6 +173,46 @@ public sealed class UiAssetParityTests
         Assert.Equal(1, CountOccurrences(xaml, "<controls:LightingHistoryChart"));
     }
 
+    [Fact]
+    public void SpectrumYAxisControlsAreLocalizedSnappedAndAccessible()
+    {
+        var root = FindRepositoryRoot();
+        var xaml = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "IwashiScope.App.Wpf",
+            "MainWindow.xaml"));
+        var viewModel = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "IwashiScope.App.Wpf",
+            "ViewModels",
+            "MainWindowViewModel.cs"));
+        var codeBehind = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "IwashiScope.App.Wpf",
+            "MainWindow.xaml.cs"));
+
+        Assert.Contains("Minimum=\"10\" Maximum=\"500\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("TickFrequency=\"10\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("IsSnapToTickEnabled=\"True\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SmallChange=\"10\" LargeChange=\"10\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("IsEnabled=\"{Binding IsSpectrumYAxisFixed}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains(
+            "AutomationProperties.Name=\"{Binding SpectrumYAxisSliderAccessibilityLabel}\"",
+            xaml,
+            StringComparison.Ordinal);
+        Assert.Contains("T(\"縦軸\", \"Vertical Axis\")", viewModel, StringComparison.Ordinal);
+        Assert.Contains("T(\"自動\", \"Automatic\")", viewModel, StringComparison.Ordinal);
+        Assert.Contains("T(\"固定\", \"Fixed\")", viewModel, StringComparison.Ordinal);
+        Assert.Equal(
+            3,
+            CountOccurrences(
+                codeBehind,
+                "SpectrumYAxisConfiguration = _viewModel.YAxisConfiguration"));
+    }
+
     private static ushort ReadUInt16(byte[] bytes, int offset) =>
         BitConverter.ToUInt16(bytes, offset);
 

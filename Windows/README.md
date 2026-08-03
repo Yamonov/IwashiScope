@@ -1,6 +1,6 @@
 # IwashiScope for Windows
 
-IwashiScope 0.9.5.2 for Windows is the .NET 10 + WPF port of the macOS
+IwashiScope 0.9.5.3 for Windows is the .NET 10 + WPF port of the macOS
 application in this repository. It uses the same modified ArgyllCMS 3.5.0
 source and JSON Lines protocol version 3 as the macOS build.
 
@@ -60,14 +60,14 @@ measurement backend.
 The release script builds and runs the common C helper test, builds and tests
 the WPF solution, publishes a self-contained win-x64 application, includes
 the common licenses and corresponding-source metadata, and creates both
-`IwashiScope-0.9.5.2-Windows-x64.zip` and the directly executable
-`IwashiScope-0.9.5.2-Windows-x64-Setup.exe`.
+`IwashiScope-0.9.5.3-Windows-x64.zip` and the directly executable
+`IwashiScope-0.9.5.3-Windows-x64-Setup.exe`.
 
 ```powershell
 .\Windows\Scripts\Build-Release.ps1 `
-  -Version 0.9.5.2 `
+  -Version 0.9.5.3 `
   -JamPath C:\path\to\jam.exe `
-  -OutputRoot C:\path\to\artifacts\release-0.9.5.2
+  -OutputRoot C:\path\to\artifacts\release-0.9.5.3
 ```
 
 The installer follows the established Scripta for Windows pattern: it installs
@@ -115,14 +115,14 @@ detached signature back to Windows, then generate a checked feed file:
 
 ```sh
 /path/to/Sparkle/bin/sign_update \
-  IwashiScope-0.9.5.2-Windows-x64-Setup.exe
+  IwashiScope-0.9.5.3-Windows-x64-Setup.exe
 ```
 
 ```powershell
 .\Windows\Scripts\New-WindowsAppcast.ps1 `
-  -Version 0.9.5.2 `
-  -TagName v0.9.5.2 `
-  -InstallerPath .\Windows\artifacts\release-0.9.5.2\IwashiScope-0.9.5.2-Windows-x64-Setup.exe `
+  -Version 0.9.5.3 `
+  -TagName v0.9.5.3 `
+  -InstallerPath .\Windows\artifacts\release-0.9.5.3\IwashiScope-0.9.5.3-Windows-x64-Setup.exe `
   -EdSignature SIGNATURE_FROM_MAC
 ```
 
@@ -143,7 +143,7 @@ temporary signed artifacts:
 
 ```powershell
 .\Windows\Scripts\Test-WinSparkleSigning.ps1 `
-  -InstallerPath .\Windows\artifacts\release-0.9.5.2\IwashiScope-0.9.5.2-Windows-x64-Setup.exe
+  -InstallerPath .\Windows\artifacts\release-0.9.5.3\IwashiScope-0.9.5.3-Windows-x64-Setup.exe
 ```
 
 The macOS and Windows feeds are separate files in the same repository. This
@@ -156,7 +156,7 @@ from overwriting the other platform's release history.
 ## Version and signing
 
 The Windows product, assembly, file, and informational versions are defined in
-`Directory.Build.props`. Release 0.9.5.2 uses `0.9.5.2` for product, file,
+`Directory.Build.props`. Release 0.9.5.3 uses `0.9.5.3` for product, file,
 assembly, and informational versions.
 
 The release process does not create or trust a certificate automatically.
