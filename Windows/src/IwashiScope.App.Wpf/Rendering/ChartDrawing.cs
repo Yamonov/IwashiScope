@@ -412,7 +412,16 @@ internal static class ChartDrawing
             plotSize);
         var plotBackground = new SolidColorBrush(Color.FromArgb(9, 91, 102, 112));
         plotBackground.Freeze();
-        drawing.DrawRectangle(plotBackground, AxisPen, plot);
+        drawing.DrawRectangle(plotBackground, null, plot);
+
+        if (measurement?.Lab is { } backgroundLab && backgroundLab.IsFinite)
+        {
+            DrawLabPlaneBackground(
+                drawing,
+                plot,
+                backgroundLab.First,
+                measurement.LabWhitePoint);
+        }
 
         double X(double value) =>
             plot.Left + (value - domainMinimum) / (domainMaximum - domainMinimum) * plot.Width;
@@ -436,9 +445,24 @@ internal static class ChartDrawing
             drawing.DrawText(yLabel, new Point(plot.Left - yLabel.Width - 4, y - yLabel.Height / 2));
         }
 
-        DrawText(drawing, "b*", new Point(plot.Left + 3, plot.Top + 2), 9, AxisBrush, pixelsPerDip);
-        var aLabel = Formatted("a*", 9, AxisBrush, pixelsPerDip);
-        drawing.DrawText(aLabel, new Point(plot.Right - aLabel.Width - 2, plot.Bottom + 15));
+        var positiveB = Formatted("+b", 9, Brushes.Black, pixelsPerDip);
+        drawing.DrawText(
+            positiveB,
+            new Point(plot.Left + (plot.Width - positiveB.Width) / 2, plot.Top + 2));
+        var negativeB = Formatted("-b", 9, Brushes.Black, pixelsPerDip);
+        drawing.DrawText(
+            negativeB,
+            new Point(plot.Left + (plot.Width - negativeB.Width) / 2, plot.Bottom - negativeB.Height - 2));
+        var negativeA = Formatted("-a", 9, Brushes.Black, pixelsPerDip);
+        drawing.DrawText(
+            negativeA,
+            new Point(plot.Left + 2, plot.Top + (plot.Height - negativeA.Height) / 2));
+        var positiveA = Formatted("+a", 9, Brushes.Black, pixelsPerDip);
+        drawing.DrawText(
+            positiveA,
+            new Point(plot.Right - positiveA.Width - 2, plot.Top + (plot.Height - positiveA.Height) / 2));
+
+        drawing.DrawRectangle(null, AxisPen, plot);
 
         if (measurement?.Lab is not { } lab || !lab.IsFinite)
         {
@@ -448,15 +472,52 @@ internal static class ChartDrawing
         var point = new Point(
             X(Math.Clamp(lab.Second, domainMinimum, domainMaximum)),
             Y(Math.Clamp(lab.Third, domainMinimum, domainMaximum)));
-        var color = LabColorConverter.Convert(lab, measurement.LabWhitePoint).Srgb;
-        var pointBrush = new SolidColorBrush(Color.FromRgb(
-            color.RedByte,
-            color.GreenByte,
-            color.BlueByte));
-        pointBrush.Freeze();
         var outline = new Pen(Brushes.White, 2);
         outline.Freeze();
-        drawing.DrawEllipse(pointBrush, outline, point, 5, 5);
+        drawing.DrawEllipse(Brushes.Black, outline, point, 5, 5);
+    }
+
+    private static void DrawLabPlaneBackground(
+        DrawingContext drawing,
+        Rect plot,
+        double lightness,
+        string? whitePoint)
+    {
+        const int cellCount = 32;
+        const double domainMinimum = -128;
+        const double domainMaximum = 128;
+        var domainWidth = domainMaximum - domainMinimum;
+        var cellWidth = plot.Width / cellCount;
+        var cellHeight = plot.Height / cellCount;
+
+        drawing.PushClip(new RectangleGeometry(plot));
+        drawing.PushOpacity(0.5);
+        for (var row = 0; row < cellCount; row++)
+        {
+            for (var column = 0; column < cellCount; column++)
+            {
+                var a = domainMinimum + (column + 0.5) / cellCount * domainWidth;
+                var b = domainMaximum - (row + 0.5) / cellCount * domainWidth;
+                var color = LabColorConverter.Convert(
+                    new Vector3(lightness, a, b),
+                    whitePoint).Srgb;
+                var brush = new SolidColorBrush(Color.FromRgb(
+                    color.RedByte,
+                    color.GreenByte,
+                    color.BlueByte));
+                brush.Freeze();
+                drawing.DrawRectangle(
+                    brush,
+                    null,
+                    new Rect(
+                        plot.Left + column * cellWidth,
+                        plot.Top + row * cellHeight,
+                        cellWidth + 0.5,
+                        cellHeight + 0.5));
+            }
+        }
+        drawing.Pop();
+        drawing.Pop();
     }
 
     private static void DrawLightingHistorySpectrum(

@@ -146,6 +146,23 @@ public sealed class UiAssetParityTests
             xaml,
             StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding MunsellValueText}\"", xaml, StringComparison.Ordinal);
+
+        var chartDrawing = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "IwashiScope.App.Wpf",
+            "Rendering",
+            "ChartDrawing.cs"));
+        Assert.Contains("DrawLabPlaneBackground", chartDrawing, StringComparison.Ordinal);
+        Assert.Contains("drawing.PushOpacity(0.5)", chartDrawing, StringComparison.Ordinal);
+        Assert.Contains("Formatted(\"-a\"", chartDrawing, StringComparison.Ordinal);
+        Assert.Contains("Formatted(\"+a\"", chartDrawing, StringComparison.Ordinal);
+        Assert.Contains("Formatted(\"-b\"", chartDrawing, StringComparison.Ordinal);
+        Assert.Contains("Formatted(\"+b\"", chartDrawing, StringComparison.Ordinal);
+        Assert.Contains(
+            "drawing.DrawEllipse(Brushes.Black, outline, point, 5, 5)",
+            chartDrawing,
+            StringComparison.Ordinal);
     }
 
     [Fact]

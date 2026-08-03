@@ -31,16 +31,22 @@ struct LabColorConversion {
 enum LabColorConverter {
     private static let gamutTolerance = 0.0005
 
-    static func convert(lab: Vector3, whitePoint: String?) -> LabColorConversion? {
+    static func managedColor(lab: Vector3, whitePoint: String?) -> CGColor? {
         let components = [lab.first, lab.second, lab.third]
-        guard components.allSatisfy(\.isFinite) else { return nil }
-        let labComponents = components.map { CGFloat($0) } + [CGFloat(1)]
+        guard components.allSatisfy(\.isFinite),
+              let labColorSpace = labColorSpace(for: whitePoint) else {
+            return nil
+        }
+        var labComponents = components.map { CGFloat($0) }
+        labComponents.append(CGFloat(1))
+        return CGColor(
+            colorSpace: labColorSpace,
+            components: labComponents
+        )
+    }
 
-        guard let labColorSpace = labColorSpace(for: whitePoint),
-              let managedColor = CGColor(
-                colorSpace: labColorSpace,
-                components: labComponents
-              ),
+    static func convert(lab: Vector3, whitePoint: String?) -> LabColorConversion? {
+        guard let managedColor = managedColor(lab: lab, whitePoint: whitePoint),
               let extendedSRGBSpace = CGColorSpace(name: CGColorSpace.extendedSRGB),
               let extendedSRGBColor = managedColor.converted(
                 to: extendedSRGBSpace,

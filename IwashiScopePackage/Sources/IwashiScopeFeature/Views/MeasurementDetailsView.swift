@@ -241,7 +241,7 @@ private struct LabABChartView: View {
                 y: .value("b*", plottedB)
             )
             .symbolSize(78)
-            .foregroundStyle(pointColor)
+            .foregroundStyle(.black)
         }
         .chartXScale(domain: domain)
         .chartYScale(domain: domain)
@@ -263,20 +263,25 @@ private struct LabABChartView: View {
         }
         .chartPlotStyle { plotArea in
             plotArea
-                .background(.secondary.opacity(0.035))
+                .background {
+                    LabABPlaneBackground(
+                        lightness: lab.first,
+                        whitePoint: whitePoint
+                    )
+                }
                 .border(.secondary.opacity(0.2), width: 1)
-        }
-        .overlay(alignment: .topLeading) {
-            Text("b*")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .padding(.leading, 4)
-        }
-        .overlay(alignment: .bottomTrailing) {
-            Text("a*")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .padding(.trailing, 2)
+                .overlay(alignment: .top) {
+                    directionLabel("+b")
+                }
+                .overlay(alignment: .bottom) {
+                    directionLabel("-b")
+                }
+                .overlay(alignment: .leading) {
+                    directionLabel("-a")
+                }
+                .overlay(alignment: .trailing) {
+                    directionLabel("+a")
+                }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(String(localized: "a*b*グラフ"))
@@ -293,11 +298,50 @@ private struct LabABChartView: View {
         min(max(lab.third, domain.lowerBound), domain.upperBound)
     }
 
-    private var pointColor: Color {
-        guard let conversion = LabColorConverter.convert(lab: lab, whitePoint: whitePoint) else {
-            return .accentColor
+    private func directionLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(.black)
+            .padding(2)
+    }
+}
+
+private struct LabABPlaneBackground: View {
+    let lightness: Double
+    let whitePoint: String?
+
+    private let cellCount = 32
+    private let domainMinimum = -128.0
+    private let domainMaximum = 128.0
+
+    var body: some View {
+        Canvas(opaque: false, colorMode: .extendedLinear) { context, size in
+            let cellWidth = size.width / Double(cellCount)
+            let cellHeight = size.height / Double(cellCount)
+            let domainWidth = domainMaximum - domainMinimum
+
+            context.opacity = 0.5
+            for row in 0..<cellCount {
+                for column in 0..<cellCount {
+                    let a = domainMinimum
+                        + (Double(column) + 0.5) / Double(cellCount) * domainWidth
+                    let b = domainMaximum
+                        - (Double(row) + 0.5) / Double(cellCount) * domainWidth
+                    let color = LabColorConverter.managedColor(
+                        lab: Vector3(first: lightness, second: a, third: b),
+                        whitePoint: whitePoint
+                    ).map(Color.init(cgColor:)) ?? .clear
+                    let cell = CGRect(
+                        x: Double(column) * cellWidth,
+                        y: Double(row) * cellHeight,
+                        width: cellWidth + 0.5,
+                        height: cellHeight + 0.5
+                    )
+                    context.fill(Path(cell), with: .color(color))
+                }
+            }
         }
-        return Color(cgColor: conversion.managedColor)
+        .accessibilityHidden(true)
     }
 }
 
