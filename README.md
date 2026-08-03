@@ -6,7 +6,7 @@
 ArgyllCMS 3.5.0を改変した同梱コマンド`iwashiscope-spotread`を対話操作し、スペクトルと測色・光源評価値を表示する分光・測色アプリです。macOS版はSwiftUI、Windows版はWPFで実装し、同じ改変ソースから各OS用の`iwashiscope-spotread`をビルドします。
 
 > [!IMPORTANT]
-> macOS版Version 0.9には、Sparkle.frameworkを見つけられず起動できない問題があります。Version 0.9をダウンロードした場合は、署名・公証済みの[IwashiScope 0.9.5.3](https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.5.3)を手動でダウンロードして置き換えてください。macOS版・Windows版の配布バイナリに対応する完全なソース一式も、同じReleaseで公開しています。
+> macOS版Version 0.9には、Sparkle.frameworkを見つけられず起動できない問題があります。Version 0.9をダウンロードした場合は、署名・公証済みの[IwashiScope 0.9.5.4](https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.5.4)を手動でダウンロードして置き換えてください。macOS版・Windows版の配布バイナリに対応する完全なソース一式も、同じReleaseで公開しています。
 
 ## 現在の実装
 
@@ -29,6 +29,7 @@ ArgyllCMS 3.5.0を改変した同梱コマンド`iwashiscope-spotread`を対話�
 - スペクトルグラフの縦軸は自動または10〜500の10刻みで固定でき、反射原稿は固定100、環境光・発光は自動（固定値200）を初期値として、整数の目盛りと同じ設定を画面表示・PNG書出しへ反映
 - 環境光・発光モードでは、D50とD65の基準分光分布を選択して、560 nmで測定値に合わせた比較曲線を重ねて表示
 - XYZ、D50 Lab、モノクロY/L*、ピーク、Lux、CCT、Duv、EV、CRI R1〜R15、TLCI、TM-30、および各Caution・算出不能状態を解析して表示
+- 全測定モードでD50 Labと範囲自動調整付きa*b*グラフを表示し、反射原稿では測定スペクトルからCIE標準イルミナントC・CIE 1931 2°標準観測者によるマンセル値を算出
 - CRI R1〜R14は`iwashiscope-spotread`出力を使用し、R15は測定スペクトルを5 nm間隔へ補間してTCS15からCIE 13.3方式で独自計算
 - R1〜R15を試験色に対応した横並びの色付き棒グラフでスペクトル図の下に表示
 - 環境光・発光モードでは、CRIとIES TM-30-15をタブで切り替え、TM-30には16色相ビンの色相グラフ、Rf、Rg、大型Rf–Rgプロット、CCT、Duv、99色評価用試料の試料別忠実度棒グラフを表示

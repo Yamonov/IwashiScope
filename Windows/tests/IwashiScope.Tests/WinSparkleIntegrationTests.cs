@@ -102,9 +102,9 @@ public sealed class WinSparkleIntegrationTests
             "IwashiScopeInstallerCore.cs"));
 
         Assert.Contains("Build-WindowsInstaller.ps1", releaseScript);
-        Assert.Contains("[string] $Version = '0.9.5.3'", releaseScript);
+        Assert.Contains("[string] $Version = '0.9.5.4'", releaseScript);
         Assert.Contains("Windows-x64-Setup.exe", releaseScript);
-        Assert.Contains("[string] $Version = '0.9.5.3'", installerScript);
+        Assert.Contains("[string] $Version = '0.9.5.4'", installerScript);
         Assert.Contains("Compress-Archive -Path (Join-Path $payloadFull '*')", installerScript);
         Assert.Contains("Test-WindowsInstaller.ps1", installerScript);
         Assert.Contains("/platform:x64", installerScript);
@@ -127,8 +127,8 @@ public sealed class WinSparkleIntegrationTests
         Assert.Contains("FileRenameInfo", installerCore);
         Assert.Contains("FileDispositionInfoEx", installerCore);
         Assert.Contains("ReparsePoint", installerCore);
+        Assert.Contains("<sparkle:version>0.9.5.4</sparkle:version>", signingTestScript);
         Assert.Contains("<sparkle:version>0.9.5.3</sparkle:version>", signingTestScript);
-        Assert.Contains("<sparkle:version>0.9.5.2</sparkle:version>", signingTestScript);
     }
 
     [Fact]
@@ -219,7 +219,7 @@ public sealed class WinSparkleIntegrationTests
         Assert.Equal("Yamonov", native.CompanyName);
         Assert.Equal("IwashiScope", native.AppName);
         Assert.False(string.IsNullOrWhiteSpace(native.AppVersion));
-        Assert.Equal("0.9.5.3", native.BuildVersion);
+        Assert.Equal("0.9.5.4", native.BuildVersion);
         Assert.Equal("en", native.Language);
         Assert.Equal(1, native.InitializeCount);
         Assert.Equal(1, native.CanShutdownCallback!());
