@@ -2682,6 +2682,61 @@
         }
       }
     },
+    "固定" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixed"
+          }
+        }
+      }
+    },
+    "固定時の縦軸上限を10から500まで10刻みで設定します" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sets the fixed Y-axis maximum from 10 to 500 in increments of 10."
+          }
+        }
+      }
+    },
+    "自動" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatic"
+          }
+        }
+      }
+    },
+    "縦軸" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Y Axis"
+          }
+        }
+      }
+    },
+    "縦軸の固定上限" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixed Y-axis Maximum"
+          }
+        }
+      }
+    },
     "実用エリアを使用する" : {
       "extractionState" : "stale",
       "localizations" : {

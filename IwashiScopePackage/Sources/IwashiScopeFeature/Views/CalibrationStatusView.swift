@@ -6,6 +6,7 @@ struct CalibrationStatusView: View {
     let displayedMeasurement: SpotMeasurement?
     let displayedInstrumentIdentity: SpotreadInstrumentIdentity?
     @Binding var usesPracticalSpectrumRange: Bool
+    @Binding var spectrumYAxisConfiguration: SpectrumYAxisConfiguration
     let onConnectInstrument: () -> Void
 
     var body: some View {
@@ -64,7 +65,8 @@ struct CalibrationStatusView: View {
                     identity: displayedInstrumentIdentity,
                     measurement: displayedMeasurement,
                     isWorkspace: session.phase == .workspace,
-                    usesPracticalSpectrumRange: $usesPracticalSpectrumRange
+                    usesPracticalSpectrumRange: $usesPracticalSpectrumRange,
+                    spectrumYAxisConfiguration: $spectrumYAxisConfiguration
                 )
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -341,6 +343,7 @@ private struct InstrumentMetadataView: View {
     let measurement: SpotMeasurement?
     let isWorkspace: Bool
     @Binding var usesPracticalSpectrumRange: Bool
+    @Binding var spectrumYAxisConfiguration: SpectrumYAxisConfiguration
 
     var body: some View {
         VStack(spacing: 6) {
@@ -366,6 +369,9 @@ private struct InstrumentMetadataView: View {
             )
             .disabled(hasPracticalWavelengthRange == false)
             .help(practicalRangeToggleHelp)
+            InstrumentMetadataYAxisRow(
+                configuration: $spectrumYAxisConfiguration
+            )
         }
         .font(.caption)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -432,6 +438,49 @@ private struct InstrumentMetadataView: View {
 
     private func format(_ value: Double) -> String {
         value.formatted(.number.precision(.fractionLength(0...1)))
+    }
+}
+
+private struct InstrumentMetadataYAxisRow: View {
+    @Binding var configuration: SpectrumYAxisConfiguration
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text("縦軸")
+                .foregroundStyle(.secondary)
+
+            Spacer(minLength: 6)
+
+            Picker("縦軸", selection: $configuration.mode) {
+                Text("自動").tag(SpectrumYAxisMode.automatic)
+                Text("固定").tag(SpectrumYAxisMode.fixed)
+            }
+            .labelsHidden()
+            .pickerStyle(.radioGroup)
+            .horizontalRadioGroupLayout()
+            .fixedSize()
+            .accessibilityIdentifier("spectrum-y-axis-mode-picker")
+
+            Slider(
+                value: $configuration.fixedUpperBound,
+                in: SpectrumYAxisConfiguration.fixedUpperBoundRange,
+                step: SpectrumYAxisConfiguration.fixedUpperBoundStep
+            )
+            .disabled(configuration.mode != .fixed)
+            .frame(minWidth: 90)
+            .accessibilityLabel("縦軸の固定上限")
+            .accessibilityIdentifier("spectrum-y-axis-maximum-slider")
+
+            Text(
+                configuration.normalizedFixedUpperBound,
+                format: .number.precision(.fractionLength(0))
+            )
+            .monospacedDigit()
+            .frame(width: 28, alignment: .trailing)
+            .accessibilityHidden(true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .help("固定時の縦軸上限を10から500まで10刻みで設定します")
     }
 }
 

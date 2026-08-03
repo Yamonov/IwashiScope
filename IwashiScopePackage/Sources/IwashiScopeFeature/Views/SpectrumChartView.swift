@@ -2,12 +2,139 @@ import Charts
 import Foundation
 import SwiftUI
 
+enum SpectrumYAxisMode: String, CaseIterable, Sendable {
+    case automatic
+    case fixed
+}
+
+struct SpectrumYAxisConfiguration: Equatable, Sendable {
+    static let fixedUpperBoundRange = 10.0...500.0
+    static let fixedUpperBoundStep = 10.0
+
+    var mode: SpectrumYAxisMode
+    var fixedUpperBound: Double
+
+    static func initial(for measurementMode: MeasurementMode) -> Self {
+        switch measurementMode {
+        case .reflectance:
+            Self(mode: .fixed, fixedUpperBound: 100)
+        case .ambient, .emissive:
+            Self(mode: .automatic, fixedUpperBound: 200)
+        }
+    }
+
+    static var initialByMeasurementMode: [MeasurementMode: Self] {
+        Dictionary(
+            uniqueKeysWithValues: MeasurementMode.allCases.map { mode in
+                (mode, initial(for: mode))
+            }
+        )
+    }
+
+    var normalizedFixedUpperBound: Double {
+        guard fixedUpperBound.isFinite else {
+            return Self.fixedUpperBoundRange.lowerBound
+        }
+        let clamped = min(
+            max(fixedUpperBound, Self.fixedUpperBoundRange.lowerBound),
+            Self.fixedUpperBoundRange.upperBound
+        )
+        return (clamped / Self.fixedUpperBoundStep).rounded()
+            * Self.fixedUpperBoundStep
+    }
+
+}
+
+struct SpectrumYAxisScale: Equatable, Sendable {
+    let upperBound: Double
+    let tickValues: [Double]
+
+    static func resolve(
+        automaticUpperBound: Double,
+        configuration: SpectrumYAxisConfiguration
+    ) -> Self {
+        switch configuration.mode {
+        case .fixed:
+            let upperBound = configuration.normalizedFixedUpperBound
+            let tickStep = upperBound / 5
+            return Self(
+                upperBound: upperBound,
+                tickValues: (0...5).map { Double($0) * tickStep }
+            )
+        case .automatic:
+            let requiredUpperBound = automaticUpperBound.isFinite
+                ? max(1, automaticUpperBound)
+                : 1
+            let tickStep = automaticTickStep(for: requiredUpperBound)
+            let intervalCount = max(
+                1,
+                Int(ceil(requiredUpperBound / tickStep))
+            )
+            let upperBound = Double(intervalCount) * tickStep
+            return Self(
+                upperBound: upperBound,
+                tickValues: (0...intervalCount).map {
+                    Double($0) * tickStep
+                }
+            )
+        }
+    }
+
+    private static func automaticTickStep(for upperBound: Double) -> Double {
+        let desiredStep = max(1, upperBound / 5)
+        let exponent = Int(floor(log10(desiredStep)))
+        let multipliers = [1.0, 2.0, 2.5, 5.0, 10.0]
+        var candidates = Set<Double>()
+
+        for candidateExponent in (exponent - 1)...(exponent + 1) {
+            let magnitude = pow(10, Double(candidateExponent))
+            for multiplier in multipliers {
+                let candidate = multiplier * magnitude
+                let integerCandidate = candidate.rounded()
+                let tolerance = max(1, abs(candidate)) * 0.000_001
+                if candidate.isFinite,
+                   integerCandidate >= 1,
+                   abs(candidate - integerCandidate) <= tolerance {
+                    candidates.insert(integerCandidate)
+                }
+            }
+        }
+
+        return candidates.sorted().min { lhs, rhs in
+            automaticTickScore(step: lhs, upperBound: upperBound)
+                < automaticTickScore(step: rhs, upperBound: upperBound)
+        } ?? ceil(desiredStep)
+    }
+
+    private static func automaticTickScore(
+        step: Double,
+        upperBound: Double
+    ) -> Double {
+        let intervalCount = max(1, Int(ceil(upperBound / step)))
+        let outsidePreferredRange: Int
+        if intervalCount < 3 {
+            outsidePreferredRange = 3 - intervalCount
+        } else if intervalCount > 6 {
+            outsidePreferredRange = intervalCount - 6
+        } else {
+            outsidePreferredRange = 0
+        }
+        let intervalPenalty = Double(outsidePreferredRange * 100)
+        let targetPenalty = Double(abs(intervalCount - 5) * 10)
+        let resolvedUpperBound = Double(intervalCount) * step
+        let headroomPenalty = (resolvedUpperBound - upperBound)
+            / max(upperBound, 1)
+        return intervalPenalty + targetPenalty + headroomPenalty
+    }
+}
+
 struct SpectrumChartView: View {
     let mode: MeasurementMode
     let measurement: SpotMeasurement?
     let calibrationCompleted: Bool
     let showsReferenceControls: Bool
     let usesPracticalSpectrumRange: Bool
+    let yAxisConfiguration: SpectrumYAxisConfiguration
     let roundsPlotAreaCorners: Bool
 
     @State private var showsD50Reference = false
@@ -20,6 +147,7 @@ struct SpectrumChartView: View {
         calibrationCompleted: Bool,
         showsReferenceControls: Bool = true,
         usesPracticalSpectrumRange: Bool = false,
+        yAxisConfiguration: SpectrumYAxisConfiguration,
         roundsPlotAreaCorners: Bool = true,
         initialShowsD50Reference: Bool = false,
         initialShowsD65Reference: Bool = false
@@ -29,6 +157,7 @@ struct SpectrumChartView: View {
         self.calibrationCompleted = calibrationCompleted
         self.showsReferenceControls = showsReferenceControls
         self.usesPracticalSpectrumRange = usesPracticalSpectrumRange
+        self.yAxisConfiguration = yAxisConfiguration
         self.roundsPlotAreaCorners = roundsPlotAreaCorners
         _showsD50Reference = State(initialValue: initialShowsD50Reference)
         _showsD65Reference = State(initialValue: initialShowsD65Reference)
@@ -93,12 +222,16 @@ struct SpectrumChartView: View {
         )
     }
 
-    private var yUpperBound: Double {
+    private var yAxisScale: SpectrumYAxisScale {
         let maximum = (samples + d50ReferenceSamples + d65ReferenceSamples)
             .lazy
             .map(\.value)
             .max() ?? 1
-        return max(1, maximum * 1.08)
+        let automaticUpperBound = max(1, maximum * 1.08)
+        return SpectrumYAxisScale.resolve(
+            automaticUpperBound: automaticUpperBound,
+            configuration: yAxisConfiguration
+        )
     }
 
     private func samplesWithinDisplayRange(
@@ -191,6 +324,7 @@ struct SpectrumChartView: View {
 
     private var chart: some View {
         let spectrumGradient = SpectrumChartStyle.gradient(for: displayRange)
+        let resolvedYAxisScale = yAxisScale
 
         return Chart {
             ForEach(samples) { sample in
@@ -236,7 +370,7 @@ struct SpectrumChartView: View {
             }
         }
         .chartXScale(domain: displayRange)
-        .chartYScale(domain: 0...yUpperBound)
+        .chartYScale(domain: 0...resolvedYAxisScale.upperBound)
         .chartXAxis {
             AxisMarks(
                 values: SpectrumChartScale.axisValues(for: displayRange)
@@ -255,7 +389,22 @@ struct SpectrumChartView: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .leading)
+            AxisMarks(
+                position: .leading,
+                values: resolvedYAxisScale.tickValues
+            ) { value in
+                AxisGridLine()
+                AxisTick()
+                if let tickValue = value.as(Double.self) {
+                    AxisValueLabel {
+                        Text(
+                            tickValue.formatted(
+                                .number.precision(.fractionLength(0))
+                            )
+                        )
+                    }
+                }
+            }
         }
         .chartXAxisLabel("(nm)", position: .bottom, alignment: .trailing, spacing: 0)
         .chartPlotStyle { plotArea in

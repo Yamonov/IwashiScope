@@ -31,6 +31,7 @@ struct LightingMeasurementHistoryView: View {
     let mode: MeasurementMode
     let historyStore: MeasurementHistoryStore
     let usesPracticalSpectrumRange: Bool
+    let spectrumYAxisConfiguration: SpectrumYAxisConfiguration
 
     private var cardItemWidth: Double {
         LightingMeasurementHistoryCardMetrics.size.width
@@ -246,7 +247,8 @@ struct LightingMeasurementHistoryView: View {
                 mode: mode,
                 entries: selectedEntries,
                 orderedEntries: entries,
-                usesPracticalSpectrumRange: usesPracticalSpectrumRange
+                usesPracticalSpectrumRange: usesPracticalSpectrumRange,
+                spectrumYAxisConfiguration: spectrumYAxisConfiguration
             )
         )
     }

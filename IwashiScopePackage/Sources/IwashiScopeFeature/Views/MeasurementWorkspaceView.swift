@@ -24,6 +24,8 @@ struct MeasurementWorkspaceView: View {
     @State private var isExporting = false
     @State private var analysisContentHeight: CGFloat = 0
     @State private var usesPracticalSpectrumRange = false
+    @State private var spectrumYAxisConfigurations =
+        SpectrumYAxisConfiguration.initialByMeasurementMode
 
     let mode: MeasurementMode
     let session: MeasurementSession
@@ -91,7 +93,8 @@ struct MeasurementWorkspaceView: View {
                                 mode: mode,
                                 measurement: displayedMeasurement,
                                 calibrationCompleted: session.calibrationCompleted,
-                                usesPracticalSpectrumRange: usesPracticalSpectrumRange
+                                usesPracticalSpectrumRange: usesPracticalSpectrumRange,
+                                yAxisConfiguration: spectrumYAxisConfiguration
                             )
 
                             if mode != .reflectance {
@@ -141,6 +144,7 @@ struct MeasurementWorkspaceView: View {
                     displayedInstrumentIdentity: displayedEntry?.instrumentIdentity
                         ?? session.instrumentIdentity,
                     usesPracticalSpectrumRange: $usesPracticalSpectrumRange,
+                    spectrumYAxisConfiguration: spectrumYAxisConfigurationBinding,
                     onConnectInstrument: onConnectInstrument
                 )
                     .padding(16)
@@ -186,9 +190,24 @@ struct MeasurementWorkspaceView: View {
             LightingMeasurementHistoryView(
                 mode: mode,
                 historyStore: historyStore,
-                usesPracticalSpectrumRange: usesPracticalSpectrumRange
+                usesPracticalSpectrumRange: usesPracticalSpectrumRange,
+                spectrumYAxisConfiguration: spectrumYAxisConfiguration
             )
         }
+    }
+
+    private var spectrumYAxisConfiguration: SpectrumYAxisConfiguration {
+        spectrumYAxisConfigurations[mode]
+            ?? SpectrumYAxisConfiguration.initial(for: mode)
+    }
+
+    private var spectrumYAxisConfigurationBinding: Binding<SpectrumYAxisConfiguration> {
+        Binding(
+            get: { spectrumYAxisConfiguration },
+            set: { configuration in
+                spectrumYAxisConfigurations[mode] = configuration
+            }
+        )
     }
 
     private var busyPresentation: InstrumentBusyPresentation? {
@@ -335,6 +354,7 @@ struct MeasurementWorkspaceView: View {
     ) {
         var exportOptions = options
         exportOptions.usesPracticalSpectrumRange = usesPracticalSpectrumRange
+        exportOptions.spectrumYAxisConfiguration = spectrumYAxisConfiguration
         let entries = selectedEntries
         guard MeasurementExportAvailability(entries: entries).canExport(
             mode: mode,

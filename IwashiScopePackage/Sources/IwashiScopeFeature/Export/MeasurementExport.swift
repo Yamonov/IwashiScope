@@ -4,6 +4,7 @@ struct MeasurementExportOptions: Equatable, Sendable {
     var includesSwatch = false
     var includesSpectrumImage = false
     var usesPracticalSpectrumRange = false
+    var spectrumYAxisConfiguration = SpectrumYAxisConfiguration.initial(for: .ambient)
     var includesD50Reference = false
     var includesD65Reference = false
     var includesCRIImage = false
@@ -12,6 +13,7 @@ struct MeasurementExportOptions: Equatable, Sendable {
 
     static func defaults(for mode: MeasurementMode) -> Self {
         var options = Self()
+        options.spectrumYAxisConfiguration = .initial(for: mode)
         if mode == .reflectance {
             options.includesSwatch = true
         } else {
@@ -74,17 +76,21 @@ struct MeasurementHistoryDragExportRequest: Sendable {
     let entries: [MeasurementHistoryEntry]
     let orderedEntries: [MeasurementHistoryEntry]
     let usesPracticalSpectrumRange: Bool
+    let spectrumYAxisConfiguration: SpectrumYAxisConfiguration
 
     init(
         mode: MeasurementMode,
         entries: [MeasurementHistoryEntry],
         orderedEntries: [MeasurementHistoryEntry],
-        usesPracticalSpectrumRange: Bool = false
+        usesPracticalSpectrumRange: Bool = false,
+        spectrumYAxisConfiguration: SpectrumYAxisConfiguration? = nil
     ) {
         self.mode = mode
         self.entries = entries
         self.orderedEntries = orderedEntries
         self.usesPracticalSpectrumRange = usesPracticalSpectrumRange
+        self.spectrumYAxisConfiguration = spectrumYAxisConfiguration
+            ?? .initial(for: mode)
     }
 }
 

@@ -89,6 +89,8 @@ enum MeasurementExporter {
         var options = MeasurementExportOptions.dragDefaults(for: request.mode)
         options.usesPracticalSpectrumRange =
             request.usesPracticalSpectrumRange
+        options.spectrumYAxisConfiguration =
+            request.spectrumYAxisConfiguration
         let baseNames = MeasurementExportFileNamer.baseNames(
             for: request.entries,
             orderedEntries: request.orderedEntries
@@ -138,6 +140,8 @@ enum MeasurementExporter {
                         measurement: measurement,
                         usesPracticalSpectrumRange:
                             options.usesPracticalSpectrumRange,
+                        yAxisConfiguration:
+                            options.spectrumYAxisConfiguration,
                         includesD50Reference: mode == .reflectance
                             ? false
                             : options.includesD50Reference,
