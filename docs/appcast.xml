@@ -6,6 +6,48 @@
         <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
         <item>
+            <title>0.9.5.3</title>
+            <pubDate>Mon, 03 Aug 2026 17:49:38 +0900</pubDate>
+            <link>https://yamonov.github.io/IwashiScope/</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.5.3</sparkle:fullReleaseNotesLink>
+            <sparkle:version>29</sparkle:version>
+            <sparkle:shortVersionString>0.9.5.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# IwashiScope 0.9.5.3
+
+スペクトルグラフの縦軸表示と画像書出しを改善し、モード選択画面のアイコンを統一した更新です。
+
+- スペクトルグラフの縦軸を自動または10〜500の10刻みで固定できる設定を追加
+- 反射原稿では固定100、環境光・発光では自動かつ固定値200を初期値として使用
+- 縦軸の目盛りを整数へ統一し、自動時は測定値が収まる見やすい整数上限へ調整
+- 通常のスペクトル画像書出しと履歴カードのドラッグ書出しへ現在の縦軸設定を反映
+- モード選択画面上部へIwashiScopeのアプリアイコンを表示
+- Intel MacとAppleシリコンMacに対応するUniversal Binary
+- macOS 14.6以降に対応
+
+macOS版はDeveloper IDで署名し、Appleの公証を完了しています。
+
+Windows版は.NETランタイムを含む自己完結型x64版です。標準installerとportable ZIPを収録しています。公開用Authenticode証明書がないため未署名で、初回起動時にMicrosoft Defender SmartScreenの警告が表示される場合があります。WinSparkleによる更新ファイルはEdDSA署名で検証されます。
+
+このReleaseには、macOS版・Windows版・両OSのhelperに正確に対応する完全なソース一式を含めています。ライセンス、第三者著作物、ArgyllCMSからの変更内容は、ソースZIP内の `LICENSE`、`NOTICE`、`THIRD_PARTY_NOTICES.md`、`ARGYLL_CHANGES.md`を参照してください。
+
+[v0.9.5.3のソースコード](https://github.com/Yamonov/IwashiScope/tree/v0.9.5.3)
+
+## SHA-256
+
+- `IwashiScope-0.9.5.3.zip`: `dfe32d4cf83e59e6b7727d9963988ae3641aa23917dee8d1110d7e6eac5ebdd8`
+- `IwashiScope-0.9.5.3-Windows-x64-Setup.exe`: `e3b230be0dd5a56fe2d1f50fae30aeba543e9338235a09854b9478c4bee30339`
+- `IwashiScope-0.9.5.3-Windows-x64.zip`: `73c0cfe66dbe74df72d79bd96919c790fcb9ae6b391734875bdeca225703d7d8`
+- `IwashiScope-0.9.5.3-source.zip`: `ae236b2a43cd7f6c6cd678823fa2a0ed2026cf06e90b21a33a5cb46b2970bfd9`
+]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v0.9.5.3/IwashiScope-0.9.5.3.zip"
+                length="10620625"
+                type="application/octet-stream"
+                sparkle:edSignature="F+nVEAdQVpkybUgSyuB48X86mRoxPe6/0NSI1cff8HCSHB1M4HrOuQnvEW7pitFldaasyxUozz851PJ2Ub7YBQ=="
+            />
+        </item>
+        <item>
             <title>0.9.5.2</title>
             <pubDate>Sun, 02 Aug 2026 00:39:03 +0900</pubDate>
             <link>https://yamonov.github.io/IwashiScope/</link>
