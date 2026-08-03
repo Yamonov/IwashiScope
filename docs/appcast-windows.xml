@@ -11,6 +11,15 @@
           Each enclosure must set sparkle:os="windows-x64".
         -->
         <item xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <title>IwashiScope 0.9.5.4 for Windows</title>
+  <pubDate>Mon, 03 Aug 2026 13:21:34 GMT</pubDate>
+  <sparkle:releaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.5.4</sparkle:releaseNotesLink>
+  <sparkle:version>0.9.5.4</sparkle:version>
+  <sparkle:shortVersionString>0.9.5.4</sparkle:shortVersionString>
+  <sparkle:minimumSystemVersion>10.0</sparkle:minimumSystemVersion>
+  <enclosure url="https://github.com/Yamonov/IwashiScope/releases/download/v0.9.5.4/IwashiScope-0.9.5.4-Windows-x64-Setup.exe" length="67136512" type="application/octet-stream" sparkle:os="windows-x64" sparkle:edSignature="dzx6+YQ1KhoeW+7Lb6ybOzMn4wP+AsmEUIhrgGkFXw9q3z7dRuCCSJ1YMaP6o0p3WiErtc0aojVY3/Te+zjxCw==" />
+</item>
+        <item xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <title>IwashiScope 0.9.5.3 for Windows</title>
   <pubDate>Mon, 03 Aug 2026 08:49:38 GMT</pubDate>
   <sparkle:releaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.5.3</sparkle:releaseNotesLink>
