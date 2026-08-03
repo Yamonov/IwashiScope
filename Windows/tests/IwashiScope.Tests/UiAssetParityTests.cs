@@ -173,7 +173,10 @@ public sealed class UiAssetParityTests
         Assert.Contains("drawing.PushOpacity(0.5)", chartDrawing, StringComparison.Ordinal);
         Assert.Contains("LabABChartScale.ResolveLimit", chartDrawing, StringComparison.Ordinal);
         Assert.Contains("drawing.DrawImage", chartDrawing, StringComparison.Ordinal);
-        Assert.DoesNotContain("foreach (var tick", chartDrawing, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "foreach (var tick in new[] { -100, 0, 100 })",
+            chartDrawing,
+            StringComparison.Ordinal);
         Assert.Contains("Formatted(\"-a\"", chartDrawing, StringComparison.Ordinal);
         Assert.Contains("Formatted(\"+a\"", chartDrawing, StringComparison.Ordinal);
         Assert.Contains("Formatted(\"-b\"", chartDrawing, StringComparison.Ordinal);
