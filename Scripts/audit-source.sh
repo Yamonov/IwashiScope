@@ -80,11 +80,13 @@ Windows/src/IwashiScope.App.Wpf/Resources/Icons/IwashiScope.ico
 Windows/src/IwashiScope.App.Wpf/Resources/Icons/IwashiScope-128.png
 Windows/src/IwashiScope.App.Wpf/Resources/Localizable.xcstrings
 Windows/src/IwashiScope.Core/IwashiScope.Core.csproj
+Windows/src/IwashiScope.Core/Models/SpectrumYAxisConfiguration.cs
 Windows/src/IwashiScope.Infrastructure.Windows/IwashiScope.Infrastructure.Windows.csproj
 Windows/src/IwashiScope.Protocol/IwashiScope.Protocol.csproj
 Windows/tests/IwashiScope.Tests/IwashiScope.Tests.csproj
 Windows/tests/IwashiScope.Tests/ProtocolTests.cs
 Windows/tests/IwashiScope.Tests/ReleaseMetadataTests.cs
+Windows/tests/IwashiScope.Tests/SpectrumYAxisTests.cs
 Windows/tests/IwashiScope.Tests/WinSparkleIntegrationTests.cs
 docs/appcast-windows.xml
 Windows/tools/Generate-WindowsIcon.ps1

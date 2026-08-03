@@ -29,6 +29,7 @@
 | 14 | 100 ms batching、UTF-8/CRLF/任意分割/終了直前drain | 済 | 自動 | byte単位UTF-8分割とEOF drain |
 | 15 | app異常終了時もhelperを孤立させない | 済 | 目視 | Job Object、UI終了後のfake orphanなし |
 | 16 | 薄いスペクトルカラー背景と実用波長範囲切替 | 済 | 未試験 | 背景gradientとsquare plotを共通rendererへ実装 |
+| 16a | 縦軸の自動／固定、10〜500の10刻み、mode別初期値、整数目盛り | 済 | 自動 | 反射は固定100、環境光・発光は自動かつ固定値200。自動上限は測定値を収める整数区切りへ切り上げ |
 | 17 | D50/D65公式曲線を560 nm正規化して重ねる | 済 | 自動 | 560 nmを含まない場合は非表示 |
 | 18 | XYZ/Lab/monochrome/peak/Lux/CCT/Duv/EV/CRI/TLCI/TM-30/issue | 済 | 自動+目視 | fake ambientで主要値を目視 |
 | 19 | R1–R14はhelper、R15は5 nm/TCS15/CIE 13.3アプリ計算 | 済 | 自動 | Argyll由来reference test。Windows独自のapp-calculated表示は通常UIから除去 |
@@ -58,7 +59,7 @@ TM-30本文の4点補間、基準輪郭の単位半径化、16 sector、変位�
 | selection | Ctrl click/Shift範囲/Ctrl+A/Ctrl+D/Delete、mode間移動禁止 | 済 | core自動、WPF標準selectionは目視未完 |
 | reorder | 複数カード順維持、先頭/末尾/折返し、presentation順 | 済 | 自動 |
 | drag | reflectance選択を1 ASE、lightingをSpectrum/CRI/TM-30 PNG等、internal reorderとexternal file drag | 済 | 未試験 |
-| PNG | 幅3,000 px、sRGB chunk、Bgr24/alphaなし、実用範囲、square plot、D50/D65凡例 | 済 | 構造自動、実用範囲/凡例の画像差分は未試験 |
+| PNG | 幅3,000 px、sRGB chunk、Bgr24/alphaなし、実用範囲、縦軸の自動／固定、square plot、D50/D65凡例 | 済 | 構造と縦軸設定の画像差分を自動検証。実用範囲/凡例の画像差分は未試験 |
 | CSV | CRLF、安定列、lighting spectrum/CRI/TLCI/TM-30 section | 済 | 自動 |
 | naming | 並べ替え後の全履歴位置、最低3桁、Unicode、禁止文字・予約名・末尾dot/space・重複回避 | 済 | 自動 |
 | ASE | big-endian Lab spot、reflectance選択を単一palette、単一/複数名 | 済 | 自動 |
@@ -88,10 +89,10 @@ TM-30本文の4点補間、基準輪郭の単位半径化、16 sector、変位�
 | workspace nesting/casing/identity/tab/duplicate/unknown version | `CoreFeatureTests.WorkspaceRoundTripsAndRejectsDuplicateIds` |
 | R15、TM-30 7.54、normalized/interpolated contour、色空間独立gamut | `CoreFeatureTests` |
 | CSV CRLF/section、ASE endian/Lab | `CoreFeatureTests` |
-| PNG 3000×1500（logical 1000×500、3× raster）/Bgr24/sRGB、560 nm不在時のreference非表示 | `PngExportTests` |
+| PNG 3000×1500（logical 1000×500、3× raster）/Bgr24/sRGB、縦軸設定の反映、560 nm不在時のreference非表示 | `PngExportTests` |
 | full-order連番、Unicode、reserved/duplicate、単一/複数ASE名 | `ExportFileNameTests` |
 
-現行自動テストは54件。存在確認だけでなく、JSON round-trip、PNG chunk/pixel format、
+現行自動テストは105件。存在確認だけでなく、JSON round-trip、PNG chunk/pixel format、
 process pipe、selection/reorder geometry、TM-30 contourの数値構造を検証する。
 
 ## D. 実機待ち

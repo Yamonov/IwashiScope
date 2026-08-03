@@ -72,7 +72,7 @@ right-side group. Adobe RGB is never added.
 | Order | Content |
 | --- | --- |
 | 1 | Calibration/status group: large current mode, phase title/detail, notices, phase-specific controls |
-| 2 | Instrument metadata: instrument and serial, wavelength range, data-point count, practical wavelength range, “実用エリアを使用する” |
+| 2 | Instrument metadata: instrument and serial, wavelength range, data-point count, practical wavelength range, “実用エリアを使用する”, then spectrum Y-axis automatic/fixed controls (10–500 in steps of 10); chart ticks are integer values and automatic bounds round up to fit |
 | 3 | Tabs in this order: “測定値”, “spotread詳細ログ” |
 | 4 | Mode-specific export footer |
 
@@ -87,9 +87,9 @@ not part of this pane.
 | History card | 110×110 swatch, editable name over swatch, Lab triplet | 110×110 spectrum thumbnail, divider, CRI thumbnail, editable bottom title |
 | Selection | exclusive, Ctrl-toggle, Shift-range, Ctrl+Shift additive range, Ctrl+A, Ctrl+D, Delete | Same, mode-local |
 | Reorder | selected cards retain presentation order; start/end/before/after/wrap; no cross-mode move | Same |
-| External drag | selected swatches as one ASE plus normal exports | Spectrum/CRI/TM-30 PNG and CSV as available |
+| External drag | selected swatches as one ASE plus normal exports | Spectrum/CRI/TM-30 PNG and CSV as available; spectrum PNG uses the current Y-axis setting |
 | Footer | collapsed/adaptive, click expand to 90%, splitter drag, keyboard-adjustable | Same |
-| Export options | Swatch, 3,000 px spectrum PNG, spectrum CSV | Spectrum PNG, nested D50/D65 lines, CRI PNG, TM-30 PNG, combined CSV |
+| Export options | Swatch, 3,000 px spectrum PNG using the current Y-axis setting, spectrum CSV | Spectrum PNG using the current Y-axis setting, nested D50/D65 lines, CRI PNG, TM-30 PNG, combined CSV |
 
 ## TM-30 layout acceptance
 
