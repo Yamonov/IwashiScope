@@ -15,9 +15,9 @@
  * This material is licenced under the GNU GENERAL PUBLIC LICENSE Version 2 or later :-
  * see the License2.txt file for licencing details.
  *
- * Modified for IwashiScope by Yamonov on 2026-07-23:
+ * Modified for IwashiScope by Yamonov on 2026-07-23 and 2026-08-05:
  * added the -J JSON Lines protocol, structured state/error/calibration events,
- * and TM-30 measurement details for a robust GUI integration.
+ * TM-30 measurement details, and in-session averaged-spectrum analysis.
  */
 
 /* This program reads a spot reflection/transmission/emission value using */
@@ -570,7 +570,7 @@ usage(char *diag, ...) {
 	int i;
 	icompaths *icmps;
 	inst2_capability cap2 = 0;
-	fprintf(stderr,"IwashiScope spot reader, patch version 1\n");
+	fprintf(stderr,"IwashiScope spot reader, patch version 2\n");
 	fprintf(stderr,"Based on ArgyllCMS spotread, Version %s\n",ARGYLL_VERSION_STR);
 	fprintf(stderr,"Author: Graeme W. Gill, licensed under the AGPL Version 3\n");
 	if (diag != NULL) {
@@ -1296,7 +1296,7 @@ int main(int argc, char *argv[]) {
 		jsonl_check(spotread_jsonl_emit_hello(protocol, ARGYLL_VERSION_STR));
 		fprintf(
 			stderr,
-			"IwashiScope spot reader patch 1, based on ArgyllCMS spotread %s\n",
+			"IwashiScope spot reader patch 2, based on ArgyllCMS spotread %s\n",
 			ARGYLL_VERSION_STR
 		);
 	}
@@ -1985,6 +1985,14 @@ remediate:;
 		inst_set_uih('K', 'K',   DUIH_CMND);
 		inst_set_uih('s', 's',   DUIH_CMND);
 		inst_set_uih('S', 'S',   DUIH_CMND);
+#ifndef SALONEINSTLIB
+		if (protocol != NULL)
+			inst_set_uih(
+				SPOTREAD_JSONL_ANALYZE_COMMAND,
+				SPOTREAD_JSONL_ANALYZE_COMMAND,
+				DUIH_CMND
+			);
+#endif
 		if (cap2 & inst2_has_target)
 			inst_set_uih('t', 't',   DUIH_CMND);
 		inst_set_uih('f', 'f',   DUIH_CMND);
@@ -2057,7 +2065,11 @@ remediate:;
 	}
 #endif
 
-	if (spec || psetrefname[0] != '\000') {
+#ifndef SALONEINSTLIB
+	if (spec || pspec || protocol != NULL || psetrefname[0] != '\000') {
+#else
+	if (spec || pspec || psetrefname[0] != '\000') {
+#endif
 
 		/* Any non-illuminated mode has no illuminant */
 		if (emiss || ambient)
@@ -2140,7 +2152,11 @@ remediate:;
 		double cct, vct, vdt;
 		double cct_de, vct_de, vdt_de;
 		double cct_sn, vct_sn, vdt_sn;			/* Sign: 1 + above, -1 = below */
+		int is_spectrum_analysis = 0;
+		char analysis_error[256];
+		spotread_jsonl_analysis_request analysis_request;
 		spotread_jsonl_measurement protocol_measurement;
+		spotread_jsonl_analysis_request_init(&analysis_request);
 		spotread_jsonl_measurement_init(&protocol_measurement);
 		protocol_measurement.reading_index = ix;
 		protocol_measurement.mode = ambient ? "ambient" : (emiss || tele) ? "emissive" : "reflectance";
@@ -2604,6 +2620,66 @@ remediate:;
 		if (ch == 0x1b || ch == 0x03 || ch == 'q' || ch == 'Q') {	/* Or ^C */
 			break;
 		}
+#ifndef SALONEINSTLIB
+		if (protocol != NULL && ch == SPOTREAD_JSONL_ANALYZE_COMMAND) {
+			spotread_jsonl_analysis_status analysis_status;
+
+			jsonl_check(spotread_jsonl_emit_state(
+				protocol, "spectrumAnalysisInputReady"
+			));
+			analysis_status = spotread_jsonl_read_analysis_request(
+				protocol_measurement.mode,
+				&analysis_request,
+				analysis_error,
+				sizeof(analysis_error)
+			);
+			if (analysis_status == spotread_jsonl_analysis_input_closed)
+				break;
+			if (analysis_status == spotread_jsonl_analysis_io_error) {
+				jsonl_check(spotread_jsonl_emit_issue(
+					protocol,
+					"spectrumAnalysisInputFailure",
+					analysis_error,
+					inst_coms_fail,
+					"restart"
+				));
+				break;
+			}
+			if (analysis_status != spotread_jsonl_analysis_ok) {
+				jsonl_check(spotread_jsonl_emit_issue(
+					protocol,
+					"spectrumAnalysisInvalidRequest",
+					analysis_error,
+					inst_protocol_error,
+					"resumeMeasurementLoop"
+				));
+				--ix;
+				continue;
+			}
+
+			memset(&val, 0, sizeof(val));
+			val.sp = analysis_request.spectrum;
+			if (ambient == 2)
+				val.mtype = inst_mrt_ambient_flash;
+			else if (ambient)
+				val.mtype = inst_mrt_ambient;
+			else if (emiss || tele)
+				val.mtype = inst_mrt_emission;
+			else
+				val.mtype = inst_mrt_reflective;
+			val.mcond = inst_mrc_none;
+			is_spectrum_analysis = 1;
+			protocol_measurement.source = "averagedSpectrum";
+			protocol_measurement.analysis_request_id =
+				analysis_request.request_id;
+			protocol_measurement.averaged_sample_count =
+				analysis_request.sample_count;
+			jsonl_check(spotread_jsonl_emit_state(
+				protocol, "spectrumAnalysisStarted"
+			));
+			ch = '0';
+		}
+#endif
 		if ((cap2 & inst2_has_target) && ch == 't') {	// Toggle target
 			inst_code ev;
 			if ((ev = it->get_set_opt(it, inst_opt_set_target_state, 2)) != inst_ok) {
@@ -2906,7 +2982,11 @@ remediate:;
 		if (sufwa == 0) {		/* Not setting up fwa, so process reading */
 
 			/* Compute the XYZ & Lab */
+#ifndef SALONEINSTLIB
+			if (dofwa == 0 && spec == 0 && !is_spectrum_analysis) {
+#else
 			if (dofwa == 0 && spec == 0) {
+#endif
 				if (val.XYZ_v == 0)
 					error("Instrument didn't return XYZ value");
 				
@@ -2932,6 +3012,21 @@ remediate:;
 						XYZ[j] *= 100.0;		/* 0..100 scale */
 				}
 			}
+#ifndef SALONEINSTLIB
+			if (is_spectrum_analysis
+			 && (!isfinite(XYZ[0]) || !isfinite(XYZ[1]) || !isfinite(XYZ[2])
+			  || (doCCT && XYZ[1] <= 0.0))) {
+				jsonl_check(spotread_jsonl_emit_issue(
+					protocol,
+					"spectrumAnalysisCalculationFailure",
+					"The supplied spectrum did not produce valid tristimulus values",
+					inst_protocol_error,
+					"resumeMeasurementLoop"
+				));
+				--ix;
+				continue;
+			}
+#endif
 
 			/* XYZ is 0 .. 100 for reflective/transmissive, and absolute for emissibe here */
 			/* XYZ is 0 .. 1 for reflective/transmissive, and absolute for emissibe here */
@@ -3183,7 +3278,8 @@ remediate:;
 #endif /* SALONEINSTLIB */
 			}
 
-			if (ambient && (cap2 & inst2_ambient_mono)) {
+			if (!is_spectrum_analysis
+			 && ambient && (cap2 & inst2_ambient_mono)) {
 				printf("\n Result is Y: %f, L*: %f\n",XYZ[1], Lab[0]);
 			} else {
 				if (doYxy) {
@@ -3379,7 +3475,14 @@ remediate:;
 
 				practical_range.short_nm = sp.spec_wl_short;
 				practical_range.long_nm = sp.spec_wl_long;
-				if (it->get_set_opt(
+				if (is_spectrum_analysis) {
+					if (analysis_request.has_practical_spectrum_range) {
+						practical_range.short_nm =
+							analysis_request.practical_spectrum_start_nm;
+						practical_range.long_nm =
+							analysis_request.practical_spectrum_end_nm;
+					}
+				} else if (it->get_set_opt(
 						it,
 						inst_opt_get_practical_wl_range,
 						&practical_range
@@ -3398,7 +3501,8 @@ remediate:;
 				protocol_measurement.practical_spectrum_end_nm =
 					practical_range.long_nm;
 			}
-			if (ambient && (cap2 & inst2_ambient_mono)) {
+			if (!is_spectrum_analysis
+			 && ambient && (cap2 & inst2_ambient_mono)) {
 				protocol_measurement.has_monochrome = 1;
 				protocol_measurement.monochrome_y = XYZ[1];
 				protocol_measurement.monochrome_lstar = Lab[0];

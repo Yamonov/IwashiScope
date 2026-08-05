@@ -76,6 +76,31 @@ struct MonochromeResult: Codable, Equatable, Sendable {
     let lStar: Double
 }
 
+struct AveragedMeasurementMetadata: Codable, Equatable, Sendable {
+    let requestID: String
+    let sampleCount: Int
+    let measurementCount: Int?
+    let outlierCount: Int?
+    let relative95UncertaintyPercent: Double?
+    let convergenceTier: AveragingConvergenceTier?
+
+    init(
+        requestID: String,
+        sampleCount: Int,
+        measurementCount: Int? = nil,
+        outlierCount: Int? = nil,
+        relative95UncertaintyPercent: Double? = nil,
+        convergenceTier: AveragingConvergenceTier? = nil
+    ) {
+        self.requestID = requestID
+        self.sampleCount = sampleCount
+        self.measurementCount = measurementCount
+        self.outlierCount = outlierCount
+        self.relative95UncertaintyPercent = relative95UncertaintyPercent
+        self.convergenceTier = convergenceTier
+    }
+}
+
 enum LightingMetricIssue: String, Codable, Hashable, Sendable {
     case invalidCCT
     case invalidPlanckianTemperature
@@ -106,6 +131,7 @@ struct SpotMeasurement: Codable, Equatable, Sendable {
     let cri: CRIResult?
     let tlci: TLCIResult?
     let tm30: TM30Result?
+    let averagedMeasurement: AveragedMeasurementMetadata?
 
     init(
         capturedAt: Date,
@@ -130,7 +156,8 @@ struct SpotMeasurement: Codable, Equatable, Sendable {
         lightingMetricIssues: Set<LightingMetricIssue>,
         cri: CRIResult?,
         tlci: TLCIResult?,
-        tm30: TM30Result?
+        tm30: TM30Result?,
+        averagedMeasurement: AveragedMeasurementMetadata? = nil
     ) {
         self.capturedAt = capturedAt
         self.mode = mode
@@ -155,6 +182,7 @@ struct SpotMeasurement: Codable, Equatable, Sendable {
         self.cri = cri
         self.tlci = tlci
         self.tm30 = tm30
+        self.averagedMeasurement = averagedMeasurement
     }
 
     var validatedPracticalSpectrumRange: WavelengthRange? {
@@ -167,6 +195,37 @@ struct SpotMeasurement: Codable, Equatable, Sendable {
             return nil
         }
         return practicalSpectrumRange
+    }
+
+    func replacingAveragedMeasurementMetadata(
+        _ metadata: AveragedMeasurementMetadata
+    ) -> SpotMeasurement {
+        SpotMeasurement(
+            capturedAt: capturedAt,
+            mode: mode,
+            spectrumStart: spectrumStart,
+            spectrumEnd: spectrumEnd,
+            practicalSpectrumRange: practicalSpectrumRange,
+            declaredStepCount: declaredStepCount,
+            spectrum: spectrum,
+            peakValue: peakValue,
+            peakWavelength: peakWavelength,
+            xyz: xyz,
+            lab: lab,
+            labWhitePoint: labWhitePoint,
+            monochrome: monochrome,
+            lux: lux,
+            cct: cct,
+            duv: duv,
+            suggestedEV100: suggestedEV100,
+            closestPlanckian: closestPlanckian,
+            closestDaylight: closestDaylight,
+            lightingMetricIssues: lightingMetricIssues,
+            cri: cri,
+            tlci: tlci,
+            tm30: tm30,
+            averagedMeasurement: metadata
+        )
     }
 }
 

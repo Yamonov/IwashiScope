@@ -284,6 +284,33 @@ public sealed class UiAssetParityTests
                 "SpectrumYAxisConfiguration = _viewModel.YAxisConfiguration"));
     }
 
+    [Fact]
+    public void AveragingControlsHistoryStackAndQualityDetailsArePresent()
+    {
+        var root = FindRepositoryRoot();
+        var xaml = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "IwashiScope.App.Wpf",
+            "MainWindow.xaml"));
+        var viewModel = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "IwashiScope.App.Wpf",
+            "ViewModels",
+            "MainWindowViewModel.cs"));
+
+        Assert.Contains("Command=\"{Binding AverageMeasurementCommand}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding AveragingProgressText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Value=\"{Binding AveragingProgressValue, Mode=OneWay}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Value=\"{Binding AveragingConvergenceValue, Mode=OneWay}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("IsAveragingStack", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding AverageBadgeText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Visibility=\"{Binding HasAveragedMeasurement", xaml, StringComparison.Ordinal);
+        Assert.Contains("$\"{AveragingAcceptedCount}（{AveragingMeasurementCount}）/", viewModel, StringComparison.Ordinal);
+        Assert.Contains("<TabControl Height=\"380\"", xaml, StringComparison.Ordinal);
+    }
+
     private static ushort ReadUInt16(byte[] bytes, int offset) =>
         BitConverter.ToUInt16(bytes, offset);
 

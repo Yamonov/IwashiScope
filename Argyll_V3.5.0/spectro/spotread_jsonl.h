@@ -19,11 +19,35 @@
 #include "inst.h"
 #include "tm3015.h"
 
+#define SPOTREAD_JSONL_ANALYZE_COMMAND 0x1d
+#define SPOTREAD_JSONL_ANALYSIS_REQUEST_ID_MAX 64
+#define SPOTREAD_JSONL_ANALYSIS_MODE_MAX 15
+
 typedef struct _spotread_jsonl spotread_jsonl;
+
+typedef enum {
+	spotread_jsonl_analysis_ok = 0,
+	spotread_jsonl_analysis_invalid = 1,
+	spotread_jsonl_analysis_input_closed = 2,
+	spotread_jsonl_analysis_io_error = 3
+} spotread_jsonl_analysis_status;
+
+typedef struct {
+	char request_id[SPOTREAD_JSONL_ANALYSIS_REQUEST_ID_MAX + 1];
+	char mode[SPOTREAD_JSONL_ANALYSIS_MODE_MAX + 1];
+	int sample_count;
+	xspect spectrum;
+	int has_practical_spectrum_range;
+	double practical_spectrum_start_nm;
+	double practical_spectrum_end_nm;
+} spotread_jsonl_analysis_request;
 
 typedef struct {
 	int reading_index;
 	const char *mode;
+	const char *source;
+	const char *analysis_request_id;
+	int averaged_sample_count;
 	const xspect *spectrum;
 	int has_practical_spectrum_range;
 	double practical_spectrum_start_nm;
@@ -74,6 +98,24 @@ spotread_jsonl *spotread_jsonl_open(void);
 void spotread_jsonl_close(spotread_jsonl *p);
 
 void spotread_jsonl_measurement_init(spotread_jsonl_measurement *measurement);
+void spotread_jsonl_analysis_request_init(
+	spotread_jsonl_analysis_request *request
+);
+
+spotread_jsonl_analysis_status spotread_jsonl_parse_analysis_request(
+	const char *json,
+	size_t json_length,
+	const char *expected_mode,
+	spotread_jsonl_analysis_request *request,
+	char *error_message,
+	size_t error_message_size
+);
+spotread_jsonl_analysis_status spotread_jsonl_read_analysis_request(
+	const char *expected_mode,
+	spotread_jsonl_analysis_request *request,
+	char *error_message,
+	size_t error_message_size
+);
 
 int spotread_jsonl_emit_hello(spotread_jsonl *p, const char *argyll_version);
 int spotread_jsonl_emit_instrument(

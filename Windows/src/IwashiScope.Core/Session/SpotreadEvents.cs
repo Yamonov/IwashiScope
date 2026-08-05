@@ -8,13 +8,17 @@ public sealed record HelloAcceptedEvent(
     int ProtocolVersion,
     string Implementation,
     int ImplementationVersion,
-    string ArgyllVersion) : SpotreadEvent;
+    string ArgyllVersion,
+    IReadOnlySet<string>? Capabilities = null) : SpotreadEvent;
 
 public sealed record InstrumentIdentityEvent(SpotreadInstrumentIdentity Identity) : SpotreadEvent;
 public sealed record CalibrationStartedEvent : SpotreadEvent;
 public sealed record CalibrationCompletedEvent(bool Skipped) : SpotreadEvent;
 public sealed record SavedReadingPromptEvent : SpotreadEvent;
 public sealed record MeasurementStartedEvent : SpotreadEvent;
+public sealed record SpectrumAnalysisInputReadyEvent : SpotreadEvent;
+public sealed record SpectrumAnalysisStartedEvent : SpotreadEvent;
+public sealed record SpectrumAnalysisFailedEvent(string Reason) : SpotreadEvent;
 public sealed record MeasurementCompletedEvent(SpotMeasurement Measurement) : SpotreadEvent;
 public sealed record MeasurementPromptEvent : SpotreadEvent;
 

@@ -5,6 +5,15 @@ private enum LightingRenderingTab: Hashable {
     case tm30
 }
 
+enum LightingRenderingLayout {
+    static let contentHeight: CGFloat = 320
+    static let tabHeight: CGFloat = 380
+    static let tm30TopHeight: CGFloat = 168
+    static let tm30BottomHeight: CGFloat = 140
+    static let tm30VerticalSpacing: CGFloat = 12
+    static let tm30RfRgMinimumHeight: CGFloat = 140
+}
+
 struct LightingRenderingTabsView: View {
     @State private var selectedTab: LightingRenderingTab = .cri
 
@@ -24,6 +33,6 @@ struct LightingRenderingTabsView: View {
                 }
                 .tag(LightingRenderingTab.tm30)
         }
-        .frame(height: 480)
+        .frame(height: LightingRenderingLayout.tabHeight)
     }
 }

@@ -209,7 +209,7 @@ public partial class MainWindow : Window
         var source = "https://github.com/Yamonov/IwashiScope";
         var version = Assembly.GetEntryAssembly()?
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-            .InformationalVersion ?? "0.9.5.4";
+            .InformationalVersion ?? "0.9.6";
         var result = MessageBox.Show(
             this,
             $"IwashiScope {version}: AGPL-3.0-only\n" +
@@ -293,9 +293,11 @@ public partial class MainWindow : Window
 
         var selected = HistoryList.SelectedItems
             .OfType<HistoryItemViewModel>()
+            .Where(item => item.CanSelect)
             .Select(item => item.Id)
             .ToArray();
-        var active = (HistoryList.SelectedItem as HistoryItemViewModel)?.Id;
+        var selectedItem = HistoryList.SelectedItem as HistoryItemViewModel;
+        Guid? active = selectedItem?.CanSelect == true ? selectedItem.Id : null;
         _viewModel.SynchronizeSelection(selected, active);
     }
 
@@ -397,7 +399,7 @@ public partial class MainWindow : Window
 
         var target = FindAncestor<ListBoxItem>(e.OriginalSource as DependencyObject);
         var targetItem = target?.DataContext as HistoryItemViewModel;
-        _viewModel.ReorderSelectionBefore(targetItem?.Id);
+        _viewModel.ReorderSelectionBefore(targetItem?.CanSelect == true ? targetItem.Id : null);
         e.Effects = DragDropEffects.Move;
         e.Handled = true;
     }
@@ -451,7 +453,8 @@ public partial class MainWindow : Window
 
     private void HistoryNameEditor_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (sender is not TextBox editor)
+        if (sender is not TextBox editor ||
+            editor.DataContext is HistoryItemViewModel { CanRename: false })
         {
             return;
         }

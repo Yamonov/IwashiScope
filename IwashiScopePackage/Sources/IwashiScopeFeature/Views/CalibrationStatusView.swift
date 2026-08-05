@@ -59,6 +59,12 @@ struct CalibrationStatusView: View {
                 controls
                     .frame(maxWidth: .infinity, alignment: .trailing)
 
+                if showsAveragingControls {
+                    Divider()
+
+                    AveragingMeasurementControls(session: session)
+                }
+
                 Divider()
 
                 InstrumentMetadataView(
@@ -81,6 +87,10 @@ struct CalibrationStatusView: View {
         default:
             false
         }
+    }
+
+    private var showsAveragingControls: Bool {
+        session.phase == .ready || session.isAveragingMeasurement
     }
 
     private var statusSymbol: some View {
@@ -265,9 +275,15 @@ struct CalibrationStatusView: View {
             )
         case .measuring:
             StatusPresentation(
-                title: localized("測定中"),
-                detail: localized("スペクトルと測色値を取得しています。測定器を動かさないでください。"),
-                systemImage: "waveform.path.ecg",
+                title: session.isFinalizingAveragingMeasurement
+                    ? localized("平均値を再計算中")
+                    : localized("測定中"),
+                detail: session.isFinalizingAveragingMeasurement
+                    ? localized("平均スペクトルから測色値と演色評価値を再計算しています。")
+                    : localized("スペクトルと測色値を取得しています。測定器を動かさないでください。"),
+                systemImage: session.isFinalizingAveragingMeasurement
+                    ? "function"
+                    : "waveform.path.ecg",
                 color: .blue
             )
         case .recovering:
@@ -335,6 +351,235 @@ struct CalibrationStatusView: View {
 
     private func localized(_ resource: LocalizedStringResource) -> String {
         String(localized: resource)
+    }
+}
+
+private struct AveragingMeasurementControls: View {
+    let session: MeasurementSession
+
+    private var acceptedCount: Int {
+        session.averagingAccumulator.acceptedCount
+    }
+
+    private var measurementAttemptCount: Int {
+        session.averagingAccumulator.measurementAttemptCount
+    }
+
+    private var actionTitle: String {
+        if session.isFinalizingAveragingMeasurement {
+            return String(localized: "平均値を計算中")
+        }
+        guard session.isAveragingMeasurement else {
+            return String(localized: "平均化測定を開始")
+        }
+        return session.averagingAccumulator.canOutputAverage
+            ? String(localized: "平均値を出力")
+            : String(localized: "平均値モードを終了")
+    }
+
+    private var actionSystemImage: String {
+        if session.isFinalizingAveragingMeasurement {
+            return "function"
+        }
+        return session.isAveragingMeasurement
+            ? "waveform.path.ecg.rectangle"
+            : "square.stack.3d.up"
+    }
+
+    private var message: String {
+        if session.supportsSpectrumAnalysis == false {
+            return String(
+                localized: "同梱のspotreadが平均スペクトルの再計算に対応していません。"
+            )
+        }
+        if let averagingMessage = session.averagingMessage {
+            return averagingMessage
+        }
+        return String(
+            localized: "6回から平均値を出力できます。10回以上を推奨し、20回で自動出力します。"
+        )
+    }
+
+    private var isActionDisabled: Bool {
+        session.phase != .ready
+            || session.supportsSpectrumAnalysis == false
+            || session.isFinalizingAveragingMeasurement
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+                Button {
+                    if session.isAveragingMeasurement {
+                        session.finishOrCancelAveragingMeasurement()
+                    } else {
+                        session.startAveragingMeasurement()
+                    }
+                } label: {
+                    Label(actionTitle, systemImage: actionSystemImage)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .disabled(isActionDisabled)
+
+                AveragingProgressIndicator(
+                    acceptedCount: acceptedCount,
+                    measurementCount: measurementAttemptCount,
+                    tier: session.averagingAccumulator.progressTier
+                )
+                .opacity(measurementAttemptCount == 0 ? 0.35 : 1)
+            }
+
+            AveragingQualityIndicator(
+                acceptedCount: acceptedCount,
+                measurementCount: measurementAttemptCount,
+                outlierCount: session.averagingAccumulator.outlierCount,
+                convergence: session.averagingAccumulator.convergence
+            )
+            .opacity(measurementAttemptCount == 0 ? 0.35 : 1)
+
+            Text(message)
+                .font(.caption)
+                .foregroundStyle(messageColor)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("averaging-measurement-message")
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var messageColor: Color {
+        if message.hasPrefix(String(localized: "異常値です")) {
+            return .orange
+        }
+        return .secondary
+    }
+}
+
+private struct AveragingProgressIndicator: View {
+    let acceptedCount: Int
+    let measurementCount: Int
+    let tier: AveragingProgressTier
+
+    private var color: Color {
+        switch tier {
+        case .insufficient:
+            .red
+        case .minimum:
+            .brown
+        case .recommended:
+            .blue
+        case .sufficient:
+            .green
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .trailing, spacing: 3) {
+            Text(
+                "\(acceptedCount)（\(measurementCount)）/\(AveragingMeasurementAccumulator.maximumCount)"
+            )
+                .font(.caption.monospacedDigit().weight(.semibold))
+                .foregroundStyle(color)
+
+            ProgressView(
+                value: Double(acceptedCount),
+                total: Double(AveragingMeasurementAccumulator.maximumCount)
+            )
+            .progressViewStyle(.linear)
+            .tint(color)
+        }
+        .frame(width: 116)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("平均化測定の進捗")
+        .accessibilityValue(
+            "採用\(acceptedCount)回、実測\(measurementCount)回、最大\(AveragingMeasurementAccumulator.maximumCount)回"
+        )
+        .help("括弧内は異常値などを含む実測回数です。")
+    }
+}
+
+private struct AveragingQualityIndicator: View {
+    let acceptedCount: Int
+    let measurementCount: Int
+    let outlierCount: Int
+    let convergence: AveragingConvergence?
+
+    private var convergenceColor: Color {
+        guard let convergence else { return .secondary }
+        switch convergence.tier {
+        case .highVariation:
+            return .red
+        case .converging:
+            return .brown
+        case .stable:
+            return .blue
+        case .sufficientlyStable:
+            return .green
+        }
+    }
+
+    private var convergenceName: String {
+        guard let convergence else {
+            return String(localized: "判定前")
+        }
+        if convergence.tier == .stable,
+           convergence.relative95Uncertainty <= 0.0075,
+           acceptedCount < AveragingMeasurementAccumulator.sufficientCount {
+            return String(localized: "安定（回数を追加）")
+        }
+        return convergence.tier.localizedName
+    }
+
+    private var convergenceDescription: String {
+        guard let convergence else {
+            return String(localized: "収束度：判定前")
+        }
+        let uncertainty = convergence.relative95UncertaintyPercent.formatted(
+            .number.precision(.fractionLength(1))
+        )
+        return String(
+            localized: "収束度：\(convergenceName)　95%誤差目安 ±\(uncertainty)%"
+        )
+    }
+
+    private var accessibilityValue: String {
+        guard let convergence else {
+            return String(
+                localized: "異常値\(outlierCount)回、収束度判定前、採用\(acceptedCount)回、実測\(measurementCount)回"
+            )
+        }
+        let uncertainty = convergence.relative95UncertaintyPercent.formatted(
+            .number.precision(.fractionLength(1))
+        )
+        return String(
+            localized: "異常値\(outlierCount)回、収束度\(convergenceName)、95パーセント誤差目安プラスマイナス\(uncertainty)パーセント"
+        )
+    }
+
+    var body: some View {
+        VStack(spacing: 3) {
+            HStack(spacing: 8) {
+                Text("異常値 \(outlierCount)回")
+                    .foregroundStyle(
+                        outlierCount == 0 ? Color.secondary : Color.orange
+                    )
+
+                Spacer(minLength: 8)
+
+                Text(convergenceDescription)
+                    .foregroundStyle(convergenceColor)
+                    .multilineTextAlignment(.trailing)
+            }
+            .font(.caption2.monospacedDigit())
+
+            ProgressView(value: convergence?.progress ?? 0, total: 1)
+                .progressViewStyle(.linear)
+                .tint(convergenceColor)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("平均化測定の品質")
+        .accessibilityValue(accessibilityValue)
     }
 }
 

@@ -154,6 +154,47 @@ public sealed class SpotreadProcessSession : IAsyncDisposable
         }
     }
 
+    public async Task SendBytesAsync(
+        ReadOnlyMemory<byte> data,
+        string description,
+        CancellationToken cancellationToken = default)
+    {
+        if (data.IsEmpty)
+        {
+            throw new ArgumentException("Binary input cannot be empty.", nameof(data));
+        }
+        var process = _process;
+        if (process is null || process.HasExited)
+        {
+            throw new InvalidOperationException("spotread is not running.");
+        }
+
+        Log(SpotreadLogKind.InputPending, description);
+        await _inputGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            // Flush the StreamWriter before writing the length-prefixed binary
+            // frame directly to the same standard-input pipe.
+            await process.StandardInput.FlushAsync(cancellationToken).ConfigureAwait(false);
+            await process.StandardInput.BaseStream
+                .WriteAsync(data, cancellationToken)
+                .ConfigureAwait(false);
+            await process.StandardInput.BaseStream
+                .FlushAsync(cancellationToken)
+                .ConfigureAwait(false);
+            Log(SpotreadLogKind.InputSent, description);
+        }
+        catch (Exception exception)
+        {
+            Log(SpotreadLogKind.InputFailed, $"{description}: {exception.Message}");
+            throw;
+        }
+        finally
+        {
+            _inputGate.Release();
+        }
+    }
+
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
         _stopRequested = true;

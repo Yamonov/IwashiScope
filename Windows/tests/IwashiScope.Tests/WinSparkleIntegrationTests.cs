@@ -41,7 +41,7 @@ public sealed class WinSparkleIntegrationTests
         var keyBytes = Convert.FromBase64String(WinSparkleUpdater.EdDsaPublicKey);
         Assert.Equal(32, keyBytes.Length);
 
-        var repositoryRoot = Directory.GetParent(FindWindowsRoot())!.FullName;
+        var repositoryRoot = FindRepositoryRoot();
         var macInfoPlist = File.ReadAllText(Path.Combine(
             repositoryRoot,
             "IwashiScope",
@@ -55,7 +55,7 @@ public sealed class WinSparkleIntegrationTests
     [Fact]
     public void AppcastNeverOffersMacOrUnsignedPayloadsToWindows()
     {
-        var repositoryRoot = Directory.GetParent(FindWindowsRoot())!.FullName;
+        var repositoryRoot = FindRepositoryRoot();
         var document = XDocument.Load(Path.Combine(
             repositoryRoot,
             "docs",
@@ -102,9 +102,9 @@ public sealed class WinSparkleIntegrationTests
             "IwashiScopeInstallerCore.cs"));
 
         Assert.Contains("Build-WindowsInstaller.ps1", releaseScript);
-        Assert.Contains("[string] $Version = '0.9.5.4'", releaseScript);
+        Assert.Contains("[string] $Version = '0.9.6'", releaseScript);
         Assert.Contains("Windows-x64-Setup.exe", releaseScript);
-        Assert.Contains("[string] $Version = '0.9.5.4'", installerScript);
+        Assert.Contains("[string] $Version = '0.9.6'", installerScript);
         Assert.Contains("Compress-Archive -Path (Join-Path $payloadFull '*')", installerScript);
         Assert.Contains("Test-WindowsInstaller.ps1", installerScript);
         Assert.Contains("/platform:x64", installerScript);
@@ -127,7 +127,7 @@ public sealed class WinSparkleIntegrationTests
         Assert.Contains("FileRenameInfo", installerCore);
         Assert.Contains("FileDispositionInfoEx", installerCore);
         Assert.Contains("ReparsePoint", installerCore);
-        Assert.Contains("<sparkle:version>0.9.5.4</sparkle:version>", signingTestScript);
+        Assert.Contains("<sparkle:version>0.9.6</sparkle:version>", signingTestScript);
         Assert.Contains("<sparkle:version>0.9.5.3</sparkle:version>", signingTestScript);
     }
 
@@ -219,7 +219,7 @@ public sealed class WinSparkleIntegrationTests
         Assert.Equal("Yamonov", native.CompanyName);
         Assert.Equal("IwashiScope", native.AppName);
         Assert.False(string.IsNullOrWhiteSpace(native.AppVersion));
-        Assert.Equal("0.9.5.4", native.BuildVersion);
+        Assert.Equal("0.9.6.0", native.BuildVersion);
         Assert.Equal("en", native.Language);
         Assert.Equal(1, native.InitializeCount);
         Assert.Equal(1, native.CanShutdownCallback!());
@@ -287,6 +287,19 @@ public sealed class WinSparkleIntegrationTests
             directory = directory.Parent;
         }
         throw new DirectoryNotFoundException("Windows source root was not found.");
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var windowsRoot = FindWindowsRoot();
+        var repositoryRoot = Directory.GetParent(windowsRoot)?.FullName;
+        if (repositoryRoot is not null &&
+            File.Exists(Path.Combine(repositoryRoot, "IwashiScope", "Info.plist")))
+        {
+            return repositoryRoot;
+        }
+
+        return windowsRoot;
     }
 
     private sealed class FakeWinSparkleNativeApi : IWinSparkleNativeApi

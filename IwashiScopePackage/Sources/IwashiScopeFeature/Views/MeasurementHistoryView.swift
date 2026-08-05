@@ -22,6 +22,8 @@ struct MeasurementHistoryView: View {
     @State private var nameEditorFocusRequest: UUID?
 
     let historyStore: MeasurementHistoryStore
+    let averagingMeasurement: SpotMeasurement?
+    let averagingAcceptedCount: Int?
     let canExportSelectedSwatches: Bool
     let onExportSelectedSwatches: () -> Void
 
@@ -39,7 +41,7 @@ struct MeasurementHistoryView: View {
 
     var body: some View {
         GroupBox {
-            if entries.isEmpty {
+            if entries.isEmpty, averagingAcceptedCount == nil {
                 ContentUnavailableView(
                     "測定履歴はありません",
                     systemImage: "swatchpalette",
@@ -84,6 +86,15 @@ struct MeasurementHistoryView: View {
                                     itemWidth: Self.cardItemWidth
                                 )
                             }
+                    }
+
+                    if let averagingAcceptedCount {
+                        AveragingMeasurementHistoryStackView(
+                            mode: .reflectance,
+                            measurement: averagingMeasurement,
+                            count: averagingAcceptedCount
+                        )
+                        .padding(.horizontal, Self.dropZoneWidth)
                     }
                 }
                 .padding(.horizontal, Self.dropZoneWidth)
@@ -415,6 +426,13 @@ private struct MeasurementHistoryCard: View {
         ZStack(alignment: .top) {
             selectionSurface
             nameField
+            if let averagedMeasurement = entry.measurement.averagedMeasurement {
+                AverageMeasurementHistoryBadge(
+                    text: "平均 \(averagedMeasurement.sampleCount)回"
+                )
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(5)
+            }
         }
         .help("クリックで選択し、Lab値の上にある名前欄をダブルクリックすると名前を編集できます。編集中はTabで次、Shift+Tabで前のカードへ移動します。Commandクリックで追加選択、Shiftクリックで範囲選択します。Cmd+Aで全選択、Cmd+Dで選択解除、ドラッグで並べ替え、Deleteキーで削除できます。")
         .accessibilityElement(children: isEditingName ? .contain : .ignore)

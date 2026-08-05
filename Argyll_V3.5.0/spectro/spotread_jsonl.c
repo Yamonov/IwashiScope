@@ -10,6 +10,7 @@
  * ../../NOTICE for details.
  */
 
+#include <errno.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,12 +22,14 @@
 # define SPJ_DUP2 _dup2
 # define SPJ_FILENO _fileno
 # define SPJ_FDOPEN _fdopen
+# define SPJ_READ _read
 #else
 # include <unistd.h>
 # define SPJ_DUP dup
 # define SPJ_DUP2 dup2
 # define SPJ_FILENO fileno
 # define SPJ_FDOPEN fdopen
+# define SPJ_READ read
 #endif
 
 #include "spotread_jsonl.h"
@@ -36,10 +39,15 @@
 # undef CF64PREC
 #endif
 #include "yajl_gen.h"
+#include "yajl_tree.h"
 
 #define SPOTREAD_JSONL_PROTOCOL_VERSION 3
 #define IWASHISCOPE_IMPLEMENTATION "IwashiScope spot reader"
 #define IWASHISCOPE_IMPLEMENTATION_VERSION 1
+#define SPOTREAD_JSONL_ANALYSIS_CAPABILITY "spectrumAnalysisV1"
+#define SPOTREAD_JSONL_ANALYSIS_MAX_PAYLOAD (1024 * 1024)
+#define SPOTREAD_JSONL_ANALYSIS_MIN_WAVELENGTH_NM 300.0
+#define SPOTREAD_JSONL_ANALYSIS_MAX_WAVELENGTH_NM 900.0
 
 struct _spotread_jsonl {
 	FILE *stream;
@@ -389,6 +397,367 @@ void spotread_jsonl_measurement_init(spotread_jsonl_measurement *measurement) {
 	measurement->tm30_status = -1;
 }
 
+void spotread_jsonl_analysis_request_init(
+	spotread_jsonl_analysis_request *request
+) {
+	memset(request, 0, sizeof(*request));
+}
+
+static void set_analysis_error(
+	char *error_message,
+	size_t error_message_size,
+	const char *message
+) {
+	if (error_message == NULL || error_message_size == 0)
+		return;
+	snprintf(error_message, error_message_size, "%s", message);
+}
+
+static int analysis_json_number(yajl_val value, double *result) {
+	if (!YAJL_IS_NUMBER(value))
+		return 0;
+	if (value->u.number.flags & YAJL_NUMBER_DOUBLE_VALID)
+		*result = value->u.number.d;
+	else if (value->u.number.flags & YAJL_NUMBER_INT_VALID)
+		*result = (double)value->u.number.i;
+	else
+		return 0;
+	return isfinite(*result);
+}
+
+static int analysis_json_integer(yajl_val value, int *result) {
+	longlong integer;
+	if (!YAJL_IS_INTEGER(value))
+		return 0;
+	integer = YAJL_GET_INTEGER(value);
+	if (integer < -2147483647LL - 1LL || integer > 2147483647LL)
+		return 0;
+	*result = (int)integer;
+	return 1;
+}
+
+static yajl_val analysis_json_member(
+	yajl_val object,
+	const char *key,
+	yajl_type type
+) {
+	const char *path[2];
+	path[0] = key;
+	path[1] = NULL;
+	return yajl_tree_get(object, path, type);
+}
+
+spotread_jsonl_analysis_status spotread_jsonl_parse_analysis_request(
+	const char *json,
+	size_t json_length,
+	const char *expected_mode,
+	spotread_jsonl_analysis_request *request,
+	char *error_message,
+	size_t error_message_size
+) {
+	char parser_error[256];
+	char *json_copy = NULL;
+	const char *string_value;
+	double number_value;
+	double expected_norm;
+	double wavelength_step;
+	int integer_value;
+	size_t i;
+	yajl_val root = NULL;
+	yajl_val value;
+	yajl_val spectrum;
+	yajl_val values;
+	yajl_val practical_start;
+	yajl_val practical_end;
+	spotread_jsonl_analysis_status status = spotread_jsonl_analysis_invalid;
+
+	if (request == NULL || expected_mode == NULL) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis request destination is unavailable");
+		return spotread_jsonl_analysis_io_error;
+	}
+	spotread_jsonl_analysis_request_init(request);
+	if (error_message != NULL && error_message_size > 0)
+		error_message[0] = '\0';
+
+	if (json == NULL || json_length == 0) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis request is empty");
+		return status;
+	}
+	if (json_length > SPOTREAD_JSONL_ANALYSIS_MAX_PAYLOAD) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis request is too large");
+		return spotread_jsonl_analysis_io_error;
+	}
+	if (memchr(json, '\0', json_length) != NULL) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis request contains a null byte");
+		return status;
+	}
+	json_copy = (char *)malloc(json_length + 1);
+	if (json_copy == NULL) {
+		set_analysis_error(error_message, error_message_size,
+			"Unable to allocate spectrum analysis request buffer");
+		return spotread_jsonl_analysis_io_error;
+	}
+	memcpy(json_copy, json, json_length);
+	json_copy[json_length] = '\0';
+
+	root = yajl_tree_parse(json_copy, parser_error, sizeof(parser_error));
+	if (root == NULL || !YAJL_IS_OBJECT(root)) {
+		if (root == NULL && parser_error[0] != '\0') {
+			char formatted_error[256];
+			snprintf(formatted_error, sizeof(formatted_error),
+				"Invalid spectrum analysis JSON: %.180s", parser_error);
+			set_analysis_error(
+				error_message, error_message_size, formatted_error
+			);
+		} else {
+			set_analysis_error(error_message, error_message_size,
+				"Spectrum analysis request must be a JSON object");
+		}
+		goto cleanup;
+	}
+
+	value = analysis_json_member(root, "protocolVersion", yajl_t_number);
+	if (!analysis_json_integer(value, &integer_value)
+	 || integer_value != SPOTREAD_JSONL_PROTOCOL_VERSION) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis protocol version is not supported");
+		goto cleanup;
+	}
+	value = analysis_json_member(root, "command", yajl_t_string);
+	string_value = YAJL_GET_STRING(value);
+	if (string_value == NULL || strcmp(string_value, "analyzeSpectrum") != 0) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis command is invalid");
+		goto cleanup;
+	}
+	value = analysis_json_member(root, "requestId", yajl_t_string);
+	string_value = YAJL_GET_STRING(value);
+	if (string_value == NULL || string_value[0] == '\0'
+	 || strlen(string_value) > SPOTREAD_JSONL_ANALYSIS_REQUEST_ID_MAX) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis requestId is invalid");
+		goto cleanup;
+	}
+	strcpy(request->request_id, string_value);
+
+	value = analysis_json_member(root, "mode", yajl_t_string);
+	string_value = YAJL_GET_STRING(value);
+	if (string_value == NULL
+	 || strlen(string_value) > SPOTREAD_JSONL_ANALYSIS_MODE_MAX
+	 || strcmp(string_value, expected_mode) != 0) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis mode does not match the active measurement mode");
+		goto cleanup;
+	}
+	strcpy(request->mode, string_value);
+
+	value = analysis_json_member(root, "sampleCount", yajl_t_number);
+	if (!analysis_json_integer(value, &integer_value)
+	 || integer_value < 1 || integer_value > 1000) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis sampleCount must be between 1 and 1000");
+		goto cleanup;
+	}
+	request->sample_count = integer_value;
+
+	spectrum = analysis_json_member(root, "spectrum", yajl_t_object);
+	if (spectrum == NULL) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis spectrum is missing");
+		goto cleanup;
+	}
+	value = analysis_json_member(spectrum, "startNm", yajl_t_number);
+	if (!analysis_json_number(value, &request->spectrum.spec_wl_short)) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis startNm is invalid");
+		goto cleanup;
+	}
+	value = analysis_json_member(spectrum, "endNm", yajl_t_number);
+	if (!analysis_json_number(value, &request->spectrum.spec_wl_long)) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis endNm is invalid");
+		goto cleanup;
+	}
+	if (request->spectrum.spec_wl_short < SPOTREAD_JSONL_ANALYSIS_MIN_WAVELENGTH_NM
+	 || request->spectrum.spec_wl_long > SPOTREAD_JSONL_ANALYSIS_MAX_WAVELENGTH_NM
+	 || request->spectrum.spec_wl_short >= request->spectrum.spec_wl_long) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis wavelength range is invalid");
+		goto cleanup;
+	}
+
+	value = analysis_json_member(spectrum, "norm", yajl_t_number);
+	if (!analysis_json_number(value, &number_value)) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis norm is invalid");
+		goto cleanup;
+	}
+	expected_norm = strcmp(expected_mode, "reflectance") == 0 ? 100.0 : 1.0;
+	if (fabs(number_value - expected_norm) > 1e-9) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis norm does not match the active measurement mode");
+		goto cleanup;
+	}
+	request->spectrum.norm = number_value;
+
+	values = analysis_json_member(spectrum, "values", yajl_t_array);
+	if (values == NULL || values->u.array.len < 2
+	 || values->u.array.len > XSPECT_MAX_BANDS) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis values must contain between 2 and 601 samples");
+		goto cleanup;
+	}
+	request->spectrum.spec_n = (int)values->u.array.len;
+	wavelength_step = (request->spectrum.spec_wl_long
+		- request->spectrum.spec_wl_short)
+		/ (request->spectrum.spec_n - 1.0);
+	if (!isfinite(wavelength_step) || wavelength_step < 0.999999) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis wavelength step must be at least 1 nm");
+		goto cleanup;
+	}
+	for (i = 0; i < values->u.array.len; i++) {
+		if (!analysis_json_number(values->u.array.values[i], &number_value)) {
+			set_analysis_error(error_message, error_message_size,
+				"Spectrum analysis contains a non-finite sample value");
+			goto cleanup;
+		}
+		request->spectrum.spec[i] = number_value;
+	}
+
+	practical_start = analysis_json_member(
+		spectrum, "practicalStartNm", yajl_t_number
+	);
+	practical_end = analysis_json_member(
+		spectrum, "practicalEndNm", yajl_t_number
+	);
+	if ((practical_start == NULL) != (practical_end == NULL)) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis practical wavelength range is incomplete");
+		goto cleanup;
+	}
+	if (practical_start != NULL) {
+		if (!analysis_json_number(
+				practical_start,
+				&request->practical_spectrum_start_nm
+			)
+		 || !analysis_json_number(
+				practical_end,
+				&request->practical_spectrum_end_nm
+			)
+		 || request->practical_spectrum_start_nm
+			< request->spectrum.spec_wl_short
+		 || request->practical_spectrum_end_nm
+			> request->spectrum.spec_wl_long
+		 || request->practical_spectrum_start_nm
+			> request->practical_spectrum_end_nm) {
+			set_analysis_error(error_message, error_message_size,
+				"Spectrum analysis practical wavelength range is invalid");
+			goto cleanup;
+		}
+		request->has_practical_spectrum_range = 1;
+	}
+
+	status = spotread_jsonl_analysis_ok;
+
+cleanup:
+	if (status != spotread_jsonl_analysis_ok)
+		spotread_jsonl_analysis_request_init(request);
+	yajl_tree_free(root);
+	free(json_copy);
+	return status;
+}
+
+static int read_analysis_bytes(
+	unsigned char *buffer,
+	size_t length,
+	int *input_closed
+) {
+	size_t offset = 0;
+	*input_closed = 0;
+	while (offset < length) {
+		int amount = (int)(length - offset);
+		int count;
+		if (amount > 65536)
+			amount = 65536;
+		count = (int)SPJ_READ(SPJ_FILENO(stdin), buffer + offset, amount);
+		if (count > 0) {
+			offset += (size_t)count;
+			continue;
+		}
+		if (count == 0) {
+			*input_closed = 1;
+			return offset == 0 ? 0 : -1;
+		}
+		if (errno == EINTR)
+			continue;
+		return -1;
+	}
+	return 1;
+}
+
+spotread_jsonl_analysis_status spotread_jsonl_read_analysis_request(
+	const char *expected_mode,
+	spotread_jsonl_analysis_request *request,
+	char *error_message,
+	size_t error_message_size
+) {
+	unsigned char header[4];
+	unsigned char *payload;
+	size_t payload_length;
+	int input_closed;
+	int read_status;
+	spotread_jsonl_analysis_status status;
+
+	read_status = read_analysis_bytes(header, sizeof(header), &input_closed);
+	if (read_status <= 0) {
+		set_analysis_error(error_message, error_message_size,
+			read_status == 0 && input_closed
+				? "Spectrum analysis input was closed"
+				: "Unable to read spectrum analysis frame header");
+		return read_status == 0 && input_closed
+			? spotread_jsonl_analysis_input_closed
+			: spotread_jsonl_analysis_io_error;
+	}
+	payload_length = ((size_t)header[0] << 24)
+		| ((size_t)header[1] << 16)
+		| ((size_t)header[2] << 8)
+		| (size_t)header[3];
+	if (payload_length == 0
+	 || payload_length > SPOTREAD_JSONL_ANALYSIS_MAX_PAYLOAD) {
+		set_analysis_error(error_message, error_message_size,
+			"Spectrum analysis frame length is invalid");
+		return spotread_jsonl_analysis_io_error;
+	}
+	payload = (unsigned char *)malloc(payload_length);
+	if (payload == NULL) {
+		set_analysis_error(error_message, error_message_size,
+			"Unable to allocate spectrum analysis frame");
+		return spotread_jsonl_analysis_io_error;
+	}
+	read_status = read_analysis_bytes(payload, payload_length, &input_closed);
+	if (read_status <= 0) {
+		free(payload);
+		set_analysis_error(error_message, error_message_size,
+			"Unable to read complete spectrum analysis frame");
+		return spotread_jsonl_analysis_io_error;
+	}
+	status = spotread_jsonl_parse_analysis_request(
+		(const char *)payload,
+		payload_length,
+		expected_mode,
+		request,
+		error_message,
+		error_message_size
+	);
+	free(payload);
+	return status;
+}
+
 int spotread_jsonl_emit_hello(spotread_jsonl *p, const char *argyll_version) {
 	json_writer writer;
 	if (p == NULL)
@@ -400,6 +769,10 @@ int spotread_jsonl_emit_hello(spotread_jsonl *p, const char *argyll_version) {
 	json_integer(&writer, IWASHISCOPE_IMPLEMENTATION_VERSION);
 	json_key(&writer, "argyllVersion");
 	json_string(&writer, argyll_version);
+	json_key(&writer, "capabilities");
+	json_array_open(&writer);
+	json_string(&writer, SPOTREAD_JSONL_ANALYSIS_CAPABILITY);
+	json_array_close(&writer);
 	return finish_event(p, &writer);
 }
 
@@ -499,6 +872,18 @@ int spotread_jsonl_emit_measurement(
 	json_string(&writer, measurement->mode);
 	json_key(&writer, "readingIndex");
 	json_integer(&writer, measurement->reading_index);
+	if (measurement->source != NULL) {
+		json_key(&writer, "source");
+		json_string(&writer, measurement->source);
+	}
+	if (measurement->analysis_request_id != NULL) {
+		json_key(&writer, "analysisRequestId");
+		json_string(&writer, measurement->analysis_request_id);
+	}
+	if (measurement->averaged_sample_count > 0) {
+		json_key(&writer, "averagedSampleCount");
+		json_integer(&writer, measurement->averaged_sample_count);
+	}
 
 	if (measurement->spectrum != NULL && measurement->spectrum->spec_n > 0) {
 		json_key(&writer, "spectrum");

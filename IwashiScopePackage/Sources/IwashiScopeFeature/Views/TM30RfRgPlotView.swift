@@ -205,7 +205,11 @@ struct TM30RfRgPlotView: View {
                     lineWidth: 0.8
                 )
             }
-            .frame(maxWidth: .infinity, minHeight: 170, maxHeight: .infinity)
+            .frame(
+                maxWidth: .infinity,
+                minHeight: LightingRenderingLayout.tm30RfRgMinimumHeight,
+                maxHeight: .infinity
+            )
             .accessibilityHidden(true)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

@@ -104,7 +104,7 @@ struct ColorRenderingChartView: View {
         .chartOverlay { proxy in
             chartAnnotations(proxy: proxy)
         }
-        .frame(height: 320)
+        .frame(height: LightingRenderingLayout.contentHeight)
         .accessibilityLabel("R1からR15までの演色評価棒グラフ")
         .accessibilityHint("RaはR1からR8までの平均です。棒の高さと数値は各試験色の演色評価数を表します")
     }
@@ -165,7 +165,11 @@ struct ColorRenderingChartView: View {
             systemImage: "chart.bar",
             description: Text("光源を測定するとR1〜R15をここへ表示します。")
         )
-        .frame(maxWidth: .infinity, minHeight: 320, maxHeight: 320)
+        .frame(
+            maxWidth: .infinity,
+            minHeight: LightingRenderingLayout.contentHeight,
+            maxHeight: LightingRenderingLayout.contentHeight
+        )
     }
 
     private func format(_ value: Double) -> String {

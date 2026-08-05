@@ -1,12 +1,16 @@
 import Foundation
 
 enum SpotreadEvent: Equatable {
+    case hello(capabilities: Set<String>)
     case instrumentIdentity(SpotreadInstrumentIdentity)
     case calibrationStarted
     case calibrationPrompt(CalibrationPrompt)
     case calibrationComplete
     case savedReadingPrompt
     case measurementStarted
+    case spectrumAnalysisInputReady
+    case spectrumAnalysisStarted
+    case spectrumAnalysisFailed(String)
     case measurement(SpotMeasurement)
     case measurementPrompt
     case recoverableIssue(SpotreadIssue)
@@ -96,7 +100,7 @@ struct SpotreadOutputParser {
                     ]
                 }
                 hasAcceptedHello = true
-                return []
+                return [.hello(capabilities: Set(record.capabilities ?? []))]
             }
             guard hasAcceptedHello else {
                 return [
@@ -134,6 +138,10 @@ struct SpotreadOutputParser {
                 return [.measurementStarted]
             case "savedReadingPrompt":
                 return [.savedReadingPrompt]
+            case "spectrumAnalysisInputReady":
+                return [.spectrumAnalysisInputReady]
+            case "spectrumAnalysisStarted":
+                return [.spectrumAnalysisStarted]
             default:
                 throw ProtocolValidationError.invalidValue("state")
             }
@@ -223,6 +231,10 @@ struct SpotreadOutputParser {
             return [.calibrationStarted]
         case "fatalInstrumentError":
             return [.fatalIssue(.fatal(rawText: reason))]
+        case "spectrumAnalysisInvalidRequest", "spectrumAnalysisCalculationFailure":
+            return [.spectrumAnalysisFailed(reason)]
+        case "spectrumAnalysisInputFailure":
+            return [.fatalIssue(.fatal(rawText: reason))]
         default:
             throw ProtocolValidationError.invalidValue("issue code")
         }
@@ -294,6 +306,7 @@ struct SpotreadOutputParser {
             TLCIResult(qa: $0.qa, caution: $0.caution)
         }
         let tm30 = try record.tm30.flatMap(Self.tm30Result(from:))
+        let averagedMeasurement = try averagedMeasurementMetadata(from: record)
 
         return SpotMeasurement(
             capturedAt: Date(),
@@ -322,8 +335,47 @@ struct SpotreadOutputParser {
             lightingMetricIssues: issues,
             cri: cri,
             tlci: tlci,
-            tm30: tm30
+            tm30: tm30,
+            averagedMeasurement: averagedMeasurement
         )
+    }
+
+    private func averagedMeasurementMetadata(
+        from record: ProtocolRecord
+    ) throws -> AveragedMeasurementMetadata? {
+        switch record.source {
+        case nil:
+            guard record.analysisRequestId == nil,
+                  record.averagedSampleCount == nil else {
+                throw ProtocolValidationError.invalidValue(
+                    "averaged spectrum metadata"
+                )
+            }
+            return nil
+
+        case "averagedSpectrum":
+            let requestID = try record.required(
+                record.analysisRequestId,
+                named: "analysisRequestId"
+            )
+            let sampleCount = try record.required(
+                record.averagedSampleCount,
+                named: "averagedSampleCount"
+            )
+            guard requestID.isEmpty == false,
+                  (1...1_000).contains(sampleCount) else {
+                throw ProtocolValidationError.invalidValue(
+                    "averaged spectrum metadata"
+                )
+            }
+            return AveragedMeasurementMetadata(
+                requestID: requestID,
+                sampleCount: sampleCount
+            )
+
+        default:
+            throw ProtocolValidationError.invalidValue("measurement source")
+        }
     }
 
     private func calibrationPrompt(
@@ -559,6 +611,7 @@ private struct ProtocolRecord: Decodable {
     let implementation: String?
     let implementationVersion: Int?
     let argyllVersion: String?
+    let capabilities: [String]?
     let name: String?
     let serialNumber: String?
     let state: String?
@@ -575,6 +628,9 @@ private struct ProtocolRecord: Decodable {
     let recovery: String?
     let mode: String?
     let readingIndex: Int?
+    let source: String?
+    let analysisRequestId: String?
+    let averagedSampleCount: Int?
     let spectrum: SpectrumPayload?
     let xyz: [Double]?
     let lab: [Double]?

@@ -204,9 +204,17 @@ struct TM30ColorVectorGraphicView: View {
             if let result, let geometry {
                 HStack(alignment: .top, spacing: 16) {
                     TM30ColorVectorCanvas(geometry: geometry, result: result)
-                        .frame(minWidth: 300, maxWidth: 440, minHeight: 440, maxHeight: 440)
+                        .frame(
+                            maxWidth: .infinity,
+                            minHeight: LightingRenderingLayout.contentHeight,
+                            maxHeight: LightingRenderingLayout.contentHeight
+                        )
+                        .layoutPriority(1)
 
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(
+                        alignment: .leading,
+                        spacing: LightingRenderingLayout.tm30VerticalSpacing
+                    ) {
                         HStack(alignment: .top, spacing: 14) {
                             TM30ScoreSummary(result: result)
                                 .frame(minWidth: 120, maxWidth: 140, alignment: .topLeading)
@@ -216,18 +224,26 @@ struct TM30ColorVectorGraphicView: View {
                                 gamutIndex: result.gamutIndex
                             )
                         }
-                        .frame(maxWidth: .infinity, minHeight: 230, maxHeight: 230)
+                        .frame(
+                            maxWidth: .infinity,
+                            minHeight: LightingRenderingLayout.tm30TopHeight,
+                            maxHeight: LightingRenderingLayout.tm30TopHeight
+                        )
 
                         TM30SampleFidelityChartView(samples: result.evaluationSamples)
-                            .frame(maxWidth: .infinity, minHeight: 198, maxHeight: 198)
+                            .frame(
+                                maxWidth: .infinity,
+                                minHeight: LightingRenderingLayout.tm30BottomHeight,
+                                maxHeight: LightingRenderingLayout.tm30BottomHeight
+                            )
                     }
                     .frame(
-                        minWidth: 360,
                         maxWidth: .infinity,
-                        minHeight: 440,
-                        maxHeight: 440,
+                        minHeight: LightingRenderingLayout.contentHeight,
+                        maxHeight: LightingRenderingLayout.contentHeight,
                         alignment: .topLeading
                     )
+                    .layoutPriority(1)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             } else {
@@ -236,7 +252,11 @@ struct TM30ColorVectorGraphicView: View {
                     systemImage: "circle.hexagongrid",
                     description: Text("環境光または発光を測定するとTM-30のRf・Rgと各グラフを表示します。")
                 )
-                .frame(maxWidth: .infinity, minHeight: 440, maxHeight: 440)
+                .frame(
+                    maxWidth: .infinity,
+                    minHeight: LightingRenderingLayout.contentHeight,
+                    maxHeight: LightingRenderingLayout.contentHeight
+                )
             }
         } label: {
             Label("IES TM-30-15", systemImage: "circle.hexagongrid.fill")

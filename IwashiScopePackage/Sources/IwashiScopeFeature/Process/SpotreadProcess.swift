@@ -149,6 +149,13 @@ final class SpotreadProcess: @unchecked Sendable {
     }
 
     func send(_ text: String) async throws {
+        guard let data = text.data(using: .utf8) else {
+            throw SpotreadProcessError.inputUnavailable
+        }
+        try await send(data)
+    }
+
+    func send(_ data: Data) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             inputQueue.async { [weak self] in
                 guard let self else {
@@ -157,7 +164,7 @@ final class SpotreadProcess: @unchecked Sendable {
                 }
 
                 do {
-                    try self.write(text)
+                    try self.write(data)
                     continuation.resume(returning: ())
                 } catch {
                     continuation.resume(throwing: error)
@@ -166,7 +173,7 @@ final class SpotreadProcess: @unchecked Sendable {
         }
     }
 
-    private func write(_ text: String) throws {
+    private func write(_ data: Data) throws {
         let handle: FileHandle
 
         lock.lock()
@@ -181,9 +188,6 @@ final class SpotreadProcess: @unchecked Sendable {
         handle = inputPipe.fileHandleForWriting
         lock.unlock()
 
-        guard let data = text.data(using: .utf8) else {
-            throw SpotreadProcessError.inputUnavailable
-        }
         try handle.write(contentsOf: data)
     }
 

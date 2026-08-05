@@ -129,7 +129,8 @@ public sealed class SpotreadOutputParser
                     record.ProtocolVersion,
                     record.Implementation,
                     record.ImplementationVersion.Value,
-                    record.ArgyllVersion),
+                    record.ArgyllVersion,
+                    (record.Capabilities ?? []).ToHashSet(StringComparer.Ordinal)),
             ];
         }
 
@@ -175,6 +176,8 @@ public sealed class SpotreadOutputParser
         "ready" => [new MeasurementPromptEvent()],
         "measurementStarted" => [new MeasurementStartedEvent()],
         "savedReadingPrompt" => [new SavedReadingPromptEvent()],
+        "spectrumAnalysisInputReady" => [new SpectrumAnalysisInputReadyEvent()],
+        "spectrumAnalysisStarted" => [new SpectrumAnalysisStartedEvent()],
         _ => throw new InvalidDataException($"Invalid state '{state}'."),
     };
 
@@ -281,6 +284,9 @@ public sealed class SpotreadOutputParser
             ],
             "needsCalibration" => [new CalibrationStartedEvent()],
             "fatalInstrumentError" => [Fatal(code, reason, rawText)],
+            "spectrumAnalysisInvalidRequest" or "spectrumAnalysisCalculationFailure" =>
+                [new SpectrumAnalysisFailedEvent(reason)],
+            "spectrumAnalysisInputFailure" => [Fatal(code, reason, rawText)],
             _ => throw new InvalidDataException($"Invalid issue code '{code}'."),
         };
     }
@@ -379,8 +385,34 @@ public sealed class SpotreadOutputParser
                 ? null
                 : new TlciResult(record.Tlci.Qa, record.Tlci.Caution),
             Tm30 = tm30,
+            AveragedMeasurement = AveragedMeasurement(record),
         };
         return ColorRenderingIndexCalculator.AddR15(measurement);
+    }
+
+    private static AveragedMeasurementMetadata? AveragedMeasurement(ProtocolRecord record)
+    {
+        if (record.Source is null)
+        {
+            if (record.AnalysisRequestId is not null || record.AveragedSampleCount is not null)
+            {
+                throw new InvalidDataException("Invalid averaged spectrum metadata.");
+            }
+            return null;
+        }
+
+        if (record.Source != "averagedSpectrum" ||
+            string.IsNullOrEmpty(record.AnalysisRequestId) ||
+            record.AveragedSampleCount is not (>= 1 and <= 1_000))
+        {
+            throw new InvalidDataException("Invalid averaged spectrum metadata.");
+        }
+
+        return new AveragedMeasurementMetadata
+        {
+            RequestId = record.AnalysisRequestId,
+            SampleCount = record.AveragedSampleCount.Value,
+        };
     }
 
     private static Tm30Result? Tm30(Tm30Payload payload)
@@ -555,6 +587,8 @@ internal sealed record ProtocolRecord
     public int? ImplementationVersion { get; init; }
     [JsonPropertyName("argyllVersion")]
     public string? ArgyllVersion { get; init; }
+    [JsonPropertyName("capabilities")]
+    public IReadOnlyList<string>? Capabilities { get; init; }
     [JsonPropertyName("name")]
     public string? Name { get; init; }
     [JsonPropertyName("serialNumber")]
@@ -577,6 +611,12 @@ internal sealed record ProtocolRecord
     public string? Code { get; init; }
     [JsonPropertyName("mode")]
     public string? Mode { get; init; }
+    [JsonPropertyName("source")]
+    public string? Source { get; init; }
+    [JsonPropertyName("analysisRequestId")]
+    public string? AnalysisRequestId { get; init; }
+    [JsonPropertyName("averagedSampleCount")]
+    public int? AveragedSampleCount { get; init; }
     [JsonPropertyName("spectrum")]
     public SpectrumPayload? Spectrum { get; init; }
     [JsonPropertyName("xyz")]

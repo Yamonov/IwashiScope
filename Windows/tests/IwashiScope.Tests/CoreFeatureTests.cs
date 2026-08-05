@@ -206,8 +206,20 @@ public sealed class CoreFeatureTests
     {
         var history = new MeasurementHistory();
         var identity = new SpotreadInstrumentIdentity("ColorMunki", "CM-123");
+        var averagedMeasurement = TestMeasurementFactory.Create(MeasurementMode.Reflectance) with
+        {
+            AveragedMeasurement = new AveragedMeasurementMetadata
+            {
+                RequestId = "average-request",
+                SampleCount = 10,
+                MeasurementCount = 12,
+                OutlierCount = 2,
+                Relative95UncertaintyPercent = 0.73,
+                ConvergenceTier = AveragingConvergenceTier.Stable,
+            },
+        };
         var entry = history.Add(
-            TestMeasurementFactory.Create(MeasurementMode.Reflectance),
+            averagedMeasurement,
             "Sample",
             identity);
         var ambient = history.Add(
@@ -224,12 +236,18 @@ public sealed class CoreFeatureTests
         Assert.Contains("\"selectedSidebarTab\": \"spotreadLog\"", json);
         Assert.Contains("\"suggestedEV100\": 10.5", json);
         Assert.Contains("\"status\": \"valid\"", json);
+        Assert.Contains("\"requestID\": \"average-request\"", json);
+        Assert.Contains("\"sampleCount\": 10", json);
+        Assert.Contains("\"measurementCount\": 12", json);
+        Assert.Contains("\"outlierCount\": 2", json);
         var decoded = WorkspaceSerializer.Deserialize(json);
         var decodedReflectance = decoded.Workspace.History.Modes.Single(
             state => state.Mode == MeasurementMode.Reflectance);
         Assert.Equal(entry.Id, decodedReflectance.ActiveEntryId);
         Assert.Equal("Sample", decoded.Workspace.History.Entries[0].Name);
         Assert.Equal("CM-123", decoded.Workspace.History.Entries[0].InstrumentIdentity?.SerialNumber);
+        Assert.Equal(0.73, decoded.Workspace.History.Entries[0]
+            .Measurement.AveragedMeasurement?.Relative95UncertaintyPercent);
         Assert.Equal(MeasurementSidebarTab.SpotreadLog, decoded.Workspace.SelectedSidebarTab);
 
         var restored = new MeasurementHistory();

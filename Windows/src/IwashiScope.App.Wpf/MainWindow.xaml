@@ -251,7 +251,7 @@
                                 </Grid>
                             </Border>
 
-                            <TabControl Height="480" Margin="0,16,0,0"
+                            <TabControl Height="380" Margin="0,16,0,0"
                                         SelectedIndex="{Binding SelectedRenderingTabIndex}"
                                         Visibility="{Binding ShowsLightingRenderingTabs, Converter={StaticResource BoolToVisibility}}">
                                 <TabItem Header="CRI">
@@ -386,10 +386,12 @@
                                 <ListBox.ItemContainerStyle>
                                     <Style TargetType="ListBoxItem">
                                         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=OneWay}" />
-                                        <Setter Property="Width" Value="{x:Static layout:HistoryCardLayout.Width}" />
-                                        <Setter Property="Height" Value="{x:Static layout:HistoryCardLayout.Height}" />
+                                        <Setter Property="Width" Value="{Binding ItemWidth}" />
+                                        <Setter Property="Height" Value="{Binding ItemHeight}" />
                                         <Setter Property="Margin" Value="{x:Static layout:HistoryCardLayout.ItemMargin}" />
                                         <Setter Property="Padding" Value="0" />
+                                        <Setter Property="IsHitTestVisible" Value="{Binding CanSelect}" />
+                                        <Setter Property="Focusable" Value="{Binding CanSelect}" />
                                         <Setter Property="VerticalAlignment" Value="Top" />
                                         <Setter Property="VerticalContentAlignment" Value="Stretch" />
                                         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -397,55 +399,81 @@
                                 </ListBox.ItemContainerStyle>
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Width="{x:Static layout:HistoryCardLayout.Width}"
-                                              Height="{x:Static layout:HistoryCardLayout.Height}">
-                                            <Grid Visibility="{Binding IsReflectance, Converter={StaticResource BoolToVisibility}}">
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="{x:Static layout:HistoryCardLayout.ReflectanceColorArea}" />
-                                                    <RowDefinition Height="{x:Static layout:HistoryCardLayout.ReflectanceLabArea}" />
-                                                </Grid.RowDefinitions>
-                                                <Border Grid.Row="0" Background="{Binding SwatchBrush}" />
-                                                <UniformGrid Grid.Row="1" Columns="3" Margin="4,2">
-                                                    <StackPanel>
-                                                        <TextBlock Text="L*" FontSize="9"
-                                                                   Foreground="{StaticResource SecondaryTextBrush}" />
-                                                        <TextBlock Text="{Binding LabLText}" FontSize="10" />
-                                                    </StackPanel>
-                                                    <StackPanel>
-                                                        <TextBlock Text="a*" FontSize="9"
-                                                                   Foreground="{StaticResource SecondaryTextBrush}" />
-                                                        <TextBlock Text="{Binding LabAText}" FontSize="10" />
-                                                    </StackPanel>
-                                                    <StackPanel>
-                                                        <TextBlock Text="b*" FontSize="9"
-                                                                   Foreground="{StaticResource SecondaryTextBrush}" />
-                                                        <TextBlock Text="{Binding LabBText}" FontSize="10" />
-                                                    </StackPanel>
-                                                 </UniformGrid>
-                                                 <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
-                                                          VerticalAlignment="Top"
-                                                          Margin="{x:Static layout:HistoryCardLayout.ReflectanceNameMargin}"
-                                                          Height="{x:Static layout:HistoryCardLayout.ReflectanceNameFieldHeight}"
-                                                          FontSize="11" Padding="3,1"
-                                                         IsReadOnly="True"
-                                                         PreviewMouseDoubleClick="HistoryNameEditor_MouseDoubleClick"
-                                                         LostKeyboardFocus="HistoryNameEditor_LostKeyboardFocus"
-                                                         PreviewKeyDown="HistoryNameEditor_PreviewKeyDown" />
+                                        <Grid Width="{Binding ItemWidth}" Height="{Binding ItemHeight}">
+                                            <Border Width="{x:Static layout:HistoryCardLayout.Width}"
+                                                    Height="{x:Static layout:HistoryCardLayout.Height}"
+                                                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                    Background="#F7FAFC" BorderBrush="#B9C7D3"
+                                                    BorderThickness="1" CornerRadius="7"
+                                                    Visibility="{Binding IsAveragingStack, Converter={StaticResource BoolToVisibility}}" />
+                                            <Border Width="{x:Static layout:HistoryCardLayout.Width}"
+                                                    Height="{x:Static layout:HistoryCardLayout.Height}"
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                    Background="#FBFDFE" BorderBrush="#A7B8C7"
+                                                    BorderThickness="1" CornerRadius="7"
+                                                    Visibility="{Binding IsAveragingStack, Converter={StaticResource BoolToVisibility}}" />
+                                            <Grid Width="{x:Static layout:HistoryCardLayout.Width}"
+                                                  Height="{x:Static layout:HistoryCardLayout.Height}"
+                                                  HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                                  Background="White">
+                                                <Grid Visibility="{Binding IsReflectance, Converter={StaticResource BoolToVisibility}}">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="{x:Static layout:HistoryCardLayout.ReflectanceColorArea}" />
+                                                        <RowDefinition Height="{x:Static layout:HistoryCardLayout.ReflectanceLabArea}" />
+                                                    </Grid.RowDefinitions>
+                                                    <Border Grid.Row="0" Background="{Binding SwatchBrush}" />
+                                                    <UniformGrid Grid.Row="1" Columns="3" Margin="4,2">
+                                                        <StackPanel>
+                                                            <TextBlock Text="L*" FontSize="9"
+                                                                       Foreground="{StaticResource SecondaryTextBrush}" />
+                                                            <TextBlock Text="{Binding LabLText}" FontSize="10" />
+                                                        </StackPanel>
+                                                        <StackPanel>
+                                                            <TextBlock Text="a*" FontSize="9"
+                                                                       Foreground="{StaticResource SecondaryTextBrush}" />
+                                                            <TextBlock Text="{Binding LabAText}" FontSize="10" />
+                                                        </StackPanel>
+                                                        <StackPanel>
+                                                            <TextBlock Text="b*" FontSize="9"
+                                                                       Foreground="{StaticResource SecondaryTextBrush}" />
+                                                            <TextBlock Text="{Binding LabBText}" FontSize="10" />
+                                                        </StackPanel>
+                                                     </UniformGrid>
+                                                     <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
+                                                              VerticalAlignment="Top"
+                                                              Margin="{x:Static layout:HistoryCardLayout.ReflectanceNameMargin}"
+                                                              Height="{x:Static layout:HistoryCardLayout.ReflectanceNameFieldHeight}"
+                                                              FontSize="11" Padding="3,1"
+                                                              IsReadOnly="True"
+                                                              IsHitTestVisible="{Binding CanRename}"
+                                                              PreviewMouseDoubleClick="HistoryNameEditor_MouseDoubleClick"
+                                                              LostKeyboardFocus="HistoryNameEditor_LostKeyboardFocus"
+                                                              PreviewKeyDown="HistoryNameEditor_PreviewKeyDown" />
+                                                </Grid>
+                                                 <Grid Visibility="{Binding IsLighting, Converter={StaticResource BoolToVisibility}}">
+                                                     <Grid.RowDefinitions>
+                                                         <RowDefinition Height="{x:Static layout:HistoryCardLayout.LightingContentArea}" />
+                                                         <RowDefinition Height="{x:Static layout:HistoryCardLayout.LightingTitleArea}" />
+                                                     </Grid.RowDefinitions>
+                                                    <controls:LightingHistoryChart Measurement="{Binding Measurement}" />
+                                                    <TextBox Grid.Row="1"
+                                                             Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
+                                                             FontSize="11" Padding="3,1" Margin="5,1"
+                                                             IsReadOnly="True"
+                                                             IsHitTestVisible="{Binding CanRename}"
+                                                             PreviewMouseDoubleClick="HistoryNameEditor_MouseDoubleClick"
+                                                             LostKeyboardFocus="HistoryNameEditor_LostKeyboardFocus"
+                                                             PreviewKeyDown="HistoryNameEditor_PreviewKeyDown" />
+                                                </Grid>
                                             </Grid>
-                                             <Grid Visibility="{Binding IsLighting, Converter={StaticResource BoolToVisibility}}">
-                                                 <Grid.RowDefinitions>
-                                                     <RowDefinition Height="{x:Static layout:HistoryCardLayout.LightingContentArea}" />
-                                                     <RowDefinition Height="{x:Static layout:HistoryCardLayout.LightingTitleArea}" />
-                                                 </Grid.RowDefinitions>
-                                                <controls:LightingHistoryChart Measurement="{Binding Measurement}" />
-                                                <TextBox Grid.Row="1"
-                                                         Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
-                                                         FontSize="11" Padding="3,1" Margin="5,1"
-                                                         IsReadOnly="True"
-                                                         PreviewMouseDoubleClick="HistoryNameEditor_MouseDoubleClick"
-                                                         LostKeyboardFocus="HistoryNameEditor_LostKeyboardFocus"
-                                                         PreviewKeyDown="HistoryNameEditor_PreviewKeyDown" />
-                                            </Grid>
+                                            <Border HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                    Margin="0,4,3,0" Padding="6,2"
+                                                    Background="#0A7DFF" CornerRadius="8"
+                                                    Visibility="{Binding ShowsAverageBadge, Converter={StaticResource BoolToVisibility}}">
+                                                <TextBlock Text="{Binding AverageBadgeText}"
+                                                           Foreground="White" FontSize="9"
+                                                           FontWeight="SemiBold" />
+                                            </Border>
                                         </Grid>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
@@ -500,6 +528,65 @@
                                 <Button Content="{Binding RecalibrateLabel}"
                                         Command="{Binding CalibrateCommand}" Margin="7,0,0,0" />
                             </StackPanel>
+                            <Grid Margin="0,8,0,0"
+                                  Visibility="{Binding ShowsAveragingControls, Converter={StaticResource BoolToVisibility}}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Separator Grid.Row="0" Margin="0,0,0,7" />
+                                <Grid Grid.Row="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Content="{Binding AverageMeasurementButtonLabel}"
+                                            Command="{Binding AverageMeasurementCommand}"
+                                            HorizontalAlignment="Stretch" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding AveragingProgressText}"
+                                               Margin="10,0,0,0"
+                                               MinWidth="72"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource SecondaryTextBrush}" />
+                                </Grid>
+                                <ProgressBar Grid.Row="2" Height="5" Margin="0,6,0,0"
+                                             Minimum="0" Maximum="100"
+                                             Value="{Binding AveragingProgressValue, Mode=OneWay}"
+                                             Foreground="{Binding AveragingProgressBrush}"
+                                             Opacity="{Binding AveragingIndicatorOpacity}" />
+                                <Grid Grid.Row="3" Margin="0,5,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding AveragingOutlierText}"
+                                               FontSize="10"
+                                               Foreground="{StaticResource SecondaryTextBrush}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding AveragingConvergenceText}"
+                                               FontSize="10"
+                                               HorizontalAlignment="Right"
+                                               Foreground="{StaticResource SecondaryTextBrush}" />
+                                </Grid>
+                                <ProgressBar Grid.Row="4" Height="4" Margin="0,4,0,0"
+                                             Minimum="0" Maximum="100"
+                                             Value="{Binding AveragingConvergenceValue, Mode=OneWay}"
+                                             Foreground="{Binding AveragingConvergenceBrush}"
+                                             Opacity="{Binding AveragingConvergenceOpacity}" />
+                                <TextBlock Grid.Row="5"
+                                           Text="{Binding AveragingMessageText}"
+                                           TextWrapping="Wrap"
+                                           FontSize="10"
+                                           Margin="0,5,0,0"
+                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           Visibility="{Binding HasAveragingMessage, Converter={StaticResource BoolToVisibility}}" />
+                            </Grid>
                             <StackPanel Margin="0,9,0,0"
                                         Visibility="{Binding NeedsCalibrationConfirmation, Converter={StaticResource BoolToVisibility}}">
                                 <StackPanel Orientation="Horizontal">
@@ -604,10 +691,46 @@
                                         <DockPanel>
                                             <TextBlock Text="{Binding MeasurementResultLabel}"
                                                        FontSize="19" FontWeight="SemiBold" />
-                                            <TextBlock DockPanel.Dock="Right"
-                                                       Text="{Binding MeasurementTimeText}"
-                                                       Foreground="{StaticResource SecondaryTextBrush}" />
+                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                                <Border Padding="6,2" Margin="0,0,7,0"
+                                                        Background="#E7F2FF" CornerRadius="8"
+                                                        Visibility="{Binding HasAveragedMeasurement, Converter={StaticResource BoolToVisibility}}">
+                                                    <TextBlock Text="{Binding AveragedMeasurementBadgeText}"
+                                                               Foreground="#0A67C7" FontSize="10"
+                                                               FontWeight="SemiBold" />
+                                                </Border>
+                                                <TextBlock Text="{Binding MeasurementTimeText}"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{StaticResource SecondaryTextBrush}" />
+                                            </StackPanel>
                                         </DockPanel>
+
+                                        <GroupBox Header="{Binding AveragingQualityLabel}" Margin="0,10,0,0"
+                                                  Visibility="{Binding HasAveragedMeasurement, Converter={StaticResource BoolToVisibility}}">
+                                            <Grid Margin="8,5">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Text="{Binding AveragedReadingCountLabel}"
+                                                           Style="{StaticResource MetricLabel}" />
+                                                <TextBlock Grid.Column="1" Text="{Binding AveragedMeasurementCountText}"
+                                                           Style="{StaticResource MetricValue}" />
+                                                <TextBlock Grid.Row="1" Text="{Binding AveragedOutlierCountLabel}"
+                                                           Style="{StaticResource MetricLabel}" />
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AveragedOutlierCountText}"
+                                                           Style="{StaticResource MetricValue}" />
+                                                <TextBlock Grid.Row="2" Text="{Binding AveragedConvergenceLabel}"
+                                                           Style="{StaticResource MetricLabel}" />
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AveragedConvergenceText}"
+                                                           Style="{StaticResource MetricValue}" />
+                                            </Grid>
+                                        </GroupBox>
 
                                         <GroupBox Header="{Binding ColorimetricValuesLabel}" Margin="0,12,0,0">
                                             <StackPanel Margin="8,5">

@@ -48,6 +48,13 @@ enum SpotreadCommand: String {
     case ignoreSavedReading = "N"
 }
 
+enum AveragingOperationPhase: Equatable, Sendable {
+    case inactive
+    case collecting
+    case waitingForSpectrumInput
+    case analyzingSpectrum
+}
+
 private enum SpotreadProcessEvent: Sendable {
     case protocolOutput(String)
     case logOutput(String)
@@ -74,6 +81,10 @@ final class MeasurementSession {
     private(set) var errorMessage: String?
     private(set) var activeIssue: SpotreadIssue?
     private(set) var notice: SpotreadNotice?
+    private(set) var supportsSpectrumAnalysis = false
+    private(set) var averagingAccumulator = AveragingMeasurementAccumulator()
+    private(set) var averagingOperationPhase: AveragingOperationPhase = .inactive
+    private(set) var averagingMessage: String?
 
     @ObservationIgnored private var parser = SpotreadOutputParser(mode: .reflectance)
     @ObservationIgnored private var runner: SpotreadProcess?
@@ -85,6 +96,8 @@ final class MeasurementSession {
     @ObservationIgnored private var relaunchTask: Task<Void, Never>?
     @ObservationIgnored private var processEventTask: Task<Void, Never>?
     @ObservationIgnored private var automaticRecoveryAttemptCount = 0
+    @ObservationIgnored private var pendingSpectrumAnalysisRequest: SpectrumAnalysisRequest?
+    @ObservationIgnored private var shouldAutomaticallyOutputAverage = false
     @ObservationIgnored private let executableURLOverride: URL?
     @ObservationIgnored private let historyStore: MeasurementHistoryStore
 
@@ -102,6 +115,23 @@ final class MeasurementSession {
             false
         default:
             true
+        }
+    }
+
+    var isAveragingMeasurement: Bool {
+        averagingOperationPhase != .inactive
+    }
+
+    var isCollectingAveragingMeasurements: Bool {
+        averagingOperationPhase == .collecting
+    }
+
+    var isFinalizingAveragingMeasurement: Bool {
+        switch averagingOperationPhase {
+        case .waitingForSpectrumInput, .analyzingSpectrum:
+            true
+        case .inactive, .collecting:
+            false
         }
     }
 
@@ -134,6 +164,8 @@ final class MeasurementSession {
         errorMessage = nil
         activeIssue = nil
         notice = nil
+        resetAveragingMeasurement(message: nil)
+        supportsSpectrumAnalysis = false
         calibrationWasRequested = false
         stopWasRequested = false
         parser = SpotreadOutputParser(mode: mode)
@@ -164,6 +196,17 @@ final class MeasurementSession {
         errorMessage = nil
         activeIssue = nil
         notice = nil
+        supportsSpectrumAnalysis = false
+        pendingSpectrumAnalysisRequest = nil
+        shouldAutomaticallyOutputAverage = false
+        if resetsMeasurements {
+            resetAveragingMeasurement(message: nil)
+        } else if isAveragingMeasurement {
+            averagingOperationPhase = .collecting
+            averagingMessage = String(
+                localized: "spotreadの再起動後も採用済みの測定を保持しています。キャリブレーション完了後に続けられます。"
+            )
+        }
         calibrationWasRequested = false
         stopWasRequested = false
         parser = SpotreadOutputParser(mode: mode)
@@ -292,6 +335,36 @@ final class MeasurementSession {
         send(.trigger)
     }
 
+    func startAveragingMeasurement() {
+        guard phase == .ready,
+              supportsSpectrumAnalysis,
+              let mode,
+              averagingOperationPhase == .inactive else {
+            return
+        }
+
+        historyStore.deselectAll(for: mode)
+        averagingAccumulator = AveragingMeasurementAccumulator()
+        averagingOperationPhase = .collecting
+        pendingSpectrumAnalysisRequest = nil
+        shouldAutomaticallyOutputAverage = false
+        averagingMessage = String(
+            localized: "通常どおり測定してください。最初の5回は暫定値とし、6回目で初回を含めて異常値を判定します。"
+        )
+    }
+
+    func finishOrCancelAveragingMeasurement() {
+        guard averagingOperationPhase == .collecting else { return }
+        guard averagingAccumulator.canOutputAverage else {
+            resetAveragingMeasurement(
+                message: String(localized: "平均化測定を終了しました。途中の測定は履歴へ保存していません。")
+            )
+            return
+        }
+        guard phase == .ready else { return }
+        beginSpectrumAnalysis()
+    }
+
     func recoverFromIssue() {
         guard let issue = activeIssue else { return }
 
@@ -401,6 +474,9 @@ final class MeasurementSession {
 
     private func handle(_ event: SpotreadEvent) {
         switch event {
+        case let .hello(capabilities):
+            supportsSpectrumAnalysis = capabilities.contains("spectrumAnalysisV1")
+
         case let .instrumentIdentity(identity):
             instrumentIdentity = identity
 
@@ -447,13 +523,31 @@ final class MeasurementSession {
                 break
             }
 
-        case let .measurement(measurement):
-            latestMeasurement = measurement
-            measurementCount += 1
-            historyStore.append(
-                measurement,
-                instrumentIdentity: instrumentIdentity
+        case .spectrumAnalysisInputReady:
+            sendPendingSpectrumAnalysisRequest()
+
+        case .spectrumAnalysisStarted:
+            guard pendingSpectrumAnalysisRequest != nil,
+                  averagingOperationPhase == .waitingForSpectrumInput else {
+                break
+            }
+            averagingOperationPhase = .analyzingSpectrum
+            averagingMessage = String(
+                localized: "平均スペクトルから測色値と演色評価値を再計算しています。"
             )
+
+        case let .spectrumAnalysisFailed(reason):
+            pendingSpectrumAnalysisRequest = nil
+            shouldAutomaticallyOutputAverage = false
+            if isAveragingMeasurement {
+                averagingOperationPhase = .collecting
+                averagingMessage = String(
+                    localized: "平均値を再計算できませんでした。採用済みの測定は保持しています。spotread: \(reason)"
+                )
+            }
+
+        case let .measurement(measurement):
+            handleMeasurement(measurement)
 
         case .measurementPrompt:
             if calibrationWasRequested, !calibrationCompleted {
@@ -479,6 +573,13 @@ final class MeasurementSession {
                 transition(to: .calibrationRecommended)
             }
 
+            if shouldAutomaticallyOutputAverage,
+               averagingOperationPhase == .collecting,
+               phase == .ready {
+                shouldAutomaticallyOutputAverage = false
+                beginSpectrumAnalysis()
+            }
+
         case let .recoverableIssue(issue):
             activeIssue = issue
             errorMessage = nil
@@ -501,7 +602,199 @@ final class MeasurementSession {
         }
     }
 
+    private func handleMeasurement(_ measurement: SpotMeasurement) {
+        latestMeasurement = measurement
+
+        if let averagedMetadata = measurement.averagedMeasurement {
+            guard let request = pendingSpectrumAnalysisRequest,
+                  averagedMetadata.requestID == request.requestId,
+                  averagedMetadata.sampleCount == request.sampleCount else {
+                activeIssue = .outputParsingFailure(
+                    rawText: String(
+                        localized: "平均スペクトルの応答が要求内容と一致しません。"
+                    )
+                )
+                errorMessage = nil
+                transition(to: .configurationRequired)
+                return
+            }
+
+            let convergence = averagingAccumulator.convergence
+            let finalizedMetadata = AveragedMeasurementMetadata(
+                requestID: averagedMetadata.requestID,
+                sampleCount: averagedMetadata.sampleCount,
+                measurementCount: averagingAccumulator.measurementAttemptCount,
+                outlierCount: averagingAccumulator.outlierCount,
+                relative95UncertaintyPercent: convergence?.relative95UncertaintyPercent,
+                convergenceTier: convergence?.tier
+            )
+            let finalizedMeasurement = measurement
+                .replacingAveragedMeasurementMetadata(finalizedMetadata)
+            latestMeasurement = finalizedMeasurement
+            measurementCount += 1
+            historyStore.append(
+                finalizedMeasurement,
+                instrumentIdentity: instrumentIdentity
+            )
+            pendingSpectrumAnalysisRequest = nil
+            shouldAutomaticallyOutputAverage = false
+            resetAveragingMeasurement(
+                message: String(
+                    localized: "\(averagedMetadata.sampleCount)回の平均スペクトルを履歴へ追加しました。"
+                )
+            )
+            return
+        }
+
+        guard averagingOperationPhase == .collecting else {
+            measurementCount += 1
+            historyStore.append(
+                measurement,
+                instrumentIdentity: instrumentIdentity
+            )
+            return
+        }
+
+        var accumulator = averagingAccumulator
+        let decision = accumulator.add(measurement)
+        averagingAccumulator = accumulator
+
+        switch decision {
+        case .accepted:
+            if accumulator.lastRetrospectivelyRejectedCount > 0 {
+                averagingMessage = String(
+                    localized: "異常値です。過去の測定\(accumulator.lastRetrospectivelyRejectedCount)件を平均対象から除外しました。現在\(accumulator.acceptedCount)回を採用しています。続けて測定できます。"
+                )
+            } else {
+                averagingMessage = averagingProgressMessage(accumulator: accumulator)
+            }
+            if accumulator.hasReachedMaximum {
+                shouldAutomaticallyOutputAverage = true
+                averagingMessage = String(
+                    localized: "20回に達しました。平均スペクトルを自動で再計算します。"
+                )
+            }
+
+        case .outlier:
+            if accumulator.lastRetrospectivelyRejectedCount > 0 {
+                averagingMessage = String(
+                    localized: "異常値です。今回の測定と過去の測定\(accumulator.lastRetrospectivelyRejectedCount)件を平均対象から除外しました。現在\(accumulator.acceptedCount)回を採用しています。続けて測定できます。"
+                )
+            } else {
+                averagingMessage = String(
+                    localized: "異常値です。平均回数には含めませんでした。続けて測定できます。"
+                )
+            }
+
+        case let .incompatible(reason):
+            averagingMessage = reason
+        }
+    }
+
+    private func averagingProgressMessage(
+        accumulator: AveragingMeasurementAccumulator
+    ) -> String {
+        let acceptedCount = accumulator.acceptedCount
+        if accumulator.hasStartedOutlierDetection == false {
+            return String(
+                localized: "\(acceptedCount)回を暫定採用しました。6回目で初回を含めて異常値を再判定します。"
+            )
+        }
+
+        switch acceptedCount {
+        case 0:
+            return String(localized: "通常どおり測定してください。")
+        case 1..<AveragingMeasurementAccumulator.minimumOutputCount:
+            return String(
+                localized: "現在\(acceptedCount)回を採用しています。平均値の出力には6回以上必要です。"
+            )
+        case AveragingMeasurementAccumulator.minimumOutputCount..<AveragingMeasurementAccumulator.recommendedCount:
+            return String(
+                localized: "\(acceptedCount)回を採用しました。平均値を出力できます。10回以上を推奨します。"
+            )
+        case AveragingMeasurementAccumulator.recommendedCount..<AveragingMeasurementAccumulator.sufficientCount:
+            return String(
+                localized: "\(acceptedCount)回を採用しました。安定した平均値です。15回以上で十分な回数になります。"
+            )
+        default:
+            return String(
+                localized: "\(acceptedCount)回を採用しました。十分な平均回数です。20回で自動出力します。"
+            )
+        }
+    }
+
+    private func beginSpectrumAnalysis() {
+        guard phase == .ready,
+              averagingOperationPhase == .collecting,
+              averagingAccumulator.canOutputAverage,
+              supportsSpectrumAnalysis else {
+            return
+        }
+
+        do {
+            let request = try averagingAccumulator.makeAnalysisRequest(
+                requestID: UUID().uuidString
+            )
+            pendingSpectrumAnalysisRequest = request
+            averagingOperationPhase = .waitingForSpectrumInput
+            averagingMessage = String(
+                localized: "平均スペクトルをspotreadへ送る準備をしています。"
+            )
+            transition(to: .measuring)
+            send(
+                Data([0x1D]),
+                interactionDescription: String(
+                    localized: "平均スペクトル解析要求（0x1D）"
+                )
+            )
+        } catch {
+            pendingSpectrumAnalysisRequest = nil
+            averagingOperationPhase = .collecting
+            averagingMessage = error.localizedDescription
+        }
+    }
+
+    private func sendPendingSpectrumAnalysisRequest() {
+        guard let request = pendingSpectrumAnalysisRequest,
+              averagingOperationPhase == .waitingForSpectrumInput else {
+            return
+        }
+
+        do {
+            let frame = try request.framedData()
+            send(
+                frame,
+                interactionDescription: String(
+                    localized: "平均スペクトル \(request.sampleCount)回分（\(frame.count) bytes）"
+                )
+            )
+        } catch {
+            recoverProcessOrFail(
+                issue: .fatal(
+                    rawText: String(
+                        localized: "平均スペクトルをspotreadへ送る形式に変換できませんでした。 \(error.localizedDescription)"
+                    )
+                )
+            )
+        }
+    }
+
+    private func resetAveragingMeasurement(message: String?) {
+        averagingAccumulator = AveragingMeasurementAccumulator()
+        averagingOperationPhase = .inactive
+        averagingMessage = message
+        pendingSpectrumAnalysisRequest = nil
+        shouldAutomaticallyOutputAverage = false
+    }
+
     private func send(_ command: SpotreadCommand) {
+        send(Data(command.rawValue.utf8), interactionDescription: command.rawValue)
+    }
+
+    private func send(
+        _ data: Data,
+        interactionDescription: String
+    ) {
         guard let runner else {
             recoverProcessOrFail(
                 issue: .fatal(rawText: String(localized: "spotreadが実行されていないため、操作を送信できませんでした。"))
@@ -512,14 +805,14 @@ final class MeasurementSession {
         let commandGeneration = generation
         let interactionID = appendInteraction(
             direction: .input,
-            content: command.rawValue,
+            content: interactionDescription,
             sessionID: commandGeneration,
             inputDeliveryState: .pending
         )
 
         Task { [weak self] in
             do {
-                try await runner.send(command.rawValue)
+                try await runner.send(data)
                 self?.updateInputDeliveryState(.sent, interactionID: interactionID)
             } catch {
                 guard let self else { return }

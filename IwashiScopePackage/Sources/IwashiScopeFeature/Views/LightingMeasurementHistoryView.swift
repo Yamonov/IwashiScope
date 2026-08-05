@@ -30,6 +30,8 @@ struct LightingMeasurementHistoryView: View {
 
     let mode: MeasurementMode
     let historyStore: MeasurementHistoryStore
+    let averagingMeasurement: SpotMeasurement?
+    let averagingAcceptedCount: Int?
     let usesPracticalSpectrumRange: Bool
     let spectrumYAxisConfiguration: SpectrumYAxisConfiguration
 
@@ -54,7 +56,7 @@ struct LightingMeasurementHistoryView: View {
 
     var body: some View {
         GroupBox {
-            if entries.isEmpty {
+            if entries.isEmpty, averagingAcceptedCount == nil {
                 emptyState
             } else {
                 LazyVGrid(columns: columns, alignment: .leading, spacing: Self.cardSpacing) {
@@ -82,6 +84,14 @@ struct LightingMeasurementHistoryView: View {
                                     itemWidth: cardItemWidth
                                 )
                             }
+                    }
+                    if let averagingAcceptedCount {
+                        AveragingMeasurementHistoryStackView(
+                            mode: mode,
+                            measurement: averagingMeasurement,
+                            count: averagingAcceptedCount
+                        )
+                        .padding(.horizontal, Self.dropZoneWidth)
                     }
                 }
                 .padding(.horizontal, Self.dropZoneWidth)
@@ -363,6 +373,13 @@ private struct LightingMeasurementHistoryCard: View {
             selectionSurface
             nameField
                 .padding(.bottom, LightingMeasurementHistoryCardMetrics.titleFieldBottomPadding)
+            if let averagedMeasurement = entry.measurement.averagedMeasurement {
+                AverageMeasurementHistoryBadge(
+                    text: "平均 \(averagedMeasurement.sampleCount)回"
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .padding(5)
+            }
         }
         .frame(
             width: LightingMeasurementHistoryCardMetrics.size.width,

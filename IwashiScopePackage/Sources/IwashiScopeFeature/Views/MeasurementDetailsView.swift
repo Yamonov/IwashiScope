@@ -10,6 +10,12 @@ struct MeasurementDetailsView: View {
             VStack(alignment: .leading, spacing: 14) {
                 if let measurement {
                     measurementHeader(measurement)
+
+                    if let averagedMeasurement = measurement.averagedMeasurement,
+                       hasAveragingQualityMetadata(averagedMeasurement) {
+                        averagingQualityGroup(averagedMeasurement)
+                    }
+
                     colorimetricGroup(measurement)
 
                     if hasLightingMetrics(measurement) {
@@ -53,11 +59,70 @@ struct MeasurementDetailsView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            Image(systemName: "checkmark.circle.fill")
-                .font(.title2)
-                .foregroundStyle(.green)
-                .accessibilityLabel("測定完了")
+            if let averagedMeasurement = measurement.averagedMeasurement {
+                Label(
+                    "平均 \(averagedMeasurement.sampleCount)回",
+                    systemImage: "square.stack.3d.up.fill"
+                )
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.blue)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 4)
+                .background(.blue.opacity(0.10), in: .capsule)
+            } else {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.green)
+                    .accessibilityLabel("測定完了")
+            }
         }
+    }
+
+    private func averagingQualityGroup(
+        _ metadata: AveragedMeasurementMetadata
+    ) -> some View {
+        GroupBox("平均化測定") {
+            VStack(spacing: 8) {
+                MetricRow(
+                    label: String(localized: "採用回数"),
+                    value: "\(metadata.sampleCount)回"
+                )
+                if let measurementCount = metadata.measurementCount {
+                    MetricRow(
+                        label: String(localized: "実測回数"),
+                        value: "\(measurementCount)回"
+                    )
+                }
+                if let outlierCount = metadata.outlierCount {
+                    MetricRow(
+                        label: String(localized: "異常値"),
+                        value: "\(outlierCount)回"
+                    )
+                }
+                if let convergenceTier = metadata.convergenceTier {
+                    MetricRow(
+                        label: String(localized: "収束度"),
+                        value: convergenceTier.localizedName
+                    )
+                }
+                if let uncertainty = metadata.relative95UncertaintyPercent {
+                    MetricRow(
+                        label: String(localized: "95%誤差目安"),
+                        value: "±\(format(uncertainty, digits: 1))%"
+                    )
+                }
+            }
+            .padding(.top, 4)
+        }
+    }
+
+    private func hasAveragingQualityMetadata(
+        _ metadata: AveragedMeasurementMetadata
+    ) -> Bool {
+        metadata.measurementCount != nil
+            || metadata.outlierCount != nil
+            || metadata.relative95UncertaintyPercent != nil
+            || metadata.convergenceTier != nil
     }
 
     private func colorimetricGroup(_ measurement: SpotMeasurement) -> some View {

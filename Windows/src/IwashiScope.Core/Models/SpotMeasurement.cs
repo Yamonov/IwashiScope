@@ -61,6 +61,17 @@ public sealed record Tm30Result
 
 public sealed record MonochromeResult(double Y, double LStar);
 
+public sealed record AveragedMeasurementMetadata
+{
+    [JsonPropertyName("requestID")]
+    public required string RequestId { get; init; }
+    public required int SampleCount { get; init; }
+    public int? MeasurementCount { get; init; }
+    public int? OutlierCount { get; init; }
+    public double? Relative95UncertaintyPercent { get; init; }
+    public AveragingConvergenceTier? ConvergenceTier { get; init; }
+}
+
 public enum LightingMetricIssue
 {
     InvalidCct,
@@ -94,6 +105,7 @@ public sealed record SpotMeasurement
     public CriResult? Cri { get; init; }
     public TlciResult? Tlci { get; init; }
     public Tm30Result? Tm30 { get; init; }
+    public AveragedMeasurementMetadata? AveragedMeasurement { get; init; }
 
     [JsonIgnore]
     public WavelengthRange? ValidatedPracticalSpectrumRange =>

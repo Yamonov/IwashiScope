@@ -93,4 +93,51 @@ public sealed class ProtocolTests
         var stream = new Utf8JsonLineStream();
         Assert.Throws<DecoderFallbackException>(() => stream.Consume([0xC3, 0x28]));
     }
+
+    [Fact]
+    public void SpectrumAnalysisCapabilityStatesAndResponseMetadataParse()
+    {
+        const string helloWithCapability =
+            """{"protocolVersion":3,"event":"hello","implementation":"IwashiScope spot reader","implementationVersion":1,"argyllVersion":"3.5.0","capabilities":["spectrumAnalysisV1"]}""";
+        var parser = new SpotreadOutputParser(MeasurementMode.Ambient);
+        var json = helloWithCapability + "\n" +
+            """{"protocolVersion":3,"event":"state","state":"spectrumAnalysisInputReady"}""" + "\n" +
+            """{"protocolVersion":3,"event":"state","state":"spectrumAnalysisStarted"}""" + "\n" +
+            """{"protocolVersion":3,"event":"measurement","mode":"ambient","source":"averagedSpectrum","analysisRequestId":"request-7","averagedSampleCount":6,"spectrum":{"startNm":400,"endNm":700,"values":[0.2,0.4,0.3]},"xyz":[10,11,9],"lab":[40,0,1],"lightingMetricIssues":[]}""";
+
+        var events = parser.Consume(json + "\n");
+
+        var hello = Assert.IsType<HelloAcceptedEvent>(events[0]);
+        Assert.Contains("spectrumAnalysisV1", hello.Capabilities!);
+        Assert.IsType<SpectrumAnalysisInputReadyEvent>(events[1]);
+        Assert.IsType<SpectrumAnalysisStartedEvent>(events[2]);
+        var measurement = Assert.IsType<MeasurementCompletedEvent>(events[3]).Measurement;
+        Assert.Equal("request-7", measurement.AveragedMeasurement?.RequestId);
+        Assert.Equal(6, measurement.AveragedMeasurement?.SampleCount);
+    }
+
+    [Fact]
+    public void RecoverableSpectrumAnalysisFailureHasDedicatedEvent()
+    {
+        var parser = new SpotreadOutputParser(MeasurementMode.Reflectance);
+        var json = Hello + "\n" +
+            """{"protocolVersion":3,"event":"issue","code":"spectrumAnalysisCalculationFailure","reason":"invalid tristimulus"}""";
+
+        var events = parser.Consume(json + "\n");
+
+        var failed = Assert.IsType<SpectrumAnalysisFailedEvent>(events[1]);
+        Assert.Equal("invalid tristimulus", failed.Reason);
+    }
+
+    [Fact]
+    public void AveragedMetadataWithoutSourceIsRejected()
+    {
+        var parser = new SpotreadOutputParser(MeasurementMode.Ambient);
+        var json = Hello + "\n" +
+            """{"protocolVersion":3,"event":"measurement","mode":"ambient","analysisRequestId":"request-7","averagedSampleCount":6,"spectrum":{"startNm":400,"endNm":700,"values":[0.2,0.4,0.3]},"xyz":[10,11,9],"lab":[40,0,1],"lightingMetricIssues":[]}""";
+
+        var events = parser.Consume(json + "\n");
+
+        Assert.IsType<ConfigurationIssueEvent>(events[1]);
+    }
 }

@@ -111,11 +111,11 @@ try {
         -Raw -Encoding UTF8
     $appcastItemCount = @($generated.rss.channel.item).Count
     $historicalXml = $generated.OuterXml.Replace(
-        '<sparkle:version>0.9.5.4</sparkle:version>',
+        '<sparkle:version>0.9.6</sparkle:version>',
         '<sparkle:version>0.9.5.3</sparkle:version>').Replace(
-        '<sparkle:shortVersionString>0.9.5.4</sparkle:shortVersionString>',
+        '<sparkle:shortVersionString>0.9.6</sparkle:shortVersionString>',
         '<sparkle:shortVersionString>0.9.5.3</sparkle:shortVersionString>').Replace(
-        'IwashiScope-0.9.5.4-Windows-x64-Setup.exe',
+        'IwashiScope-0.9.6-Windows-x64-Setup.exe',
         'IwashiScope-0.9.5.3-Windows-x64-Setup.exe')
     [IO.File]::WriteAllText(
         $historySourceAppcast,
@@ -134,7 +134,7 @@ try {
         -Raw -Encoding UTF8
     $historyAppcastItemCount = @($historyGenerated.rss.channel.item).Count
     if ($historyAppcastItemCount -ne 2 -or
-        $historyGenerated.rss.channel.item[0].version -ne '0.9.5.4' -or
+        $historyGenerated.rss.channel.item[0].version -ne '0.9.6' -or
         $historyGenerated.rss.channel.item[1].version -ne '0.9.5.3') {
         throw 'Windows appcast history was not preserved in newest-first order.'
     }

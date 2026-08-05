@@ -46,7 +46,7 @@ internal sealed class WinSparkleUpdater : IDisposable
             var assembly = typeof(WinSparkleUpdater).Assembly;
             var version = assembly?
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-                .InformationalVersion ?? "0.9.5.4";
+                .InformationalVersion ?? "0.9.6";
             var buildVersion = assembly?.GetName().Version?.ToString() ?? version;
 
             _native.SetAppcastUrl(AppcastUrl);

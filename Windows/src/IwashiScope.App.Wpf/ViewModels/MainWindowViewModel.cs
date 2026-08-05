@@ -30,14 +30,50 @@ public sealed class HistoryItemViewModel : ObservableObject
         Entry = entry;
         Sequence = sequence;
         IsSelected = isSelected;
+        IsAveragingStack = false;
+        AveragingAcceptedCount = 0;
         _rename = rename;
         _name = entry.Name ?? string.Empty;
     }
+
+    private HistoryItemViewModel(
+        SpotMeasurement measurement,
+        int acceptedCount,
+        string name)
+    {
+        Entry = new MeasurementHistoryEntry(Guid.Empty, name, measurement);
+        Sequence = 0;
+        IsSelected = false;
+        IsAveragingStack = true;
+        AveragingAcceptedCount = acceptedCount;
+        _rename = (_, _) => { };
+        _name = name;
+    }
+
+    public static HistoryItemViewModel AveragingStack(
+        SpotMeasurement measurement,
+        int acceptedCount,
+        string name) =>
+        new(measurement, acceptedCount, name);
 
     public MeasurementHistoryEntry Entry { get; }
     public Guid Id => Entry.Id;
     public int Sequence { get; }
     public bool IsSelected { get; }
+    public bool IsAveragingStack { get; }
+    public bool IsRegularHistoryItem => !IsAveragingStack;
+    public bool CanSelect => !IsAveragingStack;
+    public bool CanRename => !IsAveragingStack;
+    public int AveragingAcceptedCount { get; }
+    public double ItemWidth => IsAveragingStack ? HistoryCardLayout.Width + 9 : HistoryCardLayout.Width;
+    public double ItemHeight => IsAveragingStack ? HistoryCardLayout.Height + 8 : HistoryCardLayout.Height;
+    public bool ShowsAverageBadge =>
+        IsAveragingStack || Entry.Measurement.AveragedMeasurement is not null;
+    public string AverageBadgeText => IsAveragingStack
+        ? $"{AveragingAcceptedCount}回"
+        : Entry.Measurement.AveragedMeasurement is { } averaged
+            ? $"平均 {averaged.SampleCount}回"
+            : string.Empty;
     public SpotMeasurement Measurement => Entry.Measurement;
     public string Timestamp => Entry.Measurement.CapturedAt.ToLocalTime().ToString("g");
     public string ModeBadge => Entry.Measurement.Mode.ProtocolName();
@@ -110,6 +146,9 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         MeasureCommand = new AsyncRelayCommand(
             _ => RunAsync(_session.MeasureAsync),
             _ => CanMeasure);
+        AverageMeasurementCommand = new AsyncRelayCommand(
+            _ => ToggleAveragingMeasurementAsync(),
+            _ => CanToggleAveragingMeasurement);
         CalibrateCommand = new AsyncRelayCommand(
             _ => RunAsync(_session.BeginCalibrationAsync),
             _ => CanCalibrate);
@@ -129,13 +168,16 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         DeleteCommand = new RelayCommand(_ => DeleteSelection(), _ => SelectedCount > 0);
         MoveUpCommand = new RelayCommand(_ => MoveSelection(up: true), _ => SelectedCount > 0);
         MoveDownCommand = new RelayCommand(_ => MoveSelection(up: false), _ => SelectedCount > 0);
-        SelectAllCommand = new RelayCommand(_ => SelectAll(), _ => HistoryItems.Count > 0);
+        SelectAllCommand = new RelayCommand(
+            _ => SelectAll(),
+            _ => _session.History.Ordered(Mode).Count > 0);
         DeselectAllCommand = new RelayCommand(_ => DeselectAll(), _ => SelectedCount > 0);
         ClearLogCommand = new RelayCommand(_ => _session.Log.Clear());
     }
 
     public ObservableCollection<HistoryItemViewModel> HistoryItems { get; } = [];
     public AsyncRelayCommand MeasureCommand { get; }
+    public AsyncRelayCommand AverageMeasurementCommand { get; }
     public AsyncRelayCommand CalibrateCommand { get; }
     public AsyncRelayCommand ConfirmCalibrationCommand { get; }
     public AsyncRelayCommand SkipCalibrationCommand { get; }
@@ -555,6 +597,27 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public bool ShowsLightingExport =>
         UiProfile.ExportSection == UiParitySection.LightingExport;
     public bool HasActiveMeasurement => ActiveMeasurement is not null;
+    public bool HasAveragedMeasurement => ActiveMeasurement?.AveragedMeasurement is not null;
+    public string AveragedMeasurementBadgeText =>
+        ActiveMeasurement?.AveragedMeasurement is { } averaged
+            ? T($"平均 {averaged.SampleCount}回", $"Average {averaged.SampleCount}")
+            : string.Empty;
+    public string AveragedMeasurementCountText =>
+        ActiveMeasurement?.AveragedMeasurement is { } averaged
+            ? averaged.MeasurementCount is { } actual
+                ? $"{averaged.SampleCount}（{actual}）"
+                : averaged.SampleCount.ToString(CultureInfo.CurrentCulture)
+            : "—";
+    public string AveragedOutlierCountText =>
+        ActiveMeasurement?.AveragedMeasurement?.OutlierCount is { } outliers
+            ? outliers.ToString(CultureInfo.CurrentCulture)
+            : "—";
+    public string AveragedConvergenceText =>
+        ActiveMeasurement?.AveragedMeasurement is
+            { Relative95UncertaintyPercent: { } uncertainty,
+              ConvergenceTier: { } tier }
+            ? $"{ConvergenceName(tier)}・95% ±{uncertainty:0.00}%"
+            : "—";
     public bool HasLab => ActiveMeasurement?.Lab is not null;
     public bool ShowsMunsellValue =>
         Mode == MeasurementMode.Reflectance && ActiveMeasurement?.Lab is not null;
@@ -870,6 +933,88 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public bool CanMeasure =>
         !IsBrowsingRestoredWorkspace &&
         _session.State.Phase is MeasurementSessionPhase.Ready or MeasurementSessionPhase.Workspace;
+    public bool ShowsAveragingControls =>
+        !IsBrowsingRestoredWorkspace &&
+        (_session.SupportsSpectrumAnalysis || _session.IsAveragingMeasurement) &&
+        (_session.State.Phase == MeasurementSessionPhase.Ready ||
+         _session.IsAveragingMeasurement);
+    public bool CanToggleAveragingMeasurement =>
+        !IsBrowsingRestoredWorkspace &&
+        !_session.IsFinalizingAveragingMeasurement &&
+        _session.State.Phase == MeasurementSessionPhase.Ready &&
+        (_session.IsCollectingAveragingMeasurements ||
+         (_session.SupportsSpectrumAnalysis && !_session.IsAveragingMeasurement));
+    public bool IsAveragingMeasurement => _session.IsAveragingMeasurement;
+    public bool IsFinalizingAveragingMeasurement =>
+        _session.IsFinalizingAveragingMeasurement;
+    public int AveragingAcceptedCount => _session.AveragingAccumulator.AcceptedCount;
+    public int AveragingMeasurementCount =>
+        _session.AveragingAccumulator.MeasurementAttemptCount;
+    public int AveragingOutlierCount => _session.AveragingAccumulator.OutlierCount;
+    public double AveragingProgressValue =>
+        100d * AveragingAcceptedCount / AveragingMeasurementAccumulator.MaximumCount;
+    public string AveragingProgressText =>
+        $"{AveragingAcceptedCount}（{AveragingMeasurementCount}）/{AveragingMeasurementAccumulator.MaximumCount}";
+    public double AveragingIndicatorOpacity =>
+        !IsAveragingMeasurement || AveragingMeasurementCount == 0 ? 0.28 : 1;
+    public Brush AveragingProgressBrush =>
+        _session.AveragingAccumulator.ProgressTier switch
+        {
+            AveragingProgressTier.Minimum => BrushFrom("#A86C38"),
+            AveragingProgressTier.Recommended => BrushFrom("#2784D9"),
+            AveragingProgressTier.Sufficient => BrushFrom("#2E9B57"),
+            _ => BrushFrom("#D34A43"),
+        };
+    public string AveragingOutlierText => T(
+        $"異常値 {AveragingOutlierCount}件",
+        $"Outliers {AveragingOutlierCount}");
+    public string AveragingConvergenceText
+    {
+        get
+        {
+            if (_session.AveragingAccumulator.Convergence is not { } convergence)
+            {
+                return T("収束度 —（6回から表示）", "Convergence — (shown from 6 readings)");
+            }
+            var name = ConvergenceName(convergence.Tier);
+            return T(
+                $"収束度 {name}・95% ±{convergence.Relative95UncertaintyPercent:0.00}%",
+                $"Convergence {name} · 95% ±{convergence.Relative95UncertaintyPercent:0.00}%");
+        }
+    }
+    public double AveragingConvergenceValue =>
+        100d * (_session.AveragingAccumulator.Convergence?.Progress ?? 0);
+    public double AveragingConvergenceOpacity =>
+        _session.AveragingAccumulator.Convergence is null ? 0.28 : 1;
+    public Brush AveragingConvergenceBrush =>
+        _session.AveragingAccumulator.Convergence?.Tier switch
+        {
+            AveragingConvergenceTier.Converging => BrushFrom("#A86C38"),
+            AveragingConvergenceTier.Stable => BrushFrom("#2784D9"),
+            AveragingConvergenceTier.SufficientlyStable => BrushFrom("#2E9B57"),
+            _ => BrushFrom("#D34A43"),
+        };
+    public string AveragingMessageText => _session.AveragingMessage is { } message
+        ? Language == "ja" ? message.Japanese : message.English
+        : string.Empty;
+    public bool HasAveragingMessage => !string.IsNullOrWhiteSpace(AveragingMessageText);
+    public string AverageMeasurementButtonLabel
+    {
+        get
+        {
+            if (_session.IsFinalizingAveragingMeasurement)
+            {
+                return T("平均値を再計算中…", "Recalculating Average…");
+            }
+            if (!_session.IsAveragingMeasurement)
+            {
+                return T("平均化測定を開始", "Start Averaging");
+            }
+            return _session.AveragingAccumulator.CanOutputAverage
+                ? T("平均値を出力", "Output Average")
+                : T("平均値モードを終了", "End Averaging Mode");
+        }
+    }
     public bool CanCalibrate =>
         !IsBrowsingRestoredWorkspace &&
         _session.State.Phase is MeasurementSessionPhase.Ready or
@@ -929,6 +1074,10 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         "CSV（スペクトル、CRI、TM-30-15）",
         "CSV (Spectrum, CRI, TM-30-15)");
     public string MeasureLabel => T("測定", "Measure");
+    public string AveragingQualityLabel => T("平均化測定", "Averaging Measurement");
+    public string AveragedReadingCountLabel => T("採用数（実測数）", "Accepted (Measured)");
+    public string AveragedOutlierCountLabel => T("異常値数", "Outliers");
+    public string AveragedConvergenceLabel => T("収束度", "Convergence");
     public string CalibrateLabel => T("キャリブレーション", "Calibrate");
     public string RecalibrateLabel => T("再キャリブレーション", "Recalibrate");
     public string ContinueLabel => T("キャリブレーション", "Calibrate");
@@ -1178,6 +1327,18 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     private Task StartCurrentModeAsync() =>
         RunAsync(cancellationToken => _session.StartAsync(Mode, cancellationToken));
 
+    private Task ToggleAveragingMeasurementAsync()
+    {
+        if (_session.IsAveragingMeasurement)
+        {
+            return RunAsync(_session.FinishOrCancelAveragingMeasurementAsync);
+        }
+
+        _session.StartAveragingMeasurement();
+        RefreshFromSession();
+        return Task.CompletedTask;
+    }
+
     private async Task RunAsync(Func<CancellationToken, Task> operation)
     {
         string? operationError = null;
@@ -1231,6 +1392,25 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         OnPropertyChanged(nameof(InstrumentName));
         OnPropertyChanged(nameof(InstrumentMetadataName));
         OnPropertyChanged(nameof(CanMeasure));
+        OnPropertyChanged(nameof(ShowsAveragingControls));
+        OnPropertyChanged(nameof(CanToggleAveragingMeasurement));
+        OnPropertyChanged(nameof(IsAveragingMeasurement));
+        OnPropertyChanged(nameof(IsFinalizingAveragingMeasurement));
+        OnPropertyChanged(nameof(AveragingAcceptedCount));
+        OnPropertyChanged(nameof(AveragingMeasurementCount));
+        OnPropertyChanged(nameof(AveragingOutlierCount));
+        OnPropertyChanged(nameof(AveragingProgressValue));
+        OnPropertyChanged(nameof(AveragingProgressText));
+        OnPropertyChanged(nameof(AveragingIndicatorOpacity));
+        OnPropertyChanged(nameof(AveragingProgressBrush));
+        OnPropertyChanged(nameof(AveragingOutlierText));
+        OnPropertyChanged(nameof(AveragingConvergenceText));
+        OnPropertyChanged(nameof(AveragingConvergenceValue));
+        OnPropertyChanged(nameof(AveragingConvergenceOpacity));
+        OnPropertyChanged(nameof(AveragingConvergenceBrush));
+        OnPropertyChanged(nameof(AveragingMessageText));
+        OnPropertyChanged(nameof(HasAveragingMessage));
+        OnPropertyChanged(nameof(AverageMeasurementButtonLabel));
         OnPropertyChanged(nameof(CanCalibrate));
         OnPropertyChanged(nameof(CanRetry));
         OnPropertyChanged(nameof(NeedsCalibrationConfirmation));
@@ -1238,6 +1418,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         OnPropertyChanged(nameof(CalibrationTitle));
         OnPropertyChanged(nameof(CalibrationInstruction));
         MeasureCommand.RaiseCanExecuteChanged();
+        AverageMeasurementCommand.RaiseCanExecuteChanged();
         CalibrateCommand.RaiseCanExecuteChanged();
         RetryCommand.RaiseCanExecuteChanged();
         ConfirmCalibrationCommand.RaiseCanExecuteChanged();
@@ -1260,13 +1441,24 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
                     selected.Contains(entries[index].Id),
                     Rename));
             }
+            if (_session.IsAveragingMeasurement &&
+                _session.AveragingAccumulator.LatestAcceptedMeasurement is { } preview)
+            {
+                HistoryItems.Add(
+                    HistoryItemViewModel.AveragingStack(
+                        preview,
+                        _session.AveragingAccumulator.AcceptedCount,
+                        T("平均化測定中", "Averaging")));
+            }
         }
         finally
         {
             IsRefreshingHistory = false;
         }
 
-        ActiveMeasurement = ActiveEntry?.Measurement;
+        ActiveMeasurement = _session.IsAveragingMeasurement
+            ? _session.LatestMeasurement
+            : ActiveEntry?.Measurement;
         OnPropertyChanged(nameof(SelectedCount));
         OnPropertyChanged(nameof(HasMeasurements));
         OnPropertyChanged(nameof(InstrumentName));
@@ -1347,7 +1539,10 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
                      nameof(DisplayP3GamutWarning), nameof(HasDisplayP3GamutWarning),
                      nameof(SwatchBrush),
                      nameof(JspstSummary), nameof(IsoSummary),
-                     nameof(ShowsSrgbEncoding), nameof(HasActiveMeasurement), nameof(HasLab),
+                     nameof(ShowsSrgbEncoding), nameof(HasActiveMeasurement),
+                     nameof(HasAveragedMeasurement), nameof(AveragedMeasurementBadgeText),
+                     nameof(AveragedMeasurementCountText), nameof(AveragedOutlierCountText),
+                     nameof(AveragedConvergenceText), nameof(HasLab),
                      nameof(ShowsMunsellValue),
                      nameof(HasMonochrome), nameof(HasLightingMetrics), nameof(HasCriOrTlci),
                      nameof(HasCri), nameof(HasTlci), nameof(HasTm30), nameof(HasLux),
@@ -1397,6 +1592,18 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         component?.ToString("0.000", CultureInfo.CurrentCulture) ?? "—";
 
     private string T(string japanese, string english) => _localization.Text(japanese, english);
+
+    private string ConvergenceName(AveragingConvergenceTier tier) => tier switch
+    {
+        AveragingConvergenceTier.HighVariation => T("変動大", "High variation"),
+        AveragingConvergenceTier.Converging => T("収束中", "Converging"),
+        AveragingConvergenceTier.Stable => T("安定", "Stable"),
+        AveragingConvergenceTier.SufficientlyStable => T("十分に安定", "Sufficiently stable"),
+        _ => tier.ToString(),
+    };
+
+    private static Brush BrushFrom(string value) =>
+        (Brush)new BrushConverter().ConvertFromString(value)!;
 
     private string ModeText(MeasurementMode mode) => mode switch
     {

@@ -183,6 +183,10 @@ struct MeasurementWorkspaceView: View {
         if mode == .reflectance {
             MeasurementHistoryView(
                 historyStore: historyStore,
+                averagingMeasurement: session.averagingAccumulator.latestAcceptedMeasurement,
+                averagingAcceptedCount: session.isAveragingMeasurement
+                    ? session.averagingAccumulator.acceptedCount
+                    : nil,
                 canExportSelectedSwatches: canExportSelectedSwatches,
                 onExportSelectedSwatches: exportSelectedSwatches
             )
@@ -190,6 +194,10 @@ struct MeasurementWorkspaceView: View {
             LightingMeasurementHistoryView(
                 mode: mode,
                 historyStore: historyStore,
+                averagingMeasurement: session.averagingAccumulator.latestAcceptedMeasurement,
+                averagingAcceptedCount: session.isAveragingMeasurement
+                    ? session.averagingAccumulator.acceptedCount
+                    : nil,
                 usesPracticalSpectrumRange: usesPracticalSpectrumRange,
                 spectrumYAxisConfiguration: spectrumYAxisConfiguration
             )
@@ -224,8 +232,12 @@ struct MeasurementWorkspaceView: View {
             )
         case .measuring:
             InstrumentBusyPresentation(
-                title: String(localized: "測定中"),
-                detail: String(localized: "測定器を動かさないでください。")
+                title: session.isFinalizingAveragingMeasurement
+                    ? String(localized: "平均値を再計算中")
+                    : String(localized: "測定中"),
+                detail: session.isFinalizingAveragingMeasurement
+                    ? String(localized: "平均スペクトルから測色値と演色評価値を再計算しています。")
+                    : String(localized: "測定器を動かさないでください。")
             )
         case .recovering:
             InstrumentBusyPresentation(
@@ -238,7 +250,10 @@ struct MeasurementWorkspaceView: View {
     }
 
     private var displayedMeasurement: SpotMeasurement? {
-        displayedEntry?.measurement ?? session.latestMeasurement
+        if session.isAveragingMeasurement {
+            return session.latestMeasurement ?? displayedEntry?.measurement
+        }
+        return displayedEntry?.measurement ?? session.latestMeasurement
     }
 
     private var displayedEntry: MeasurementHistoryEntry? {

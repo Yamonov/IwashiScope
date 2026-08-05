@@ -9,6 +9,7 @@ public sealed class SpotreadPipeProtocolTests
     [InlineData("k")]
     [InlineData("N")]
     [InlineData("q")]
+    [InlineData("\u001D")]
     public void CommandsAreBomlessUtf8AndCrLfTerminated(string command)
     {
         var framed = SpotreadPipeProtocol.FrameCommand(command);

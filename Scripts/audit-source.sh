@@ -80,10 +80,12 @@ Windows/src/IwashiScope.App.Wpf/Resources/Icons/IwashiScope.ico
 Windows/src/IwashiScope.App.Wpf/Resources/Icons/IwashiScope-128.png
 Windows/src/IwashiScope.App.Wpf/Resources/Localizable.xcstrings
 Windows/src/IwashiScope.Core/IwashiScope.Core.csproj
+Windows/src/IwashiScope.Core/Models/AveragedMeasurement.cs
 Windows/src/IwashiScope.Core/Models/SpectrumYAxisConfiguration.cs
 Windows/src/IwashiScope.Infrastructure.Windows/IwashiScope.Infrastructure.Windows.csproj
 Windows/src/IwashiScope.Protocol/IwashiScope.Protocol.csproj
 Windows/tests/IwashiScope.Tests/IwashiScope.Tests.csproj
+Windows/tests/IwashiScope.Tests/AveragedMeasurementTests.cs
 Windows/tests/IwashiScope.Tests/ProtocolTests.cs
 Windows/tests/IwashiScope.Tests/ReleaseMetadataTests.cs
 Windows/tests/IwashiScope.Tests/SpectrumYAxisTests.cs
@@ -95,6 +97,8 @@ Argyll_V3.5.0/spectro/spotread_jsonl.c
 Argyll_V3.5.0/spectro/spotread_jsonl.h
 Argyll_V3.5.0/spectro/spotread_jsonl_test.c
 IwashiScopePackage/Sources/IwashiScopeFeature/Models/CIEStandardIlluminantData.generated.swift
+IwashiScopePackage/Sources/IwashiScopeFeature/Models/AveragedMeasurement.swift
+IwashiScopePackage/Sources/IwashiScopeFeature/Views/AveragingMeasurementHistoryStackView.swift
 IwashiScope/Resources/NOTICE.txt
 IwashiScope/Resources/THIRD-PARTY-NOTICES.txt
 IwashiScope/Resources/Licenses/ArgyllCMS-AGPL-3.0.txt
