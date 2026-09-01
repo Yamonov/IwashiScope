@@ -56,7 +56,7 @@ foreach ($item in $items) {
         throw "Duplicate Windows appcast version: $($versionNode.InnerText)"
     }
     if ($versionNode.InnerText -ne $shortVersionNode.InnerText -or
-        $versionNode.InnerText -notmatch '^\d+\.\d+\.\d+(?:\.\d+)?$') {
+        $versionNode.InnerText -notmatch '^\d+\.\d+(?:\.\d+){0,2}$') {
         throw 'Windows appcast display and build versions must be the same numeric version.'
     }
 

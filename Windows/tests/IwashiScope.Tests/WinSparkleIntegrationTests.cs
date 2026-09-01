@@ -149,6 +149,7 @@ public sealed class WinSparkleIntegrationTests
         Assert.Contains("length=\"$($installer.Length)\"", script);
         Assert.Contains("Installer filename must be", script);
         Assert.Contains("ProductVersion/FileVersion", script);
+        Assert.Contains("^\\d+\\.\\d+(?:\\.\\d+){0,2}$", script);
         Assert.Contains("winsparkle-tool.exe", script);
         Assert.Contains("verify", script);
         Assert.Contains("SourceAppcastPath", script);
