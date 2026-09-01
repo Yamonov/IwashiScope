@@ -163,7 +163,9 @@ try {
         'build',
         $solutionPath,
         '-c', 'Release',
-        '--nologo'
+        '--nologo',
+        '-p:DebugType=None',
+        '-p:DebugSymbols=false'
     )
     Invoke-CheckedCommand -FilePath 'dotnet' -ArgumentList @(
         'test',

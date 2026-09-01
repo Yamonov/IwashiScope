@@ -110,8 +110,16 @@ public sealed class WinSparkleIntegrationTests
         Assert.Contains("[string] $Version = '1.0'", releaseScript);
         Assert.Contains("Windows-x64-Setup.exe", releaseScript);
         Assert.Contains("Release = $true", releaseScript);
-        Assert.Contains("-p:DebugType=None", releaseScript);
-        Assert.Contains("-p:DebugSymbols=false", releaseScript);
+        Assert.Equal(
+            2,
+            releaseScript.Split(
+                "-p:DebugType=None",
+                StringSplitOptions.None).Length - 1);
+        Assert.Equal(
+            2,
+            releaseScript.Split(
+                "-p:DebugSymbols=false",
+                StringSplitOptions.None).Length - 1);
         Assert.Contains("Release payload contains PDB files", releaseScript);
         Assert.Contains("Assert-NoPersonalBuildPaths", releaseScript);
         Assert.Contains("[switch] $Release", helperBuildScript);
