@@ -49,6 +49,37 @@ function Invoke-CheckedCommand {
     }
 }
 
+function Assert-NoPersonalBuildPaths {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Root,
+
+        [Parameter(Mandatory = $true)]
+        [string[]] $ForbiddenPaths
+    )
+
+    $files = if (Test-Path -LiteralPath $Root -PathType Leaf) {
+        @(Get-Item -LiteralPath $Root)
+    }
+    else {
+        @(Get-ChildItem -LiteralPath $Root -File -Recurse)
+    }
+    foreach ($file in $files) {
+        $content = [Text.Encoding]::ASCII.GetString(
+            [IO.File]::ReadAllBytes($file.FullName)
+        )
+        foreach ($forbiddenPath in $ForbiddenPaths) {
+            if (-not [string]::IsNullOrWhiteSpace($forbiddenPath) -and
+                $content.IndexOf(
+                    $forbiddenPath,
+                    [StringComparison]::OrdinalIgnoreCase
+                ) -ge 0) {
+                throw "Personal build path leaked into $($file.FullName)."
+            }
+        }
+    }
+}
+
 $windowsRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $windowsRoot '..'))
 $solutionPath = Join-Path $windowsRoot 'IwashiScope.Windows.slnx'
@@ -112,6 +143,7 @@ try {
         JamPath = $JamPath
         Architecture = 'x64'
         OutputPath = $temporaryHelper
+        Release = $true
     }
     if (-not [string]::IsNullOrWhiteSpace($VsDevCmdPath)) {
         $helperArguments.VsDevCmdPath = $VsDevCmdPath
@@ -123,6 +155,9 @@ try {
         -Description 'Built iwashiscope-spotread.exe'
     $helperHash = (Get-FileHash -LiteralPath $temporaryHelper `
         -Algorithm SHA256).Hash
+    Assert-NoPersonalBuildPaths `
+        -Root $temporaryHelper `
+        -ForbiddenPaths @($env:USERPROFILE, $repositoryRoot)
 
     Invoke-CheckedCommand -FilePath 'dotnet' -ArgumentList @(
         'build',
@@ -148,6 +183,8 @@ try {
         '--self-contained', 'true',
         '--nologo',
         '-p:PublishSingleFile=false',
+        '-p:DebugType=None',
+        '-p:DebugSymbols=false',
         "-p:Version=$Version",
         "-p:IwashiScopeHelperPath=$temporaryHelper",
         '-o', $payloadPath
@@ -218,6 +255,15 @@ try {
         [Text.UTF8Encoding]::new($false)
     )
 
+    $publishedPdbFiles = @(Get-ChildItem -LiteralPath $payloadPath `
+        -Filter '*.pdb' -File -Recurse)
+    if ($publishedPdbFiles.Count -ne 0) {
+        throw "Release payload contains PDB files: $($publishedPdbFiles.FullName -join ', ')"
+    }
+    Assert-NoPersonalBuildPaths `
+        -Root $payloadPath `
+        -ForbiddenPaths @($env:USERPROFILE, $repositoryRoot)
+
     $installerArguments = @{
         PayloadPath = $payloadPath
         Version = $Version
@@ -233,6 +279,9 @@ try {
     $installerPath = Resolve-ExistingFile `
         -Path $installerPath `
         -Description 'Windows x64 installer'
+    Assert-NoPersonalBuildPaths `
+        -Root $installerPath `
+        -ForbiddenPaths @($env:USERPROFILE, $repositoryRoot)
     $installerItem = Get-Item -LiteralPath $installerPath
     $installerHash = (Get-FileHash -LiteralPath $installerPath `
         -Algorithm SHA256).Hash

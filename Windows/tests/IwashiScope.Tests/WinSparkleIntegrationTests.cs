@@ -82,6 +82,11 @@ public sealed class WinSparkleIntegrationTests
             windowsRoot,
             "Scripts",
             "Build-Release.ps1"));
+        var helperBuildScript = File.ReadAllText(Path.Combine(
+            windowsRoot,
+            "..",
+            "Scripts",
+            "build-spotread-windows.ps1"));
         var installerScript = File.ReadAllText(Path.Combine(
             windowsRoot,
             "Scripts",
@@ -104,6 +109,13 @@ public sealed class WinSparkleIntegrationTests
         Assert.Contains("Build-WindowsInstaller.ps1", releaseScript);
         Assert.Contains("[string] $Version = '1.0'", releaseScript);
         Assert.Contains("Windows-x64-Setup.exe", releaseScript);
+        Assert.Contains("Release = $true", releaseScript);
+        Assert.Contains("-p:DebugType=None", releaseScript);
+        Assert.Contains("-p:DebugSymbols=false", releaseScript);
+        Assert.Contains("Release payload contains PDB files", releaseScript);
+        Assert.Contains("Assert-NoPersonalBuildPaths", releaseScript);
+        Assert.Contains("[switch] $Release", helperBuildScript);
+        Assert.Contains("-sLINKDEBUGFLAG=/INCREMENTAL:NO", helperBuildScript);
         Assert.Contains("[string] $Version = '1.0'", installerScript);
         Assert.Contains("Compress-Archive -Path (Join-Path $payloadFull '*')", installerScript);
         Assert.Contains("Test-WindowsInstaller.ps1", installerScript);

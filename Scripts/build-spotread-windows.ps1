@@ -4,7 +4,8 @@ param(
     [string] $VsDevCmdPath,
     [ValidateSet("x64")]
     [string] $Architecture = "x64",
-    [string] $OutputPath
+    [string] $OutputPath,
+    [switch] $Release
 )
 
 Set-StrictMode -Version Latest
@@ -73,10 +74,16 @@ $VsDevCmdPath = Resolve-ExistingFile `
 $quotedJam = Quote-CmdPath -Path $JamPath
 $quotedVsDevCmd = Quote-CmdPath -Path $VsDevCmdPath
 $quotedTestExecutable = Quote-CmdPath -Path $testExecutable
+$releaseJamSettings = if ($Release) {
+    " -sCCDEBUGFLAG=/O2 -sCCPROFFLAG=/O2 -sLINKDEBUGFLAG=/INCREMENTAL:NO"
+}
+else {
+    ""
+}
 $commands = @(
     "call $quotedVsDevCmd -no_logo -arch=$Architecture -host_arch=$Architecture",
-    "$quotedJam -q -fJambase -sIWASHISCOPE_ONLY=true clean",
-    "$quotedJam -q -fJambase -sIWASHISCOPE_ONLY=true -sIWASHISCOPE_TESTS=true iwashiscope_spotread_jsonl_test iwashiscope_spotread",
+    "$quotedJam -q -fJambase -sIWASHISCOPE_ONLY=true$releaseJamSettings clean",
+    "$quotedJam -q -fJambase -sIWASHISCOPE_ONLY=true -sIWASHISCOPE_TESTS=true$releaseJamSettings iwashiscope_spotread_jsonl_test iwashiscope_spotread",
     $quotedTestExecutable
 ) -join " && "
 
