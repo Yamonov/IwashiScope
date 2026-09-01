@@ -61,6 +61,12 @@ final class MeasurementHistoryStore {
     private var selectedEntryIDsByMode: [MeasurementMode: Set<MeasurementHistoryEntry.ID>] = [:]
     private var activeEntryIDByMode: [MeasurementMode: MeasurementHistoryEntry.ID] = [:]
     private var selectionAnchorIDByMode: [MeasurementMode: MeasurementHistoryEntry.ID] = [:]
+    private var userIlluminantEntryIDBySlot: [UserIlluminantSlot: MeasurementHistoryEntry.ID] = [:]
+    @ObservationIgnored private var persistentChangeHandler: (() -> Void)?
+
+    func setPersistentChangeHandler(_ handler: @escaping () -> Void) {
+        persistentChangeHandler = handler
+    }
 
     @discardableResult
     func append(
@@ -72,8 +78,9 @@ final class MeasurementHistoryStore {
             instrumentIdentity: instrumentIdentity
         )
         entries.append(entry)
-        presentationOrderByMode[measurement.mode, default: []].append(entry.id)
+        presentationOrderByMode[measurement.mode, default: []].insert(entry.id, at: 0)
         setExclusiveSelection(entry.id, for: measurement.mode)
+        notifyPersistentChange()
         return entry
     }
 
@@ -97,6 +104,85 @@ final class MeasurementHistoryStore {
         return orderedEntries(for: mode).filter { selectedEntryIDs.contains($0.id) }
     }
 
+    var availableUserIlluminantSlots: Set<UserIlluminantSlot> {
+        Set(userIlluminantEntryIDBySlot.keys)
+    }
+
+    func entry(for entryID: MeasurementHistoryEntry.ID) -> MeasurementHistoryEntry? {
+        entries.first { $0.id == entryID }
+    }
+
+    func userIlluminantEntryID(
+        for slot: UserIlluminantSlot
+    ) -> MeasurementHistoryEntry.ID? {
+        userIlluminantEntryIDBySlot[slot]
+    }
+
+    func userIlluminantEntry(
+        for slot: UserIlluminantSlot
+    ) -> MeasurementHistoryEntry? {
+        guard let entryID = userIlluminantEntryID(for: slot) else { return nil }
+        return entry(for: entryID)
+    }
+
+    func userIlluminantSlots(
+        for entryID: MeasurementHistoryEntry.ID
+    ) -> [UserIlluminantSlot] {
+        UserIlluminantSlot.allCases.filter {
+            userIlluminantEntryIDBySlot[$0] == entryID
+        }
+    }
+
+    func isDeletionProtected(
+        _ entryID: MeasurementHistoryEntry.ID
+    ) -> Bool {
+        userIlluminantEntryIDBySlot.values.contains(entryID)
+    }
+
+    func deletableEntryCount(for mode: MeasurementMode) -> Int {
+        orderedEntries(for: mode).lazy.filter {
+            self.isDeletionProtected($0.id) == false
+        }.count
+    }
+
+    @discardableResult
+    func registerUserIlluminant(
+        entryID: MeasurementHistoryEntry.ID,
+        for slot: UserIlluminantSlot
+    ) -> Bool {
+        guard let entry = entry(for: entryID),
+              entry.measurement.mode == .ambient
+                || entry.measurement.mode == .emissive,
+              UserIlluminantSpectrum(
+                  name: entry.name,
+                  measuredAt: entry.measurement.capturedAt,
+                  samples: entry.measurement.spectrum
+              ) != nil else {
+            return false
+        }
+
+        guard userIlluminantEntryIDBySlot[slot] != entryID else {
+            return true
+        }
+        userIlluminantEntryIDBySlot[slot] = entryID
+        notifyPersistentChange()
+        return true
+    }
+
+    @discardableResult
+    func removeUserIlluminantRegistrations(
+        for entryID: MeasurementHistoryEntry.ID
+    ) -> Int {
+        let registeredSlots = userIlluminantSlots(for: entryID)
+        guard registeredSlots.isEmpty == false else { return 0 }
+
+        for slot in registeredSlots {
+            userIlluminantEntryIDBySlot.removeValue(forKey: slot)
+        }
+        notifyPersistentChange()
+        return registeredSlots.count
+    }
+
     @discardableResult
     func setName(
         _ name: String?,
@@ -113,6 +199,7 @@ final class MeasurementHistoryStore {
             measurement: entry.measurement,
             instrumentIdentity: entry.instrumentIdentity
         )
+        notifyPersistentChange()
         return true
     }
 
@@ -134,6 +221,14 @@ final class MeasurementHistoryStore {
                     activeEntryID: activeEntryIDByMode[mode],
                     selectionAnchorID: selectionAnchorIDByMode[mode]
                 )
+            },
+            userIlluminantRegistrations: UserIlluminantSlot.allCases.compactMap { slot in
+                userIlluminantEntryIDBySlot[slot].map { entryID in
+                    MeasurementHistorySnapshot.UserIlluminantRegistration(
+                        slot: slot,
+                        entryID: entryID
+                    )
+                }
             }
         )
     }
@@ -160,6 +255,12 @@ final class MeasurementHistoryStore {
         }
         activeEntryIDByMode = modeStates.compactMapValues(\.activeEntryID)
         selectionAnchorIDByMode = modeStates.compactMapValues(\.selectionAnchorID)
+        userIlluminantEntryIDBySlot = Dictionary(
+            uniqueKeysWithValues: snapshot.userIlluminantRegistrations.map {
+                ($0.slot, $0.entryID)
+            }
+        )
+        notifyPersistentChange()
     }
 
     @discardableResult
@@ -198,7 +299,7 @@ final class MeasurementHistoryStore {
         selectedEntryIDsByMode[mode] = Set(orderedIDs)
         let activeEntryID = activeEntryIDByMode[mode].flatMap { currentID in
             orderedIDs.contains(currentID) ? currentID : nil
-        } ?? orderedIDs.last
+        } ?? orderedIDs.first
         activeEntryIDByMode[mode] = activeEntryID
         selectionAnchorIDByMode[mode] = activeEntryID
         return true
@@ -270,6 +371,7 @@ final class MeasurementHistoryStore {
         }
 
         presentationOrderByMode[target.measurement.mode] = reorderedIDs
+        notifyPersistentChange()
         return true
     }
 
@@ -297,6 +399,7 @@ final class MeasurementHistoryStore {
 
         guard reorderedIDs != orderedIDs else { return false }
         presentationOrderByMode[mode] = reorderedIDs
+        notifyPersistentChange()
         return true
     }
 
@@ -307,23 +410,42 @@ final class MeasurementHistoryStore {
 
     @discardableResult
     func removeSelectedEntries(for mode: MeasurementMode) -> Int {
-        let selectedEntryIDs = selectedEntryIDs(for: mode)
-        guard selectedEntryIDs.isEmpty == false else {
+        let removableEntryIDs = selectedEntryIDs(for: mode).filter {
+            isDeletionProtected($0) == false
+        }
+        guard removableEntryIDs.isEmpty == false else {
             return 0
         }
 
-        remove(entryIDs: selectedEntryIDs, from: mode)
-        return selectedEntryIDs.count
+        remove(entryIDs: removableEntryIDs, from: mode)
+        notifyPersistentChange()
+        return removableEntryIDs.count
     }
 
     @discardableResult
     func remove(entryID: MeasurementHistoryEntry.ID) -> Bool {
-        guard let entry = entries.first(where: { $0.id == entryID }) else {
+        guard isDeletionProtected(entryID) == false,
+              let entry = entries.first(where: { $0.id == entryID }) else {
             return false
         }
 
         remove(entryIDs: [entryID], from: entry.measurement.mode)
+        notifyPersistentChange()
         return true
+    }
+
+    @discardableResult
+    func removeAllEntries(for mode: MeasurementMode) -> Int {
+        let entryIDs = Set(orderedEntries(for: mode).lazy.compactMap { entry in
+            self.isDeletionProtected(entry.id) ? nil : entry.id
+        })
+        guard entryIDs.isEmpty == false else {
+            return 0
+        }
+
+        remove(entryIDs: entryIDs, from: mode)
+        notifyPersistentChange()
+        return entryIDs.count
     }
 
     private func setExclusiveSelection(
@@ -348,7 +470,7 @@ final class MeasurementHistoryStore {
 
             selectedEntryIDsByMode[mode] = selectedEntryIDs
             if activeEntryIDByMode[mode] == entryID {
-                activeEntryIDByMode[mode] = lastPresentedID(
+                activeEntryIDByMode[mode] = firstPresentedID(
                     in: selectedEntryIDs,
                     for: mode
                 )
@@ -412,7 +534,7 @@ final class MeasurementHistoryStore {
             selectedEntryIDsByMode[mode] = remainingSelectedIDs
             if let activeEntryID = activeEntryIDByMode[mode],
                remainingSelectedIDs.contains(activeEntryID) == false {
-                activeEntryIDByMode[mode] = lastPresentedID(
+                activeEntryIDByMode[mode] = firstPresentedID(
                     in: remainingSelectedIDs,
                     for: mode
                 )
@@ -428,16 +550,20 @@ final class MeasurementHistoryStore {
         }
     }
 
-    private func lastPresentedID(
+    private func firstPresentedID(
         in entryIDs: Set<MeasurementHistoryEntry.ID>,
         for mode: MeasurementMode
     ) -> MeasurementHistoryEntry.ID? {
-        orderedEntries(for: mode).last { entryIDs.contains($0.id) }?.id
+        orderedEntries(for: mode).first { entryIDs.contains($0.id) }?.id
     }
 
     private func clearSelection(for mode: MeasurementMode) {
         selectedEntryIDsByMode.removeValue(forKey: mode)
         activeEntryIDByMode.removeValue(forKey: mode)
         selectionAnchorIDByMode.removeValue(forKey: mode)
+    }
+
+    private func notifyPersistentChange() {
+        persistentChangeHandler?()
     }
 }

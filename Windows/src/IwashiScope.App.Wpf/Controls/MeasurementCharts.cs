@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using IwashiScope.App.Wpf.Rendering;
+using IwashiScope.Core.Calculations;
 using IwashiScope.Core.Models;
 
 namespace IwashiScope.App.Wpf.Controls;
@@ -50,6 +51,13 @@ public sealed class SpectrumChart : FrameworkElement
                 SpectrumYAxisConfiguration.ForMeasurementMode(MeasurementMode.Reflectance),
                 FrameworkPropertyMetadataOptions.AffectsRender));
 
+    public static readonly DependencyProperty MeasurementNameProperty =
+        DependencyProperty.Register(
+            nameof(MeasurementName),
+            typeof(string),
+            typeof(SpectrumChart),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
     private SpectralSample? _hover;
 
     public SpotMeasurement? Measurement
@@ -82,6 +90,12 @@ public sealed class SpectrumChart : FrameworkElement
         set => SetValue(YAxisConfigurationProperty, value);
     }
 
+    public string? MeasurementName
+    {
+        get => (string?)GetValue(MeasurementNameProperty);
+        set => SetValue(MeasurementNameProperty, value);
+    }
+
     protected override void OnRender(DrawingContext drawingContext)
     {
         base.OnRender(drawingContext);
@@ -100,7 +114,8 @@ public sealed class SpectrumChart : FrameworkElement
             ShowD65,
             YAxisConfiguration,
             _hover,
-            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+            VisualTreeHelper.GetDpi(this).PixelsPerDip,
+            MeasurementName);
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
@@ -227,6 +242,37 @@ public sealed class LabABChart : MeasurementChartElement
             drawingContext,
             new Rect(RenderSize),
             Measurement,
+            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+    }
+}
+
+public sealed class ReflectanceIlluminantChart : FrameworkElement
+{
+    public ReflectanceIlluminantChart()
+    {
+        ClipToBounds = true;
+    }
+
+    public static readonly DependencyProperty ResultProperty =
+        DependencyProperty.Register(
+            nameof(Result),
+            typeof(ReflectanceIlluminantSpectrumResult),
+            typeof(ReflectanceIlluminantChart),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public ReflectanceIlluminantSpectrumResult? Result
+    {
+        get => (ReflectanceIlluminantSpectrumResult?)GetValue(ResultProperty);
+        set => SetValue(ResultProperty, value);
+    }
+
+    protected override void OnRender(DrawingContext drawingContext)
+    {
+        base.OnRender(drawingContext);
+        ChartDrawing.DrawReflectanceIlluminant(
+            drawingContext,
+            new Rect(RenderSize),
+            Result,
             VisualTreeHelper.GetDpi(this).PixelsPerDip);
     }
 }

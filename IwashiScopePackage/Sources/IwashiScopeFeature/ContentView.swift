@@ -28,6 +28,7 @@ public struct ContentView: View {
                     mode: selectedMode,
                     session: model.session,
                     historyStore: model.historyStore,
+                    userIlluminantStore: model.userIlluminantStore,
                     selectedSidebarTab: $selectedSidebarTab,
                     onChangeMode: returnToModeSelection,
                     onConnectInstrument: {
@@ -38,7 +39,7 @@ public struct ContentView: View {
                 ModeSelectionView(onSelect: selectMode)
             }
         }
-        .frame(minWidth: 860, minHeight: 620)
+        .frame(minWidth: 1_300, minHeight: 620)
         .navigationTitle(windowTitle)
         .onDisappear {
             model.session.stop()
@@ -83,6 +84,16 @@ public struct ContentView: View {
             Button("OK") {}
         } message: {
             Text(workspaceErrorMessage)
+        }
+        .alert(
+            "測定履歴を処理できませんでした",
+            isPresented: historyPersistenceErrorBinding
+        ) {
+            Button("OK") {
+                model.dismissHistoryPersistenceError()
+            }
+        } message: {
+            Text(model.historyPersistenceErrorMessage ?? "")
         }
     }
 
@@ -216,5 +227,16 @@ public struct ContentView: View {
         let cocoaError = error as NSError
         return cocoaError.domain == NSCocoaErrorDomain
             && cocoaError.code == NSUserCancelledError
+    }
+
+    private var historyPersistenceErrorBinding: Binding<Bool> {
+        Binding(
+            get: { model.historyPersistenceErrorMessage != nil },
+            set: { isPresented in
+                if isPresented == false {
+                    model.dismissHistoryPersistenceError()
+                }
+            }
+        )
     }
 }

@@ -6,7 +6,7 @@ namespace IwashiScope.Tests;
 public sealed class ReleaseMetadataTests
 {
     [Fact]
-    public void AppAssemblyIdentifiesVersion096()
+    public void AppAssemblyIdentifiesVersion10()
     {
         var assembly = typeof(MainWindow).Assembly;
         var informationalVersion = assembly
@@ -16,8 +16,8 @@ public sealed class ReleaseMetadataTests
             .GetCustomAttribute<AssemblyFileVersionAttribute>()?
             .Version;
 
-        Assert.Equal("0.9.6", informationalVersion);
-        Assert.Equal("0.9.6.0", fileVersion);
-        Assert.Equal(new Version(0, 9, 6, 0), assembly.GetName().Version);
+        Assert.Equal("1.0", informationalVersion);
+        Assert.Equal("1.0.0.0", fileVersion);
+        Assert.Equal(new Version(1, 0, 0, 0), assembly.GetName().Version);
     }
 }

@@ -41,14 +41,14 @@ JAM=/absolute/path/to/jam \
 
 ## CIE標準光源データの再生成
 
-公開ソースには、CIEの公式CSVとメタデータ、チェックサムを検証する生成スクリプト、生成済みSwift適応物を含めます。通常のビルドでは再生成は不要です。データ生成部分を変更した場合は、次を実行します。
+公開ソースには、CIEの公式CSVとメタデータ、チェックサムを検証する生成スクリプト、生成済みSwift・C#適応物を含めます。通常のビルドでは再生成は不要です。データ生成部分を変更した場合は、次を実行します。
 
 ```sh
 Scripts/generate-cie-standard-illuminants.swift
 Scripts/generate-cie-standard-illuminants.swift --check
 ```
 
-原データはCC BY-SA 4.0、生成されたSwift適応物はGPL-3.0-onlyです。AGPL-3.0-onlyのIwashiScope部分とはGPLv3・AGPLv3双方の第13条に基づいて結合されます。詳細は`ThirdParty/CIE/README.md`を参照してください。
+原データはCC BY-SA 4.0、生成されたSwift・C#適応物はGPL-3.0-onlyです。AGPL-3.0-onlyのIwashiScope部分とはGPLv3・AGPLv3双方の第13条に基づいて結合されます。詳細は`ThirdParty/CIE/README.md`を参照してください。
 
 ## Xcode
 

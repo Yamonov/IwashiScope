@@ -6,7 +6,7 @@
 ArgyllCMS 3.5.0を改変した同梱コマンド`iwashiscope-spotread`を対話操作し、スペクトルと測色・光源評価値を表示する分光・測色アプリです。macOS版はSwiftUI、Windows版はWPFで実装し、同じ改変ソースから各OS用の`iwashiscope-spotread`をビルドします。
 
 > [!IMPORTANT]
-> macOS版Version 0.9には、Sparkle.frameworkを見つけられず起動できない問題があります。Version 0.9をダウンロードした場合は、署名・公証済みの[IwashiScope 0.9.5.4](https://github.com/Yamonov/IwashiScope/releases/tag/v0.9.5.4)を手動でダウンロードして置き換えてください。macOS版・Windows版の配布バイナリに対応する完全なソース一式も、同じReleaseで公開しています。
+> macOS版Version 0.9には、Sparkle.frameworkを見つけられず起動できない問題があります。Version 0.9をダウンロードした場合は、署名・公証済みの[IwashiScope 1.0](https://github.com/Yamonov/IwashiScope/releases/tag/v1.0)を手動でダウンロードして置き換えてください。macOS版・Windows版の配布バイナリに対応する完全なソース一式も、同じReleaseで公開しています。
 
 ## 現在の実装
 
@@ -52,9 +52,9 @@ D50とD65の比較曲線は、CIEが公開する1 nm間隔の公式データか�
 
 これらの原データセットは[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)で公開されています。用途の表記は、D50をISO 3664の観察条件、D65をISO 3668の塗料色比較条件として区別しています。曲線の数値はいずれもISO/CIE 11664-2に対応するCIE公式データです。
 
-公式CSVとメタデータ、チェックサム、変換内容は[`ThirdParty/CIE/`](ThirdParty/CIE/)に収録しています。`Scripts/generate-cie-standard-illuminants.swift`でSwift配列を再生成でき、`--check`で収録CSVと生成結果の一致を検証できます。
+公式CSVとメタデータ、チェックサム、変換内容は[`ThirdParty/CIE/`](ThirdParty/CIE/)に収録しています。`Scripts/generate-cie-standard-illuminants.swift`でmacOS用Swift配列とWindows用C#配列を同時に再生成でき、`--check`で収録CSVと両生成結果の一致を検証できます。
 
-生成されたSwiftデータはCC BY-SA 4.0データの適応物です。原データにはCC BY-SA 4.0が引き続き適用され、Yamonovによる適応への寄与はGNU GPLバージョン3のみ（GPL-3.0-only）で提供されます。GPLv3はCreative CommonsがCC BY-SA 4.0の一方向互換ライセンスとして指定しています。この適応物は、GPLv3・AGPLv3双方の第13条に基づき、AGPL-3.0-onlyのIwashiScope部分と結合されます。詳細は[`ThirdParty/CIE/README.md`](ThirdParty/CIE/README.md)を参照してください。
+生成されたSwift・C#データはCC BY-SA 4.0データの適応物です。原データにはCC BY-SA 4.0が引き続き適用され、Yamonovによる適応への寄与はGNU GPLバージョン3のみ（GPL-3.0-only）で提供されます。GPLv3はCreative CommonsがCC BY-SA 4.0の一方向互換ライセンスとして指定しています。これらの適応物は、GPLv3・AGPLv3双方の第13条に基づき、AGPL-3.0-onlyのIwashiScope部分と結合されます。詳細は[`ThirdParty/CIE/README.md`](ThirdParty/CIE/README.md)を参照してください。
 
 ## spotread実行ファイル
 
@@ -107,7 +107,7 @@ ArgyllCMSソースとIwashiScope側の改変ソースを同じリポジトリで
 
 Copyright © 2026 Murakami Yoshiteru
 
-IwashiScopeのSwiftアプリと改変版`iwashiscope-spotread`は、第三者著作物に個別の表示がある部分を除き、[GNU Affero General Public Licenseバージョン3（AGPL-3.0-only）](LICENSE)で公開します。CIE標準光源データから生成したSwift適応物には[GNU GPLバージョン3のみ（GPL-3.0-only）](LICENSES/GPL-3.0-only.txt)が適用され、AGPL-3.0-only部分とは双方の第13条に基づいて結合されます。このソフトウェアには一切の保証がありません。
+IwashiScopeのSwift・C#アプリと改変版`iwashiscope-spotread`は、第三者著作物に個別の表示がある部分を除き、[GNU Affero General Public Licenseバージョン3（AGPL-3.0-only）](LICENSE)で公開します。CIE標準光源データから生成したSwift・C#適応物には[GNU GPLバージョン3のみ（GPL-3.0-only）](LICENSES/GPL-3.0-only.txt)が適用され、AGPL-3.0-only部分とは双方の第13条に基づいて結合されます。このソフトウェアには一切の保証がありません。
 
 - ArgyllCMS 3.5.0の原著作権と個別ライセンスは維持されています。
 - IwashiScopeによるArgyllCMSの改変内容は[ARGYLL_CHANGES.md](ARGYLL_CHANGES.md)に記録しています。

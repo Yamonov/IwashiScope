@@ -138,6 +138,7 @@ enum MeasurementExporter {
                     name: "\(baseName)-Spectrum.png",
                     data: try MeasurementExportImageRenderer.spectrumPNG(
                         measurement: measurement,
+                        measurementName: entry.name,
                         usesPracticalSpectrumRange:
                             options.usesPracticalSpectrumRange,
                         yAxisConfiguration:

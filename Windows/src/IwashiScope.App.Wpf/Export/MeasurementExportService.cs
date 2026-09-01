@@ -78,7 +78,8 @@ public sealed class MeasurementExportService
                         options.UsePracticalSpectrumRange,
                         options.ShowD50,
                         options.ShowD65,
-                        options.SpectrumYAxisConfiguration),
+                        options.SpectrumYAxisConfiguration,
+                        entry.Name),
                     cancellationToken).ConfigureAwait(false);
                 paths.Add(path);
             }

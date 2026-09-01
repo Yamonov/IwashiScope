@@ -9,12 +9,24 @@ enum MeasurementSidebarTab: String, Codable, Hashable, Sendable {
 }
 
 enum MeasurementSidebarTabSelectionPolicy {
-    static func tab(
-        for phase: MeasurementSessionPhase,
-        calibrationCompleted: Bool
+    static func initialTab(
+        for phase: MeasurementSessionPhase
     ) -> MeasurementSidebarTab? {
         guard phase != .workspace else { return nil }
-        return calibrationCompleted ? .measurementValues : .spotreadLog
+        return phase == .launching ? .spotreadLog : .measurementValues
+    }
+
+    static func transitionTab(
+        from previousPhase: MeasurementSessionPhase,
+        to phase: MeasurementSessionPhase
+    ) -> MeasurementSidebarTab? {
+        if phase == .launching {
+            return .spotreadLog
+        }
+        if previousPhase == .launching {
+            return .measurementValues
+        }
+        return nil
     }
 }
 
@@ -22,14 +34,15 @@ struct MeasurementWorkspaceView: View {
     @State private var exportErrorMessage = ""
     @State private var showsExportError = false
     @State private var isExporting = false
-    @State private var analysisContentHeight: CGFloat = 0
     @State private var usesPracticalSpectrumRange = false
+    @State private var historyPanelWidth = MeasurementHistoryPanelLayout.initialWidth
     @State private var spectrumYAxisConfigurations =
         SpectrumYAxisConfiguration.initialByMeasurementMode
 
     let mode: MeasurementMode
     let session: MeasurementSession
     let historyStore: MeasurementHistoryStore
+    let userIlluminantStore: UserIlluminantStore
     @Binding var selectedSidebarTab: MeasurementSidebarTab
     let onChangeMode: () -> Void
     let onConnectInstrument: () -> Void
@@ -60,81 +73,60 @@ struct MeasurementWorkspaceView: View {
         } message: {
             Text(exportErrorMessage)
         }
-        .onChange(of: session.calibrationCompleted, initial: true) {
-            synchronizeSidebarTabWithCalibration()
+        .onChange(of: session.phase, initial: true) { previousPhase, phase in
+            let tab = previousPhase == phase
+                ? MeasurementSidebarTabSelectionPolicy.initialTab(for: phase)
+                : MeasurementSidebarTabSelectionPolicy.transitionTab(
+                    from: previousPhase,
+                    to: phase
+                )
+            if let tab {
+                selectedSidebarTab = tab
+            }
         }
-        .onChange(of: session.phase) { _, phase in
-            guard phase == .launching else { return }
-            synchronizeSidebarTabWithCalibration()
-        }
-    }
-
-    private func synchronizeSidebarTabWithCalibration() {
-        guard let tab = MeasurementSidebarTabSelectionPolicy.tab(
-            for: session.phase,
-            calibrationCompleted: session.calibrationCompleted
-        ) else { return }
-        selectedSidebarTab = tab
     }
 
     private var workspaceContent: some View {
-        HSplitView {
-            GeometryReader { geometry in
-                let collapsedHistoryHeight = MeasurementHistoryFooterLayout.collapsedHeight(
-                    availableHeight: geometry.size.height,
-                    analysisContentHeight: analysisContentHeight,
-                    mode: mode
-                )
+        HStack(spacing: 0) {
+            MeasurementHistorySidebar(
+                mode: mode,
+                deletableEntryCount: historyStore.deletableEntryCount(for: mode),
+                onDeleteAll: deleteAllHistoryForCurrentMode
+            ) {
+                measurementHistory
+            }
+            .id(mode)
+            .frame(width: historyPanelWidth)
+            .frame(maxHeight: .infinity)
 
-                ZStack(alignment: .bottom) {
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            SpectrumChartView(
-                                mode: mode,
-                                measurement: displayedMeasurement,
-                                calibrationCompleted: session.calibrationCompleted,
-                                usesPracticalSpectrumRange: usesPracticalSpectrumRange,
-                                yAxisConfiguration: spectrumYAxisConfiguration
-                            )
+            MeasurementHistoryPanelDivider(panelWidth: $historyPanelWidth)
 
-                            if mode != .reflectance {
-                                LightingRenderingTabsView(measurement: displayedMeasurement)
-                            }
-                        }
-                        .padding(18)
-                        .background {
-                            GeometryReader { contentGeometry in
-                                Color.clear.preference(
-                                    key: MeasurementAnalysisHeightPreferenceKey.self,
-                                    value: contentGeometry.size.height
-                                )
-                            }
-                        }
-                        .padding(.bottom, collapsedHistoryHeight)
-                    }
+            ScrollView {
+                VStack(spacing: 16) {
+                    SpectrumChartView(
+                        mode: mode,
+                        measurement: displayedMeasurement,
+                        measurementName: displayedMeasurementName,
+                        calibrationCompleted: session.calibrationCompleted,
+                        usesPracticalSpectrumRange: usesPracticalSpectrumRange,
+                        yAxisConfiguration: spectrumYAxisConfiguration
+                    )
 
-                    MeasurementHistoryFooter(
-                        availableHeight: geometry.size.height,
-                        collapsedHeight: collapsedHistoryHeight
-                    ) {
-                        measurementHistory
+                    if mode == .reflectance {
+                        ReflectanceIlluminantSpectrumView(
+                            measurement: displayedMeasurement,
+                            usesPracticalSpectrumRange: usesPracticalSpectrumRange,
+                            userIlluminantStore: userIlluminantStore
+                        )
+                    } else {
+                        LightingRenderingStackView(measurement: displayedMeasurement)
                     }
-                    .id(mode)
-                    .zIndex(1)
                 }
-                .onPreferenceChange(MeasurementAnalysisHeightPreferenceKey.self) { height in
-                    guard height.isFinite,
-                          height > 0,
-                          abs(analysisContentHeight - height) > 0.5 else {
-                        return
-                    }
-                    analysisContentHeight = height
-                }
-                .onChange(of: mode) {
-                    analysisContentHeight = 0
-                }
+                .padding(18)
             }
             .frame(minWidth: 540, maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+
+            Divider()
 
             VStack(spacing: 0) {
                 CalibrationStatusView(
@@ -149,22 +141,8 @@ struct MeasurementWorkspaceView: View {
                 )
                     .padding(16)
 
-                TabView(selection: $selectedSidebarTab) {
-                    MeasurementDetailsView(
-                        measurement: displayedMeasurement,
-                        calibrationCompleted: session.calibrationCompleted
-                    )
-                    .tabItem {
-                        Label("測定値", systemImage: "list.bullet.rectangle")
-                    }
-                    .tag(MeasurementSidebarTab.measurementValues)
-
-                    SpotreadDebugWindowView(session: session)
-                        .tabItem {
-                            Label("spotread詳細ログ", systemImage: "terminal")
-                        }
-                        .tag(MeasurementSidebarTab.spotreadLog)
-                }
+                sidebarTabPicker
+                sidebarContent
 
                 MeasurementExportFooter(
                     mode: mode,
@@ -175,6 +153,34 @@ struct MeasurementWorkspaceView: View {
                 .id(mode)
             }
             .frame(minWidth: 440, idealWidth: 440, maxWidth: 440, maxHeight: .infinity)
+        }
+    }
+
+    private var sidebarTabPicker: some View {
+        Picker("右パネル表示", selection: $selectedSidebarTab) {
+            Text("測定値")
+                .tag(MeasurementSidebarTab.measurementValues)
+            Text("spotread詳細ログ")
+                .tag(MeasurementSidebarTab.spotreadLog)
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
+        .accessibilityLabel("右パネルの表示")
+        .accessibilityIdentifier("measurement-sidebar-tab-picker")
+    }
+
+    @ViewBuilder
+    private var sidebarContent: some View {
+        switch selectedSidebarTab {
+        case .measurementValues:
+            MeasurementDetailsView(
+                measurement: displayedMeasurement,
+                calibrationCompleted: session.calibrationCompleted
+            )
+        case .spotreadLog:
+            SpotreadDebugWindowView(session: session)
         }
     }
 
@@ -258,6 +264,14 @@ struct MeasurementWorkspaceView: View {
 
     private var displayedEntry: MeasurementHistoryEntry? {
         historyStore.selectedEntry(for: mode)
+    }
+
+    private var displayedMeasurementName: String? {
+        guard let displayedEntry,
+              displayedEntry.measurement == displayedMeasurement else {
+            return nil
+        }
+        return displayedEntry.name
     }
 
     private var selectedEntries: [MeasurementHistoryEntry] {
@@ -432,16 +446,9 @@ struct MeasurementWorkspaceView: View {
         exportErrorMessage = message
         showsExportError = true
     }
-}
 
-private struct MeasurementAnalysisHeightPreferenceKey: PreferenceKey {
-    static let defaultValue: CGFloat = 0
-
-    static func reduce(
-        value: inout CGFloat,
-        nextValue: () -> CGFloat
-    ) {
-        value = max(value, nextValue())
+    private func deleteAllHistoryForCurrentMode() {
+        _ = historyStore.removeAllEntries(for: mode)
     }
 }
 

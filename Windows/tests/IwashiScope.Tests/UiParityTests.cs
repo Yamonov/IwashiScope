@@ -37,7 +37,10 @@ public sealed class UiParityTests
     public void SectionOrderMatchesMacViewComposition()
     {
         Assert.Equal(
-            [UiParitySection.Spectrum],
+            [
+                UiParitySection.Spectrum,
+                UiParitySection.ReflectanceIlluminantComparison,
+            ],
             UiParityProfiles.For(MeasurementMode.Reflectance).CentralSections);
         Assert.Equal(
             [

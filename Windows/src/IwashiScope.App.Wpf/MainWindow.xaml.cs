@@ -11,6 +11,7 @@ using IwashiScope.App.Wpf.Export;
 using IwashiScope.App.Wpf.Layout;
 using IwashiScope.App.Wpf.Updates;
 using IwashiScope.App.Wpf.ViewModels;
+using IwashiScope.Core.Calculations;
 using IwashiScope.Core.Models;
 using Microsoft.Win32;
 
@@ -25,8 +26,6 @@ public partial class MainWindow : Window
     private readonly WinSparkleUpdater _updater;
     private Point _dragStart;
     private bool _isApplyingSelection;
-    private bool _historyExpanded;
-    private double _collapsedHistoryHeight = 220;
     private bool _shutdownApproved;
 
     public MainWindow()
@@ -34,6 +33,9 @@ public partial class MainWindow : Window
         InitializeComponent();
         _updater = ((App)Application.Current).Updater;
         DataContext = _viewModel;
+        var historyView = CollectionViewSource.GetDefaultView(_viewModel.HistoryItems);
+        historyView.GroupDescriptions.Add(
+            new PropertyGroupDescription(nameof(HistoryItemViewModel.DateKey)));
         SpotreadLogTextBox.Text = _viewModel.LogText;
         _viewModel.LogAppended += AppendLog;
         _viewModel.LogReset += ResetLog;
@@ -45,7 +47,6 @@ public partial class MainWindow : Window
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         await _viewModel.InitializeAsync();
-        ResetAdaptiveHistoryHeight();
         ApplyHistorySelection();
         _updater.TryInitialize(
             _viewModel.Language,
@@ -57,7 +58,6 @@ public partial class MainWindow : Window
     {
         if (e.PropertyName == nameof(MainWindowViewModel.Mode))
         {
-            ResetAdaptiveHistoryHeight();
             ResetExportOptions();
         }
     }
@@ -199,6 +199,23 @@ public partial class MainWindow : Window
         }
     }
 
+    private void DeleteAllHistory_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_viewModel.HasDeletableHistory)
+        {
+            return;
+        }
+        if (MessageBox.Show(
+                this,
+                _viewModel.DeleteHistoryConfirmationMessage,
+                _viewModel.DeleteHistoryConfirmationTitle,
+                MessageBoxButton.OKCancel,
+                MessageBoxImage.Warning) == MessageBoxResult.OK)
+        {
+            _viewModel.DeleteAllHistory();
+        }
+    }
+
     private void Japanese_Click(object sender, RoutedEventArgs e) => _viewModel.Language = "ja";
     private void English_Click(object sender, RoutedEventArgs e) => _viewModel.Language = "en";
 
@@ -209,7 +226,7 @@ public partial class MainWindow : Window
         var source = "https://github.com/Yamonov/IwashiScope";
         var version = Assembly.GetEntryAssembly()?
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-            .InformationalVersion ?? "0.9.6";
+            .InformationalVersion ?? "1.0";
         var result = MessageBox.Show(
             this,
             $"IwashiScope {version}: AGPL-3.0-only\n" +
@@ -464,6 +481,42 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    private void HistoryRenameMenu_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { DataContext: HistoryItemViewModel item } ||
+            !item.CanRename ||
+            HistoryList.ItemContainerGenerator.ContainerFromItem(item) is not ListBoxItem container ||
+            FindVisibleDescendant<TextBox>(container) is not { } editor)
+        {
+            return;
+        }
+        HistoryList.ScrollIntoView(item);
+        editor.IsReadOnly = false;
+        editor.Focus();
+        editor.CaretIndex = editor.Text.Length;
+    }
+
+    private void RegisterUserIlluminant_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem
+            {
+                DataContext: HistoryItemViewModel item,
+                Tag: string slotName,
+            } &&
+            Enum.TryParse<UserIlluminantSlot>(slotName, out var slot))
+        {
+            _viewModel.RegisterUserIlluminant(item.Id, slot);
+        }
+    }
+
+    private void RemoveUserIlluminant_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem { DataContext: HistoryItemViewModel item })
+        {
+            _viewModel.RemoveUserIlluminantRegistrations(item.Id);
+        }
+    }
+
     private void HistoryNameEditor_LostKeyboardFocus(
         object sender,
         KeyboardFocusChangedEventArgs e)
@@ -473,58 +526,6 @@ public partial class MainWindow : Window
             editor.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
             editor.IsReadOnly = true;
         }
-    }
-
-    private void HistoryToggle_Click(object sender, RoutedEventArgs e)
-    {
-        var maximum = AnalysisHistoryGrid.ActualHeight * HistoryFooterLayout.ExpandedFraction;
-        if (_historyExpanded || HistoryRow.ActualHeight >= maximum - 1)
-        {
-            HistoryRow.Height = new GridLength(
-                Math.Min(
-                    Math.Max(HistoryFooterLayout.MinimumCollapsedHeight, _collapsedHistoryHeight),
-                    AnalysisHistoryGrid.ActualHeight * HistoryFooterLayout.MaximumCollapsedFraction));
-            _historyExpanded = false;
-        }
-        else
-        {
-            _collapsedHistoryHeight = HistoryRow.ActualHeight;
-            HistoryRow.Height = new GridLength(maximum);
-            _historyExpanded = true;
-        }
-    }
-
-    private void HistorySplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
-    {
-        ClampHistoryHeight();
-        _collapsedHistoryHeight = HistoryRow.ActualHeight;
-        _historyExpanded = false;
-    }
-
-    private void AnalysisHistoryGrid_SizeChanged(object sender, SizeChangedEventArgs e) =>
-        ClampHistoryHeight();
-
-    private void ClampHistoryHeight()
-    {
-        var maximum = AnalysisHistoryGrid.ActualHeight * HistoryFooterLayout.ExpandedFraction;
-        if (HistoryRow.ActualHeight > maximum)
-        {
-            HistoryRow.Height = new GridLength(maximum);
-        }
-    }
-
-    private void ResetAdaptiveHistoryHeight()
-    {
-        if (AnalysisHistoryGrid.ActualHeight <= 0)
-        {
-            return;
-        }
-        _collapsedHistoryHeight = HistoryFooterLayout.CollapsedHeight(
-            AnalysisHistoryGrid.ActualHeight,
-            analysisContentHeight: 0,
-            _viewModel.Mode);
-        HistoryRow.Height = new GridLength(_collapsedHistoryHeight);
-        _historyExpanded = false;
     }
 
     private async void Window_Closing(object? sender, CancelEventArgs e)
@@ -701,6 +702,24 @@ public partial class MainWindow : Window
                 return found;
             }
             if (FindDescendant<T>(child) is { } nested)
+            {
+                return nested;
+            }
+        }
+        return null;
+    }
+
+    private static T? FindVisibleDescendant<T>(DependencyObject parent)
+        where T : FrameworkElement
+    {
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, index);
+            if (child is T { IsVisible: true } found)
+            {
+                return found;
+            }
+            if (FindVisibleDescendant<T>(child) is { } nested)
             {
                 return nested;
             }

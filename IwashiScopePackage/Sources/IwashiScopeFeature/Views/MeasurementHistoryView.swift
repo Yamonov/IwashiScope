@@ -39,56 +39,21 @@ struct MeasurementHistoryView: View {
         historyStore.orderedEntries(for: .reflectance)
     }
 
+    private var dateGroups: [MeasurementHistoryDateGroup] {
+        MeasurementHistoryDateGrouping.groups(for: entries)
+    }
+
     var body: some View {
-        GroupBox {
+        VStack(alignment: .leading, spacing: 14) {
             if entries.isEmpty, averagingAcceptedCount == nil {
-                ContentUnavailableView(
-                    "測定履歴はありません",
-                    systemImage: "swatchpalette",
-                    description: Text("反射原稿を測定すると、Labカラーと測色値をここへ追加します。")
-                )
-                .frame(maxWidth: .infinity, minHeight: 150)
+                emptyState
             } else {
-                LazyVGrid(columns: columns, alignment: .leading, spacing: Self.cardSpacing) {
-                    ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
-                        historyCard(entry)
-                            .padding(.horizontal, Self.dropZoneWidth)
-                            .contextMenu {
-                                Button {
-                                    beginRenaming(entryID: entry.id)
-                                } label: {
-                                    Label("名前を付ける", systemImage: "pencil")
-                                }
-
-                                Divider()
-
-                                Button {
-                                    exportSwatches(from: entry)
-                                } label: {
-                                    Label(
-                                        "選択カードをスウォッチに書き出し",
-                                        systemImage: "square.and.arrow.up"
-                                    )
-                                }
-                                .disabled(canExportSwatch(from: entry) == false)
-                            }
-                            .overlay {
-                                insertionIndicator(
-                                    itemIndex: index,
-                                    itemWidth: Self.cardItemWidth
-                                )
-                            }
-                            .contentShape(Rectangle())
-                            .background(alignment: .leading) {
-                                dropArea(
-                                    itemIndex: index,
-                                    itemCount: entries.count,
-                                    itemWidth: Self.cardItemWidth
-                                )
-                            }
-                    }
-
-                    if let averagingAcceptedCount {
+                if let averagingAcceptedCount {
+                    LazyVGrid(
+                        columns: columns,
+                        alignment: .leading,
+                        spacing: Self.cardSpacing
+                    ) {
                         AveragingMeasurementHistoryStackView(
                             mode: .reflectance,
                             measurement: averagingMeasurement,
@@ -96,14 +61,16 @@ struct MeasurementHistoryView: View {
                         )
                         .padding(.horizontal, Self.dropZoneWidth)
                     }
+                    .padding(.horizontal, Self.dropZoneWidth)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(.horizontal, Self.dropZoneWidth)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, 4)
-                .animation(.snappy(duration: 0.28), value: entries.map(\.id))
+
+                ForEach(dateGroups) { group in
+                    MeasurementHistoryDateGroupView(group: group) {
+                        historyGrid(for: group)
+                    }
+                }
             }
-        } label: {
-            Label("測定履歴", systemImage: "clock.arrow.circlepath")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
@@ -118,6 +85,69 @@ struct MeasurementHistoryView: View {
                 .accessibilityHidden(true)
             }
         }
+        .onChange(of: entries.map(\.id)) { _, entryIDs in
+            reconcileTransientState(with: Set(entryIDs))
+        }
+    }
+
+    private var emptyState: some View {
+        ContentUnavailableView(
+            "測定履歴はありません",
+            systemImage: "swatchpalette",
+            description: Text("反射原稿を測定すると、Labカラーと測色値をここへ追加します。")
+        )
+        .frame(maxWidth: .infinity, minHeight: 150)
+    }
+
+    private func historyGrid(
+        for group: MeasurementHistoryDateGroup
+    ) -> some View {
+        let orderedEntryIDs = group.entries.map(\.id)
+
+        return LazyVGrid(columns: columns, alignment: .leading, spacing: Self.cardSpacing) {
+            ForEach(Array(group.entries.enumerated()), id: \.element.id) { index, entry in
+                historyCard(entry)
+                    .padding(.horizontal, Self.dropZoneWidth)
+                    .contextMenu {
+                        Button {
+                            beginRenaming(entryID: entry.id)
+                        } label: {
+                            Label("名前を付ける", systemImage: "pencil")
+                        }
+
+                        Divider()
+
+                        Button {
+                            exportSwatches(from: entry)
+                        } label: {
+                            Label(
+                                "選択カードをスウォッチに書き出し",
+                                systemImage: "square.and.arrow.up"
+                            )
+                        }
+                        .disabled(canExportSwatch(from: entry) == false)
+                    }
+                    .overlay {
+                        insertionIndicator(
+                            itemIndex: index,
+                            itemWidth: Self.cardItemWidth
+                        )
+                    }
+                    .contentShape(Rectangle())
+                    .background(alignment: .leading) {
+                        dropArea(
+                            itemIndex: index,
+                            itemCount: group.entries.count,
+                            itemWidth: Self.cardItemWidth,
+                            orderedEntryIDs: orderedEntryIDs
+                        )
+                    }
+            }
+        }
+        .padding(.horizontal, Self.dropZoneWidth)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.bottom, 4)
+        .animation(.snappy(duration: 0.28), value: orderedEntryIDs)
     }
 
     private func historyCard(_ entry: MeasurementHistoryEntry) -> some View {
@@ -290,7 +320,8 @@ struct MeasurementHistoryView: View {
     private func dropArea(
         itemIndex: Int,
         itemCount: Int,
-        itemWidth: Double
+        itemWidth: Double,
+        orderedEntryIDs: [MeasurementHistoryEntry.ID]
     ) -> some View {
         Color.clear
             .frame(
@@ -304,10 +335,10 @@ struct MeasurementHistoryView: View {
             .onDrop(
                 of: [MeasurementHistoryDragPayload.contentType],
                 delegate: MeasurementHistoryDropDelegate(
-                    mode: .reflectance,
                     itemIndex: itemIndex,
                     itemCount: itemCount,
                     itemWidth: itemWidth,
+                    orderedEntryIDs: orderedEntryIDs,
                     historyStore: historyStore,
                     dragState: $dragState,
                     dropTarget: $dropTarget
@@ -350,6 +381,19 @@ struct MeasurementHistoryView: View {
 
     private func focusHistory() {
         keyboardFocusRequest = UUID()
+    }
+
+    private func reconcileTransientState(
+        with entryIDs: Set<MeasurementHistoryEntry.ID>
+    ) {
+        if let editingEntryID,
+           entryIDs.contains(editingEntryID) == false {
+            clearNameEditingState()
+        }
+        if let dragState,
+           dragState.entryIDs.isSubset(of: entryIDs) == false {
+            clearDragState()
+        }
     }
 }
 
@@ -662,10 +706,10 @@ struct MeasurementHistoryInsertionIndicator: View {
 }
 
 struct MeasurementHistoryDropDelegate: DropDelegate {
-    let mode: MeasurementMode
     let itemIndex: Int
     let itemCount: Int
     let itemWidth: Double
+    let orderedEntryIDs: [MeasurementHistoryEntry.ID]
     let historyStore: MeasurementHistoryStore
     @Binding var dragState: MeasurementHistoryDragState?
     @Binding var dropTarget: MeasurementHistoryDropTarget?
@@ -674,7 +718,13 @@ struct MeasurementHistoryDropDelegate: DropDelegate {
         guard info.itemProviders(
             for: [MeasurementHistoryDragPayload.contentType]
         ).isEmpty == false,
-              dragState != nil else {
+              let dragState,
+              itemCount == orderedEntryIDs.count,
+              orderedEntryIDs.indices.contains(itemIndex),
+              MeasurementHistoryDateDropPolicy.allowsMove(
+                entryIDs: dragState.entryIDs,
+                within: orderedEntryIDs
+              ) else {
             return false
         }
         return true
@@ -703,12 +753,14 @@ struct MeasurementHistoryDropDelegate: DropDelegate {
             return false
         }
         let target = target(for: info)
+        let targetEntryID = orderedEntryIDs[itemIndex]
+        let placeAfter = target.insertionIndex > itemIndex
 
         withAnimation(.snappy(duration: 0.28)) {
             _ = historyStore.move(
                 entryIDs: dragState.entryIDs,
-                in: mode,
-                toInsertionIndex: target.insertionIndex
+                relativeTo: targetEntryID,
+                placeAfter: placeAfter
             )
         }
         self.dragState = nil

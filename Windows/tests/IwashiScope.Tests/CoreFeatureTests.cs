@@ -39,7 +39,7 @@ public sealed class CoreFeatureTests
         Assert.Equal(2, history.SelectedIds.Count);
         history.Rename(second.Id, "Renamed");
         history.MoveSelectionBefore(MeasurementMode.Reflectance, third.Id);
-        Assert.Equal(["A", "Renamed", "C"], history.Ordered(MeasurementMode.Reflectance).Select(x => x.Name));
+        Assert.Equal(["Renamed", "A", "C"], history.Ordered(MeasurementMode.Reflectance).Select(x => x.Name));
         history.Toggle(first.Id);
         var removed = history.DeleteSelected();
         Assert.Single(removed);

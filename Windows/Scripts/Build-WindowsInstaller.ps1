@@ -3,8 +3,8 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $PayloadPath,
 
-    [ValidatePattern('^\d+\.\d+\.\d+(?:\.\d+)?$')]
-    [string] $Version = '0.9.6',
+    [ValidatePattern('^\d+\.\d+(?:\.\d+){0,2}$')]
+    [string] $Version = '1.0',
 
     [string] $OutputRoot,
 

@@ -119,10 +119,10 @@ public sealed class UiAssetParityTests
         }
 
         Assert.Contains("Text=\"{Binding LabGroupLabel}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains(
-            "SelectedIndex=\"{Binding SelectedRenderingTabIndex}\"",
-            xaml,
-            StringComparison.Ordinal);
+        Assert.DoesNotContain("<TabItem Header=\"CRI\">", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("<TabItem Header=\"TM-30\">", xaml, StringComparison.Ordinal);
+        Assert.Contains("<controls:CriChart", xaml, StringComparison.Ordinal);
+        Assert.Contains("<layout:Tm30ResponsivePanel", xaml, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -308,7 +308,32 @@ public sealed class UiAssetParityTests
         Assert.Contains("Text=\"{Binding AverageBadgeText}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Visibility=\"{Binding HasAveragedMeasurement", xaml, StringComparison.Ordinal);
         Assert.Contains("$\"{AveragingAcceptedCount}（{AveragingMeasurementCount}）/", viewModel, StringComparison.Ordinal);
-        Assert.Contains("<TabControl Height=\"380\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Height=\"330\" ClipToBounds=\"True\"", xaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void HistoryAndReflectanceIlluminantUiMatchMacLayout()
+    {
+        var root = FindRepositoryRoot();
+        var xaml = File.ReadAllText(Path.Combine(
+            root,
+            "src",
+            "IwashiScope.App.Wpf",
+            "MainWindow.xaml"));
+
+        Assert.Contains(
+            "<ColumnDefinition x:Name=\"HistoryColumn\" Width=\"320\" MinWidth=\"180\" MaxWidth=\"420\" />",
+            xaml,
+            StringComparison.Ordinal);
+        Assert.Contains("<Expander IsExpanded=\"True\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding Name}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding DeleteHistoryLabel}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding RegisterUserIlluminantLabel}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding RemoveUserIlluminantLabel}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("<controls:ReflectanceIlluminantChart", xaml, StringComparison.Ordinal);
+        Assert.Contains("IsChecked=\"{Binding AppliesChromaticAdaptation}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding DeltaE00Text}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding DeltaLText}\"", xaml, StringComparison.Ordinal);
     }
 
     private static ushort ReadUInt16(byte[] bytes, int offset) =>

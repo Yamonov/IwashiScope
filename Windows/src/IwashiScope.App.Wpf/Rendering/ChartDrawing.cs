@@ -52,6 +52,13 @@ internal static class ChartDrawing
         {
             DashStyle = DashStyles.Dash,
         });
+    private static readonly Pen ReflectanceLinePen =
+        Freeze(new Pen(Brushes.Black, 2));
+    private static readonly Pen IlluminantLinePen =
+        Freeze(new Pen(new SolidColorBrush(Color.FromRgb(255, 176, 0)), 2)
+        {
+            DashStyle = DashStyles.Dash,
+        });
     private static readonly Brush[] CriBrushes =
     [
         Rgb(0.72, 0.48, 0.46), Rgb(0.78, 0.64, 0.27), Rgb(0.56, 0.70, 0.27),
@@ -102,7 +109,8 @@ internal static class ChartDrawing
         bool showD65,
         SpectrumYAxisConfiguration yAxisConfiguration,
         SpectralSample? hover = null,
-        double pixelsPerDip = 1)
+        double pixelsPerDip = 1,
+        string? measurementName = null)
     {
         drawing.DrawRectangle(Brushes.White, null, bounds);
         var plot = PlotRect(bounds);
@@ -236,6 +244,18 @@ internal static class ChartDrawing
         DrawPolyline(drawing, spectrumPoints, SpectrumPen);
         drawing.DrawRectangle(null, AxisPen, plot);
 
+        var peak = samples.MaxBy(sample => sample.Value);
+        if (peak is not null)
+        {
+            var annotation = SpectrumPeakAnnotation(measurement, measurementName, peak);
+            var annotationText = Formatted(annotation, 11, Brushes.Black, pixelsPerDip);
+            drawing.DrawText(
+                annotationText,
+                new Point(
+                    Math.Max(plot.Left + 5, plot.Right - annotationText.Width - 7),
+                    plot.Top + 6));
+        }
+
         if (hover is not null)
         {
             var x = MapX(hover.Wavelength, minimumWavelength, maximumWavelength, plot);
@@ -263,6 +283,138 @@ internal static class ChartDrawing
             drawing.DrawRectangle(tooltipBrush, null, tooltip);
             drawing.DrawText(text, new Point(tooltip.Left + 7, tooltip.Top + 5));
         }
+    }
+
+    private static string SpectrumPeakAnnotation(
+        SpotMeasurement measurement,
+        string? measurementName,
+        SpectralSample peak)
+    {
+        var components = new List<string>();
+        if (!string.IsNullOrWhiteSpace(measurementName))
+        {
+            components.Add(measurementName.Trim());
+        }
+        switch (measurement.Mode)
+        {
+            case MeasurementMode.Reflectance when measurement.Lab is { IsFinite: true } lab:
+                components.Add($"Lab:{lab.First:0.0}/{lab.Second:0.0}/{lab.Third:0.0}");
+                break;
+            case MeasurementMode.Ambient:
+                if (measurement.Lux is { } lux && double.IsFinite(lux))
+                {
+                    components.Add($"{lux:0.0} lx");
+                }
+                if (measurement.Cct is { } ambientCct && double.IsFinite(ambientCct))
+                {
+                    components.Add($"CCT {ambientCct:0} K");
+                }
+                break;
+            case MeasurementMode.Emissive:
+                if (measurement.Xyz?.Second is { } luminance && double.IsFinite(luminance))
+                {
+                    components.Add($"{luminance:0.0} cd/m²");
+                }
+                if (measurement.Cct is { } emissiveCct && double.IsFinite(emissiveCct))
+                {
+                    components.Add($"CCT {emissiveCct:0} K");
+                }
+                break;
+        }
+        components.Add($"Peak {peak.Value:0.00} @ {peak.Wavelength:0.0} nm");
+        return string.Join("　", components);
+    }
+
+    public static void DrawReflectanceIlluminant(
+        DrawingContext drawing,
+        Rect bounds,
+        ReflectanceIlluminantSpectrumResult? result,
+        double pixelsPerDip = 1)
+    {
+        drawing.DrawRectangle(Brushes.White, null, bounds);
+        var plot = PlotRect(bounds);
+        if (result is null || result.MeasuredReflectance.Count == 0)
+        {
+            drawing.DrawRectangle(Brushes.White, AxisPen, plot);
+            DrawCenteredText(drawing, "No reflectance", bounds, 16, AxisBrush, pixelsPerDip);
+            return;
+        }
+
+        var minimumWavelength = result.WavelengthStart;
+        var maximumWavelength = result.WavelengthEnd;
+        var maximumValue = result.AutomaticUpperBound;
+        drawing.DrawRectangle(
+            SpectrumGradient(minimumWavelength, maximumWavelength, 0.17),
+            null,
+            plot);
+
+        for (var index = 0; index <= 5; index++)
+        {
+            var value = maximumValue * index / 5;
+            var y = MapY(value, maximumValue, plot);
+            drawing.DrawLine(GridPen, new Point(plot.Left, y), new Point(plot.Right, y));
+            DrawText(
+                drawing,
+                value.ToString("0", CultureInfo.InvariantCulture),
+                new Point(bounds.Left + 4, y - 8),
+                11,
+                AxisBrush,
+                pixelsPerDip);
+        }
+        for (var index = 0; index <= 5; index++)
+        {
+            var wavelength = minimumWavelength +
+                (maximumWavelength - minimumWavelength) * index / 5;
+            var x = MapX(wavelength, minimumWavelength, maximumWavelength, plot);
+            drawing.DrawLine(GridPen, new Point(x, plot.Top), new Point(x, plot.Bottom));
+            var text = Formatted($"{wavelength:0}", 10, AxisBrush, pixelsPerDip);
+            drawing.DrawText(text, new Point(x - text.Width / 2, plot.Bottom + 8));
+        }
+
+        var reflectedPoints = SeriesPoints(
+            result.ReflectedLight,
+            plot,
+            minimumWavelength,
+            maximumWavelength,
+            maximumValue);
+        if (reflectedPoints.Length >= 2)
+        {
+            var areaPoints = new List<Point>(reflectedPoints.Length + 2)
+            {
+                new(reflectedPoints[0].X, plot.Bottom),
+            };
+            areaPoints.AddRange(reflectedPoints);
+            areaPoints.Add(new Point(reflectedPoints[^1].X, plot.Bottom));
+            drawing.DrawGeometry(
+                SpectrumGradient(minimumWavelength, maximumWavelength, 1),
+                null,
+                ClosedGeometry(areaPoints));
+        }
+
+        DrawSeries(
+            drawing,
+            result.Illuminant,
+            IlluminantLinePen,
+            plot,
+            minimumWavelength,
+            maximumWavelength,
+            maximumValue);
+        DrawSeries(
+            drawing,
+            result.MeasuredReflectance,
+            ReflectanceLinePen,
+            plot,
+            minimumWavelength,
+            maximumWavelength,
+            maximumValue);
+        drawing.DrawRectangle(null, AxisPen, plot);
+        DrawText(
+            drawing,
+            "nm",
+            new Point(plot.Right - 18, plot.Bottom + 24),
+            10,
+            AxisBrush,
+            pixelsPerDip);
     }
 
     public static void DrawCri(

@@ -11,6 +11,7 @@ enum MeasurementExportImageRenderer {
 
     static func spectrumPNG(
         measurement: SpotMeasurement,
+        measurementName: String? = nil,
         usesPracticalSpectrumRange: Bool,
         yAxisConfiguration: SpectrumYAxisConfiguration,
         includesD50Reference: Bool,
@@ -20,6 +21,7 @@ enum MeasurementExportImageRenderer {
             SpectrumChartView(
                 mode: measurement.mode,
                 measurement: measurement,
+                measurementName: measurementName,
                 calibrationCompleted: true,
                 showsReferenceControls: false,
                 usesPracticalSpectrumRange: usesPracticalSpectrumRange,

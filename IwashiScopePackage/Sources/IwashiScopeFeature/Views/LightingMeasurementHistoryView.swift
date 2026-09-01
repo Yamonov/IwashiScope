@@ -54,38 +54,21 @@ struct LightingMeasurementHistoryView: View {
         historyStore.orderedEntries(for: mode)
     }
 
+    private var dateGroups: [MeasurementHistoryDateGroup] {
+        MeasurementHistoryDateGrouping.groups(for: entries)
+    }
+
     var body: some View {
-        GroupBox {
+        VStack(alignment: .leading, spacing: 14) {
             if entries.isEmpty, averagingAcceptedCount == nil {
                 emptyState
             } else {
-                LazyVGrid(columns: columns, alignment: .leading, spacing: Self.cardSpacing) {
-                    ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
-                        historyCard(entry)
-                            .padding(.horizontal, Self.dropZoneWidth)
-                            .contextMenu {
-                                Button {
-                                    beginRenaming(entryID: entry.id)
-                                } label: {
-                                    Label("名前を付ける", systemImage: "pencil")
-                                }
-                            }
-                            .overlay {
-                                insertionIndicator(
-                                    itemIndex: index,
-                                    itemWidth: cardItemWidth
-                                )
-                            }
-                            .contentShape(Rectangle())
-                            .background(alignment: .leading) {
-                                dropArea(
-                                    itemIndex: index,
-                                    itemCount: entries.count,
-                                    itemWidth: cardItemWidth
-                                )
-                            }
-                    }
-                    if let averagingAcceptedCount {
+                if let averagingAcceptedCount {
+                    LazyVGrid(
+                        columns: columns,
+                        alignment: .leading,
+                        spacing: Self.cardSpacing
+                    ) {
                         AveragingMeasurementHistoryStackView(
                             mode: mode,
                             measurement: averagingMeasurement,
@@ -93,14 +76,16 @@ struct LightingMeasurementHistoryView: View {
                         )
                         .padding(.horizontal, Self.dropZoneWidth)
                     }
+                    .padding(.horizontal, Self.dropZoneWidth)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(.horizontal, Self.dropZoneWidth)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, 4)
-                .animation(.snappy(duration: 0.28), value: entries.map(\.id))
+
+                ForEach(dateGroups) { group in
+                    MeasurementHistoryDateGroupView(group: group) {
+                        historyGrid(for: group)
+                    }
+                }
             }
-        } label: {
-            Label("測定履歴", systemImage: "clock.arrow.circlepath")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
@@ -115,7 +100,10 @@ struct LightingMeasurementHistoryView: View {
                 .accessibilityHidden(true)
             }
         }
-        .accessibilityIdentifier("lighting-history-group-\(mode.rawValue)")
+        .accessibilityIdentifier("lighting-history-\(mode.rawValue)")
+        .onChange(of: entries.map(\.id)) { _, entryIDs in
+            reconcileTransientState(with: Set(entryIDs))
+        }
     }
 
     private var emptyState: some View {
@@ -129,12 +117,93 @@ struct LightingMeasurementHistoryView: View {
         .frame(maxWidth: .infinity, minHeight: 150)
     }
 
+    private func historyGrid(
+        for group: MeasurementHistoryDateGroup
+    ) -> some View {
+        let orderedEntryIDs = group.entries.map(\.id)
+
+        return LazyVGrid(columns: columns, alignment: .leading, spacing: Self.cardSpacing) {
+            ForEach(Array(group.entries.enumerated()), id: \.element.id) { index, entry in
+                historyCard(entry)
+                    .padding(.horizontal, Self.dropZoneWidth)
+                    .contextMenu {
+                        Button {
+                            beginRenaming(entryID: entry.id)
+                        } label: {
+                            Label("名前を付ける", systemImage: "pencil")
+                        }
+
+                        Divider()
+
+                        Menu {
+                            ForEach(UserIlluminantSlot.allCases) { slot in
+                                Button {
+                                    historyStore.registerUserIlluminant(
+                                        entryID: entry.id,
+                                        for: slot
+                                    )
+                                } label: {
+                                    Label(
+                                        slot.title,
+                                        systemImage: historyStore.userIlluminantEntryID(
+                                            for: slot
+                                        ) == entry.id
+                                            ? "checkmark"
+                                            : "circle"
+                                    )
+                                }
+                            }
+                        } label: {
+                            Label(
+                                "ユーザー定義光源に登録",
+                                systemImage: "lightbulb.max"
+                            )
+                        }
+
+                        Button {
+                            historyStore.removeUserIlluminantRegistrations(
+                                for: entry.id
+                            )
+                        } label: {
+                            Label(
+                                "ユーザー定義光源から削除",
+                                systemImage: "lightbulb.slash"
+                            )
+                        }
+                        .disabled(
+                            historyStore.userIlluminantSlots(for: entry.id).isEmpty
+                        )
+                    }
+                    .overlay {
+                        insertionIndicator(
+                            itemIndex: index,
+                            itemWidth: cardItemWidth
+                        )
+                    }
+                    .contentShape(Rectangle())
+                    .background(alignment: .leading) {
+                        dropArea(
+                            itemIndex: index,
+                            itemCount: group.entries.count,
+                            itemWidth: cardItemWidth,
+                            orderedEntryIDs: orderedEntryIDs
+                        )
+                    }
+            }
+        }
+        .padding(.horizontal, Self.dropZoneWidth)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.bottom, 4)
+        .animation(.snappy(duration: 0.28), value: orderedEntryIDs)
+    }
+
     private func historyCard(_ entry: MeasurementHistoryEntry) -> some View {
         LightingMeasurementHistoryCard(
             editingName: $editingName,
             entry: entry,
             isSelected: isSelected(entryID: entry.id),
             isActive: historyStore.selectedEntryID(for: mode) == entry.id,
+            registeredSlots: historyStore.userIlluminantSlots(for: entry.id),
             isEditingName: editingEntryID == entry.id,
             nameEditorFocusRequest: nameEditorFocusRequest,
             onSelect: {
@@ -289,7 +358,8 @@ struct LightingMeasurementHistoryView: View {
     private func dropArea(
         itemIndex: Int,
         itemCount: Int,
-        itemWidth: Double
+        itemWidth: Double,
+        orderedEntryIDs: [MeasurementHistoryEntry.ID]
     ) -> some View {
         Color.clear
             .frame(
@@ -303,10 +373,10 @@ struct LightingMeasurementHistoryView: View {
             .onDrop(
                 of: [MeasurementHistoryDragPayload.contentType],
                 delegate: MeasurementHistoryDropDelegate(
-                    mode: mode,
                     itemIndex: itemIndex,
                     itemCount: itemCount,
                     itemWidth: itemWidth,
+                    orderedEntryIDs: orderedEntryIDs,
                     historyStore: historyStore,
                     dragState: $dragState,
                     dropTarget: $dropTarget
@@ -350,6 +420,19 @@ struct LightingMeasurementHistoryView: View {
     private func focusHistory() {
         keyboardFocusRequest = UUID()
     }
+
+    private func reconcileTransientState(
+        with entryIDs: Set<MeasurementHistoryEntry.ID>
+    ) {
+        if let editingEntryID,
+           entryIDs.contains(editingEntryID) == false {
+            clearNameEditingState()
+        }
+        if let dragState,
+           dragState.entryIDs.isSubset(of: entryIDs) == false {
+            clearDragState()
+        }
+    }
 }
 
 private struct LightingMeasurementHistoryCard: View {
@@ -358,6 +441,7 @@ private struct LightingMeasurementHistoryCard: View {
     let entry: MeasurementHistoryEntry
     let isSelected: Bool
     let isActive: Bool
+    let registeredSlots: [UserIlluminantSlot]
     let isEditingName: Bool
     let nameEditorFocusRequest: UUID?
     let onSelect: () -> Void
@@ -378,6 +462,15 @@ private struct LightingMeasurementHistoryCard: View {
                     text: "平均 \(averagedMeasurement.sampleCount)回"
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .padding(5)
+            }
+            if registeredSlots.isEmpty == false {
+                VStack(alignment: .leading, spacing: 3) {
+                    ForEach(registeredSlots) { slot in
+                        UserIlluminantHistoryBadge(slot: slot)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding(5)
             }
         }
@@ -476,7 +569,14 @@ private struct LightingMeasurementHistoryCard: View {
         let cri = entry.measurement.cri.map {
             "CRI、Ra \($0.ra.formatted(.number.precision(.fractionLength(1))))"
         } ?? String(localized: "CRIなし")
-        return [name, spectrum, cri].joined(separator: "、")
+        let registrations = registeredSlots.isEmpty
+            ? nil
+            : String(
+                localized: "ユーザー定義光源 \(registeredSlots.map(\.title).joined(separator: "、"))、削除保護中"
+            )
+        return [name, spectrum, cri, registrations]
+            .compactMap { $0 }
+            .joined(separator: "、")
     }
 
     private var accessibilitySelectionValue: String {
@@ -484,6 +584,25 @@ private struct LightingMeasurementHistoryCard: View {
             return String(localized: "選択中、測定値を表示中")
         }
         return isSelected ? String(localized: "選択中") : String(localized: "未選択")
+    }
+}
+
+private struct UserIlluminantHistoryBadge: View {
+    let slot: UserIlluminantSlot
+
+    var body: some View {
+        Label(slot.title, systemImage: "lock.fill")
+            .font(.caption2.weight(.bold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 3)
+            .background(.black.opacity(0.72), in: .capsule)
+            .overlay {
+                Capsule()
+                    .strokeBorder(.white.opacity(0.72), lineWidth: 1)
+            }
+            .shadow(color: .black.opacity(0.18), radius: 2, y: 1)
+            .accessibilityLabel("削除保護中、\(slot.title)")
     }
 }
 

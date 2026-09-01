@@ -1,3 +1,4 @@
+using IwashiScope.Core.Calculations;
 using IwashiScope.Core.Models;
 
 namespace IwashiScope.Core.History;
@@ -44,6 +45,10 @@ public sealed record MeasurementHistoryModeState(
     Guid? ActiveEntryId,
     Guid? SelectionAnchorId);
 
+public sealed record UserIlluminantRegistration(
+    UserIlluminantSlot Slot,
+    Guid EntryId);
+
 public sealed class MeasurementHistory
 {
     private readonly List<MeasurementHistoryEntry> _acquisitionOrder = [];
@@ -55,6 +60,7 @@ public sealed class MeasurementHistory
         Enum.GetValues<MeasurementMode>().ToDictionary(mode => mode, _ => (Guid?)null);
     private readonly Dictionary<MeasurementMode, Guid?> _anchorIds =
         Enum.GetValues<MeasurementMode>().ToDictionary(mode => mode, _ => (Guid?)null);
+    private readonly Dictionary<UserIlluminantSlot, Guid> _userIlluminantEntryIds = [];
     private MeasurementMode _lastSelectionMode = MeasurementMode.Reflectance;
 
     public IReadOnlyList<MeasurementHistoryEntry> AcquisitionOrder => _acquisitionOrder;
@@ -71,7 +77,7 @@ public sealed class MeasurementHistory
     {
         var entry = MeasurementHistoryEntry.Create(measurement, name, instrumentIdentity);
         _acquisitionOrder.Add(entry);
-        _presentationOrder[measurement.Mode].Add(entry.Id);
+        _presentationOrder[measurement.Mode].Insert(0, entry.Id);
         SelectExclusive(entry.Id);
         return entry;
     }
@@ -97,6 +103,58 @@ public sealed class MeasurementHistory
             : _acquisitionOrder.FirstOrDefault(entry => entry.Id == active);
     }
 
+    public MeasurementHistoryEntry? Entry(Guid id) =>
+        _acquisitionOrder.FirstOrDefault(entry => entry.Id == id);
+
+    public IReadOnlySet<UserIlluminantSlot> AvailableUserIlluminantSlots =>
+        _userIlluminantEntryIds.Keys.ToHashSet();
+
+    public Guid? UserIlluminantEntryId(UserIlluminantSlot slot) =>
+        _userIlluminantEntryIds.TryGetValue(slot, out var entryId) ? entryId : null;
+
+    public MeasurementHistoryEntry? UserIlluminantEntry(UserIlluminantSlot slot) =>
+        UserIlluminantEntryId(slot) is { } entryId ? Entry(entryId) : null;
+
+    public IReadOnlyList<UserIlluminantSlot> UserIlluminantSlotsFor(Guid entryId) =>
+        Enum.GetValues<UserIlluminantSlot>()
+            .Where(slot => UserIlluminantEntryId(slot) == entryId)
+            .ToArray();
+
+    public bool IsDeletionProtected(Guid entryId) =>
+        _userIlluminantEntryIds.Values.Contains(entryId);
+
+    public int DeletableCount(MeasurementMode mode) =>
+        Ordered(mode).Count(entry => !IsDeletionProtected(entry.Id));
+
+    public bool RegisterUserIlluminant(Guid entryId, UserIlluminantSlot slot)
+    {
+        var entry = Entry(entryId);
+        if (entry is null ||
+            entry.Measurement.Mode is not (MeasurementMode.Ambient or MeasurementMode.Emissive) ||
+            IlluminantSpectrumDefinition.NormalizeUserSamples(entry.Measurement.Spectrum).Count < 2)
+        {
+            return false;
+        }
+        _userIlluminantEntryIds[slot] = entryId;
+        return true;
+    }
+
+    public int RemoveUserIlluminantRegistrations(Guid entryId)
+    {
+        var slots = UserIlluminantSlotsFor(entryId);
+        foreach (var slot in slots)
+        {
+            _userIlluminantEntryIds.Remove(slot);
+        }
+        return slots.Count;
+    }
+
+    public IReadOnlyList<UserIlluminantRegistration> SnapshotUserIlluminants() =>
+        Enum.GetValues<UserIlluminantSlot>()
+            .Where(_userIlluminantEntryIds.ContainsKey)
+            .Select(slot => new UserIlluminantRegistration(slot, _userIlluminantEntryIds[slot]))
+            .ToArray();
+
     public void SelectExclusive(Guid id)
     {
         var entry = EnsureExists(id);
@@ -114,19 +172,31 @@ public sealed class MeasurementHistory
         var mode = entry.Measurement.Mode;
         _lastSelectionMode = mode;
         var selection = _selectedIds[mode];
-        if (!selection.Add(id))
+        if (selection.Remove(id))
         {
-            selection.Remove(id);
+            if (selection.Count == 0)
+            {
+                NormalizeEmptySelection(mode);
+                return;
+            }
+            if (_activeIds[mode] == id)
+            {
+                _activeIds[mode] = _presentationOrder[mode]
+                    .Where(selection.Contains)
+                    .Select(value => (Guid?)value)
+                    .FirstOrDefault();
+            }
+            if (_anchorIds[mode] == id)
+            {
+                _anchorIds[mode] = _activeIds[mode];
+            }
         }
-
-        _activeIds[mode] = selection.Contains(id)
-            ? id
-            : _presentationOrder[mode]
-                .Where(selection.Contains)
-                .Select(value => (Guid?)value)
-                .LastOrDefault();
-        _anchorIds[mode] ??= id;
-        NormalizeEmptySelection(mode);
+        else
+        {
+            selection.Add(id);
+            _activeIds[mode] = id;
+            _anchorIds[mode] = id;
+        }
     }
 
     public void SelectRange(Guid id, bool additive = false)
@@ -180,7 +250,7 @@ public sealed class MeasurementHistory
             : _presentationOrder[mode]
                 .Where(_selectedIds[mode].Contains)
                 .Select(value => (Guid?)value)
-                .LastOrDefault();
+                .FirstOrDefault();
         _anchorIds[mode] = anchorId is { } anchor && validIds.Contains(anchor)
             ? anchor
             : _activeIds[mode];
@@ -192,9 +262,12 @@ public sealed class MeasurementHistory
         _lastSelectionMode = mode;
         _selectedIds[mode].Clear();
         _selectedIds[mode].UnionWith(_presentationOrder[mode]);
-        _activeIds[mode] = _presentationOrder[mode]
-            .Select(value => (Guid?)value)
-            .LastOrDefault();
+        _activeIds[mode] = _activeIds[mode] is { } active &&
+            _selectedIds[mode].Contains(active)
+                ? active
+                : _presentationOrder[mode]
+                    .Select(value => (Guid?)value)
+                    .FirstOrDefault();
         _anchorIds[mode] = _activeIds[mode];
         NormalizeEmptySelection(mode);
     }
@@ -280,13 +353,32 @@ public sealed class MeasurementHistory
     public IReadOnlyList<MeasurementHistoryEntry> DeleteSelected(MeasurementMode mode)
     {
         var selection = _selectedIds[mode];
-        var removed = _acquisitionOrder.Where(entry => selection.Contains(entry.Id)).ToArray();
-        _acquisitionOrder.RemoveAll(entry => selection.Contains(entry.Id));
-        _presentationOrder[mode].RemoveAll(selection.Contains);
-        selection.Clear();
-        NormalizeEmptySelection(mode);
+        var removableIds = selection
+            .Where(id => !IsDeletionProtected(id))
+            .ToHashSet();
+        var removed = RemoveEntries(mode, removableIds);
         _lastSelectionMode = mode;
         return removed;
+    }
+
+    public bool Delete(Guid id)
+    {
+        var entry = Entry(id);
+        if (entry is null || IsDeletionProtected(id))
+        {
+            return false;
+        }
+        return RemoveEntries(entry.Measurement.Mode, new HashSet<Guid> { id }).Count == 1;
+    }
+
+    public IReadOnlyList<MeasurementHistoryEntry> DeleteAll(MeasurementMode mode)
+    {
+        var removableIds = Ordered(mode)
+            .Where(entry => !IsDeletionProtected(entry.Id))
+            .Select(entry => entry.Id)
+            .ToHashSet();
+        _lastSelectionMode = mode;
+        return RemoveEntries(mode, removableIds);
     }
 
     public IReadOnlyList<MeasurementHistoryModeState> SnapshotModeStates() =>
@@ -301,7 +393,8 @@ public sealed class MeasurementHistory
 
     public void Restore(
         IEnumerable<MeasurementHistoryEntry> acquisitionOrder,
-        IEnumerable<MeasurementHistoryModeState> modeStates)
+        IEnumerable<MeasurementHistoryModeState> modeStates,
+        IEnumerable<UserIlluminantRegistration>? userIlluminantRegistrations = null)
     {
         var entries = acquisitionOrder.ToArray();
         var ids = entries.Select(entry => entry.Id).ToHashSet();
@@ -349,6 +442,23 @@ public sealed class MeasurementHistory
             }
         }
 
+        var registrations = (userIlluminantRegistrations ?? []).ToArray();
+        if (registrations.Select(registration => registration.Slot).Distinct().Count() !=
+            registrations.Length)
+        {
+            throw new InvalidDataException("Workspace has duplicate user illuminant slots.");
+        }
+        foreach (var registration in registrations)
+        {
+            var entry = entries.FirstOrDefault(candidate => candidate.Id == registration.EntryId);
+            if (entry is null ||
+                entry.Measurement.Mode is not (MeasurementMode.Ambient or MeasurementMode.Emissive) ||
+                IlluminantSpectrumDefinition.NormalizeUserSamples(entry.Measurement.Spectrum).Count < 2)
+            {
+                throw new InvalidDataException("Workspace has an invalid user illuminant registration.");
+            }
+        }
+
         _acquisitionOrder.Clear();
         _acquisitionOrder.AddRange(entries);
         foreach (var state in states)
@@ -361,6 +471,53 @@ public sealed class MeasurementHistory
             _activeIds[mode] = state.ActiveEntryId;
             _anchorIds[mode] = state.SelectionAnchorId;
         }
+        _userIlluminantEntryIds.Clear();
+        foreach (var registration in registrations)
+        {
+            _userIlluminantEntryIds[registration.Slot] = registration.EntryId;
+        }
+    }
+
+    private IReadOnlyList<MeasurementHistoryEntry> RemoveEntries(
+        MeasurementMode mode,
+        IReadOnlySet<Guid> entryIds)
+    {
+        if (entryIds.Count == 0)
+        {
+            return [];
+        }
+
+        var removed = _acquisitionOrder
+            .Where(entry => entryIds.Contains(entry.Id))
+            .ToArray();
+        _acquisitionOrder.RemoveAll(entry => entryIds.Contains(entry.Id));
+        _presentationOrder[mode].RemoveAll(entryIds.Contains);
+
+        var selection = _selectedIds[mode];
+        selection.ExceptWith(entryIds);
+        if (selection.Count > 0)
+        {
+            if (_activeIds[mode] is not { } active || !selection.Contains(active))
+            {
+                _activeIds[mode] = _presentationOrder[mode]
+                    .Where(selection.Contains)
+                    .Select(value => (Guid?)value)
+                    .FirstOrDefault();
+            }
+            if (_anchorIds[mode] is not { } anchor || !selection.Contains(anchor))
+            {
+                _anchorIds[mode] = _activeIds[mode];
+            }
+        }
+        else if (_presentationOrder[mode].Count > 0)
+        {
+            SelectExclusive(_presentationOrder[mode][0]);
+        }
+        else
+        {
+            NormalizeEmptySelection(mode);
+        }
+        return removed;
     }
 
     private void NormalizeEmptySelection(MeasurementMode mode)

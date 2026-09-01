@@ -37,20 +37,20 @@ public sealed class HistoryAndLayoutTests
 
         history.SelectExclusive(b.Id);
         history.SelectRange(d.Id);
-        Assert.Equal([b.Id, c.Id, d.Id], history.Ordered(MeasurementMode.Reflectance)
+        Assert.Equal([d.Id, c.Id, b.Id], history.Ordered(MeasurementMode.Reflectance)
             .Where(entry => history.SelectedIdsFor(MeasurementMode.Reflectance).Contains(entry.Id))
             .Select(entry => entry.Id));
         Assert.Equal(ambient.Id, history.ActiveIdFor(MeasurementMode.Ambient));
 
         history.Toggle(c.Id);
-        Assert.Equal([b.Id, d.Id], history.Ordered(MeasurementMode.Reflectance)
+        Assert.Equal([d.Id, b.Id], history.Ordered(MeasurementMode.Reflectance)
             .Where(entry => history.SelectedIdsFor(MeasurementMode.Reflectance).Contains(entry.Id))
             .Select(entry => entry.Id));
         Assert.Equal(d.Id, history.ActiveIdFor(MeasurementMode.Reflectance));
         Assert.Equal(b.Id, history.AnchorIdFor(MeasurementMode.Reflectance));
 
         history.SelectRange(a.Id, additive: true);
-        Assert.Equal([a.Id, b.Id, d.Id], history.Ordered(MeasurementMode.Reflectance)
+        Assert.Equal([d.Id, b.Id, a.Id], history.Ordered(MeasurementMode.Reflectance)
             .Where(entry => history.SelectedIdsFor(MeasurementMode.Reflectance).Contains(entry.Id))
             .Select(entry => entry.Id));
     }
@@ -72,12 +72,12 @@ public sealed class HistoryAndLayoutTests
 
         history.MoveSelectionToStart(MeasurementMode.Reflectance);
         Assert.Equal(
-            ["B", "D", "A", "C", "E"],
+            ["D", "B", "E", "C", "A"],
             history.Ordered(MeasurementMode.Reflectance).Select(entry => entry.Name));
 
         history.MoveSelectionToEnd(MeasurementMode.Reflectance);
         Assert.Equal(
-            ["A", "C", "E", "B", "D"],
+            ["E", "C", "A", "D", "B"],
             history.Ordered(MeasurementMode.Reflectance).Select(entry => entry.Name));
     }
 

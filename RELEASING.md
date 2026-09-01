@@ -104,11 +104,11 @@ Sparkle 2の`sign_update`を、`Info.plist`の`SUPublicEDKey`に対応する秘�
 
 配布バイナリとソースのタグを一致させることが、改変版ArgyllCMSを含む配布の前提です。
 
-対応ソースには、IwashiScope全ソース、実際にリンクするArgyllCMSソース、ビルドスクリプト、Xcodeプロジェクト、固定済みSwift Package情報、CIE公式CSV・メタデータ・生成スクリプト・生成済みSwift適応物、編集可能なアイコン原稿、ライセンスと改変記録を含めます。署名鍵、notarytool資格情報、Sparkle秘密鍵は含めません。
+対応ソースには、IwashiScope全ソース、実際にリンクするArgyllCMSソース、ビルドスクリプト、Xcodeプロジェクト、固定済みSwift Package情報、CIE公式CSV・メタデータ・生成スクリプト・生成済みSwift・C#適応物、編集可能なアイコン原稿、ライセンスと改変記録を含めます。署名鍵、notarytool資格情報、Sparkle秘密鍵は含めません。
 
 Windows版は`Windows/Scripts/Build-Release.ps1`で、共通ArgyllCMSソースのWindows x64 helper、全Windowsテスト、自己完結型.NETランタイム、ライセンスと対応ソース情報を含むZIPを作成します。公開用の信頼されたAuthenticode証明書がない場合は自己署名せず、GitHub Release本文とサイトに未署名であることを明記します。
 
-CIEの公式CSVはCC BY-SA 4.0のまま収録し、生成されたSwift適応物はGPL-3.0-onlyとして提供します。この適応物とAGPL-3.0-onlyのIwashiScope部分は、GPLv3・AGPLv3双方の第13条に基づいて結合します。`ThirdParty/CIE/README.md`、`THIRD_PARTY_NOTICES.md`、生成済みSwiftファイルの表示をリリースごとに維持します。
+CIEの公式CSVはCC BY-SA 4.0のまま収録し、生成されたSwift・C#適応物はGPL-3.0-onlyとして提供します。これらの適応物とAGPL-3.0-onlyのIwashiScope部分は、GPLv3・AGPLv3双方の第13条に基づいて結合します。`ThirdParty/CIE/README.md`、`THIRD_PARTY_NOTICES.md`、両生成ファイルの表示をリリースごとに維持します。
 
 アプリZIPとソースZIPを配置した後、同じファイルを対象にチェックサム一覧を作成します。
 

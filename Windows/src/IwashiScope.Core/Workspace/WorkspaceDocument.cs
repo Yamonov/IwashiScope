@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using IwashiScope.Core.Calculations;
 using IwashiScope.Core.History;
 using IwashiScope.Core.Models;
 
@@ -24,6 +25,7 @@ public sealed record WorkspaceHistorySnapshot
 {
     public IReadOnlyList<MeasurementHistoryEntry> Entries { get; init; } = [];
     public IReadOnlyList<WorkspaceHistoryModeState> Modes { get; init; } = [];
+    public IReadOnlyList<UserIlluminantRegistration> UserIlluminantRegistrations { get; init; } = [];
 }
 
 public sealed record WorkspaceState
@@ -65,6 +67,7 @@ public sealed record WorkspaceDocument
                             SelectionAnchorId = state.SelectionAnchorId,
                         })
                         .ToArray(),
+                    UserIlluminantRegistrations = history.SnapshotUserIlluminants(),
                 },
             },
         };
@@ -82,7 +85,8 @@ public sealed record WorkspaceDocument
                 mode.PresentationOrder,
                 mode.SelectedEntryIds,
                 mode.ActiveEntryId,
-                mode.SelectionAnchorId)));
+                mode.SelectionAnchorId)),
+            Workspace.History.UserIlluminantRegistrations);
     }
 }
 
@@ -164,6 +168,24 @@ public static class WorkspaceSerializer
                      !expected.Contains(anchor))
             {
                 throw new InvalidDataException($"Invalid active or anchor ID for {mode}.");
+            }
+        }
+
+        var registrations = document.Workspace.History.UserIlluminantRegistrations;
+        if (registrations.Select(registration => registration.Slot).Distinct().Count() !=
+            registrations.Count)
+        {
+            throw new InvalidDataException("Workspace has duplicate user illuminant slots.");
+        }
+        foreach (var registration in registrations)
+        {
+            var entry = entries.FirstOrDefault(candidate => candidate.Id == registration.EntryId);
+            if (entry is null ||
+                entry.Measurement.Mode is not (MeasurementMode.Ambient or MeasurementMode.Emissive) ||
+                IlluminantSpectrumDefinition
+                    .NormalizeUserSamples(entry.Measurement.Spectrum).Count < 2)
+            {
+                throw new InvalidDataException("Workspace has an invalid user illuminant registration.");
             }
         }
     }

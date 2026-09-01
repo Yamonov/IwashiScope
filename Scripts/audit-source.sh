@@ -51,6 +51,26 @@ ThirdParty/CIE/CIE_std_illum_D50.csv
 ThirdParty/CIE/CIE_std_illum_D50.csv_metadata.json
 ThirdParty/CIE/CIE_std_illum_D65.csv
 ThirdParty/CIE/CIE_std_illum_D65.csv_metadata.json
+ThirdParty/CIE/CIE_std_illum_A_1nm.csv
+ThirdParty/CIE/CIE_std_illum_A_1nm.csv_metadata.json
+ThirdParty/CIE/CIE_illum_C.csv
+ThirdParty/CIE/CIE_illum_C.csv_metadata.json
+ThirdParty/CIE/CIE_illum_D55.csv
+ThirdParty/CIE/CIE_illum_D55.csv_metadata.json
+ThirdParty/CIE/CIE_illum_D75.csv
+ThirdParty/CIE/CIE_illum_D75.csv_metadata.json
+ThirdParty/CIE/CIE_illum_ID50.csv
+ThirdParty/CIE/CIE_illum_ID50.csv_metadata.json
+ThirdParty/CIE/CIE_illum_ID65.csv
+ThirdParty/CIE/CIE_illum_ID65.csv_metadata.json
+ThirdParty/CIE/CIE_illum_FLs.csv
+ThirdParty/CIE/CIE_illum_FLs.csv_metadata.json
+ThirdParty/CIE/CIE_illum_HPs.csv
+ThirdParty/CIE/CIE_illum_HPs.csv_metadata.json
+ThirdParty/CIE/CIE_illum_LEDs.csv
+ThirdParty/CIE/CIE_illum_LEDs.csv_metadata.json
+ThirdParty/CIE/CIE_RefSpectrum_L41.csv
+ThirdParty/CIE/CIE_RefSpectrum_L41.csv_metadata.json
 ThirdParty/CIE/README.md
 Scripts/generate-cie-standard-illuminants.swift
 Scripts/package-source.sh
@@ -97,6 +117,7 @@ Argyll_V3.5.0/spectro/spotread_jsonl.c
 Argyll_V3.5.0/spectro/spotread_jsonl.h
 Argyll_V3.5.0/spectro/spotread_jsonl_test.c
 IwashiScopePackage/Sources/IwashiScopeFeature/Models/CIEStandardIlluminantData.generated.swift
+Windows/src/IwashiScope.Core/Calculations/CieReferenceIlluminantData.generated.cs
 IwashiScopePackage/Sources/IwashiScopeFeature/Models/AveragedMeasurement.swift
 IwashiScopePackage/Sources/IwashiScopeFeature/Views/AveragingMeasurementHistoryStackView.swift
 IwashiScope/Resources/NOTICE.txt
@@ -166,12 +187,24 @@ SWIFT_MODULECACHE_PATH="$module_cache/swift" \
 generated_cie_file=IwashiScopePackage/Sources/IwashiScopeFeature/Models/CIEStandardIlluminantData.generated.swift
 grep -F 'SPDX-License-Identifier: GPL-3.0-only' "$generated_cie_file" >/dev/null \
 	|| fail "generated CIE Swift adaptation is not marked GPL-3.0-only"
-grep -F 'Adaptation date: 2026-07-23' "$generated_cie_file" >/dev/null \
+grep -F 'Adaptation date: 2026-09-01' "$generated_cie_file" >/dev/null \
 	|| fail "generated CIE Swift adaptation date is missing"
 grep -F 'Both CC BY-SA 4.0 and GPL-3.0-only apply' "$generated_cie_file" >/dev/null \
 	|| fail "generated CIE Swift adaptation does not preserve the original license notice"
 grep -F 'section 13 of GPLv3 and AGPLv3' "$generated_cie_file" >/dev/null \
 	|| fail "generated CIE Swift adaptation does not document the section 13 combination"
+
+generated_cie_csharp_file=Windows/src/IwashiScope.Core/Calculations/CieReferenceIlluminantData.generated.cs
+[ -f "$generated_cie_csharp_file" ] \
+	|| fail "generated CIE C# adaptation is missing"
+grep -F 'SPDX-License-Identifier: GPL-3.0-only' "$generated_cie_csharp_file" >/dev/null \
+	|| fail "generated CIE C# adaptation is not marked GPL-3.0-only"
+grep -F 'Adaptation date: 2026-09-01' "$generated_cie_csharp_file" >/dev/null \
+	|| fail "generated CIE C# adaptation date is missing"
+grep -F 'Both CC BY-SA 4.0 and GPL-3.0-only apply' "$generated_cie_csharp_file" >/dev/null \
+	|| fail "generated CIE C# adaptation does not preserve the original license notice"
+grep -F 'section 13 of GPLv3 and AGPLv3' "$generated_cie_csharp_file" >/dev/null \
+	|| fail "generated CIE C# adaptation does not document the section 13 combination"
 
 if git grep -n -E \
 	'AGPL[^[:cntrl:]]*(or later|以降)|version 3 or later|Version 3 or later|バージョン3以降' \

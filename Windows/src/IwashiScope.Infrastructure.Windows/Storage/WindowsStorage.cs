@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using IwashiScope.Core.Workspace;
 
 namespace IwashiScope.Infrastructure.Windows.Storage;
 
@@ -122,5 +123,37 @@ public sealed class SettingsStore
         AtomicFile.WriteAllTextAsync(
             Path,
             JsonSerializer.Serialize(settings, Options),
+            cancellationToken);
+}
+
+public sealed class MeasurementHistoryPersistenceStore
+{
+    public MeasurementHistoryPersistenceStore(string? path = null)
+    {
+        Path = path ?? System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "IwashiScope",
+            "MeasurementHistory.json");
+    }
+
+    public string Path { get; }
+
+    public async Task<WorkspaceDocument?> LoadAsync(
+        CancellationToken cancellationToken = default)
+    {
+        if (!File.Exists(Path))
+        {
+            return null;
+        }
+        var json = await File.ReadAllTextAsync(Path, cancellationToken).ConfigureAwait(false);
+        return WorkspaceSerializer.Deserialize(json);
+    }
+
+    public Task SaveAsync(
+        WorkspaceDocument document,
+        CancellationToken cancellationToken = default) =>
+        AtomicFile.WriteAllTextAsync(
+            Path,
+            WorkspaceSerializer.Serialize(document),
             cancellationToken);
 }

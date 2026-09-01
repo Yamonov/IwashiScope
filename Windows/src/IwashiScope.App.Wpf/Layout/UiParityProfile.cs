@@ -6,6 +6,7 @@ public enum UiParitySection
 {
     Spectrum,
     ReferenceSpectrumControls,
+    ReflectanceIlluminantComparison,
     LightingRenderingTabs,
     MeasurementHeader,
     ColorimetricValues,
@@ -78,7 +79,10 @@ public static class UiParityProfiles
     {
         MeasurementMode.Reflectance => new UiParityProfile(
             mode,
-            [UiParitySection.Spectrum],
+            [
+                UiParitySection.Spectrum,
+                UiParitySection.ReflectanceIlluminantComparison,
+            ],
             ReflectanceValues,
             UiParitySection.ReflectanceHistory,
             UiParitySection.ReflectanceExport),

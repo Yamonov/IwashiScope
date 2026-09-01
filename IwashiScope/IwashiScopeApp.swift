@@ -6,12 +6,21 @@ import IwashiScopeFeature
 @MainActor
 private final class IwashiScopeAppDelegate: NSObject, NSApplicationDelegate {
     weak var model: IwashiScopeApplicationModel?
+    private var isPreparingForTermination = false
 
     func applicationShouldTerminate(
         _ sender: NSApplication
     ) -> NSApplication.TerminateReply {
-        model?.prepareForApplicationTermination()
-        return .terminateNow
+        guard isPreparingForTermination == false else {
+            return .terminateLater
+        }
+
+        isPreparingForTermination = true
+        Task { @MainActor [weak self] in
+            await self?.model?.prepareForApplicationTermination()
+            sender.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
     }
 }
 
@@ -37,7 +46,7 @@ struct IwashiScopeApp: App {
                     appDelegate.model = model
                 }
         }
-        .defaultSize(width: 1080, height: 760)
+        .defaultSize(width: 1400, height: 760)
         .windowResizability(.contentMinSize)
         .windowToolbarStyle(.unifiedCompact)
         .commands {

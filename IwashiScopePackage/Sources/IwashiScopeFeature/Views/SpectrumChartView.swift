@@ -131,6 +131,7 @@ struct SpectrumYAxisScale: Equatable, Sendable {
 struct SpectrumChartView: View {
     let mode: MeasurementMode
     let measurement: SpotMeasurement?
+    let measurementName: String?
     let calibrationCompleted: Bool
     let showsReferenceControls: Bool
     let usesPracticalSpectrumRange: Bool
@@ -144,6 +145,7 @@ struct SpectrumChartView: View {
     init(
         mode: MeasurementMode,
         measurement: SpotMeasurement?,
+        measurementName: String? = nil,
         calibrationCompleted: Bool,
         showsReferenceControls: Bool = true,
         usesPracticalSpectrumRange: Bool = false,
@@ -154,6 +156,7 @@ struct SpectrumChartView: View {
     ) {
         self.mode = mode
         self.measurement = measurement
+        self.measurementName = measurementName
         self.calibrationCompleted = calibrationCompleted
         self.showsReferenceControls = showsReferenceControls
         self.usesPracticalSpectrumRange = usesPracticalSpectrumRange
@@ -423,8 +426,16 @@ struct SpectrumChartView: View {
         .accessibilityHint("波長ごとの測定値と、選択したD50またはD65の基準分光分布を表示します")
         .overlay(alignment: .topTrailing) {
             if let visiblePeak {
-                Text("Peak \(visiblePeak.value.formatted(.number.precision(.fractionLength(2)))) @ \(visiblePeak.wavelength.formatted(.number.precision(.fractionLength(1)))) nm")
+                Text(
+                    SpectrumPeakAnnotation.text(
+                        measurementName: measurementName,
+                        measurement: measurement,
+                        peak: visiblePeak
+                    )
+                )
                     .font(.caption.monospacedDigit())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 5)
                     .background {

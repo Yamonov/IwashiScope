@@ -13,6 +13,17 @@ extension UTType {
 struct MeasurementHistorySnapshot: Codable, Equatable, Sendable {
     let entries: [Entry]
     let modes: [ModeState]
+    let userIlluminantRegistrations: [UserIlluminantRegistration]
+
+    init(
+        entries: [Entry],
+        modes: [ModeState],
+        userIlluminantRegistrations: [UserIlluminantRegistration] = []
+    ) {
+        self.entries = entries
+        self.modes = modes
+        self.userIlluminantRegistrations = userIlluminantRegistrations
+    }
 
     struct Entry: Codable, Equatable, Sendable {
         let id: UUID
@@ -27,6 +38,27 @@ struct MeasurementHistorySnapshot: Codable, Equatable, Sendable {
         let selectedEntryIDs: Set<UUID>
         let activeEntryID: UUID?
         let selectionAnchorID: UUID?
+    }
+
+    struct UserIlluminantRegistration: Codable, Equatable, Sendable {
+        let slot: UserIlluminantSlot
+        let entryID: UUID
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case entries
+        case modes
+        case userIlluminantRegistrations
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        entries = try container.decode([Entry].self, forKey: .entries)
+        modes = try container.decode([ModeState].self, forKey: .modes)
+        userIlluminantRegistrations = try container.decodeIfPresent(
+            [UserIlluminantRegistration].self,
+            forKey: .userIlluminantRegistrations
+        ) ?? []
     }
 
     func validate() throws {
@@ -65,6 +97,25 @@ struct MeasurementHistorySnapshot: Codable, Equatable, Sendable {
                       modeEntryIDSet.contains(selectionAnchorID) else {
                     throw IwashiScopeWorkspaceFileError.invalidModeState(modeState.mode)
                 }
+            }
+        }
+
+        let registeredSlots = userIlluminantRegistrations.map(\.slot)
+        guard Set(registeredSlots).count == registeredSlots.count else {
+            throw IwashiScopeWorkspaceFileError.invalidUserIlluminantRegistrations
+        }
+
+        let entriesByID = Dictionary(uniqueKeysWithValues: entries.map { ($0.id, $0) })
+        for registration in userIlluminantRegistrations {
+            guard let entry = entriesByID[registration.entryID],
+                  entry.measurement.mode == .ambient
+                    || entry.measurement.mode == .emissive,
+                  UserIlluminantSpectrum(
+                      name: entry.name,
+                      measuredAt: entry.measurement.capturedAt,
+                      samples: entry.measurement.spectrum
+                  ) != nil else {
+                throw IwashiScopeWorkspaceFileError.invalidUserIlluminantRegistrations
             }
         }
     }
@@ -115,6 +166,7 @@ enum IwashiScopeWorkspaceFileError: Error, Equatable, LocalizedError {
     case duplicateHistoryEntry
     case invalidModeStates
     case invalidModeState(MeasurementMode)
+    case invalidUserIlluminantRegistrations
 
     var errorDescription: String? {
         switch self {
@@ -128,6 +180,8 @@ enum IwashiScopeWorkspaceFileError: Error, Equatable, LocalizedError {
             String(localized: "ワークスペースファイルの測定モード情報が壊れています。")
         case .invalidModeState(let mode):
             String(localized: "\(mode.title)ワークスペースの履歴情報が壊れています。")
+        case .invalidUserIlluminantRegistrations:
+            String(localized: "ワークスペースファイルのユーザー定義光源情報が壊れています。")
         }
     }
 }

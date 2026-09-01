@@ -197,15 +197,14 @@
                         HorizontalAlignment="Left" Margin="18,12,0,8"
                         Padding="10,5" />
 
-                <Grid x:Name="AnalysisHistoryGrid" Grid.Row="1" Margin="18,0,18,18"
-                      SizeChanged="AnalysisHistoryGrid_SizeChanged">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" MinHeight="120" />
-                        <RowDefinition Height="6" />
-                        <RowDefinition x:Name="HistoryRow" Height="140" MinHeight="100" />
-                    </Grid.RowDefinitions>
+                <Grid x:Name="AnalysisHistoryGrid" Grid.Row="1" Margin="18,0,18,18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition x:Name="HistoryColumn" Width="320" MinWidth="180" MaxWidth="420" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" MinWidth="120" />
+                    </Grid.ColumnDefinitions>
 
-                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"
+                    <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,0,0,8">
                             <Border Style="{StaticResource CardBorder}" Padding="0"
@@ -237,7 +236,8 @@
                                                             UsePracticalRange="{Binding UsePracticalRange}"
                                                             ShowD50="{Binding ShowD50}"
                                                             ShowD65="{Binding ShowD65}"
-                                                            YAxisConfiguration="{Binding YAxisConfiguration}" />
+                                                            YAxisConfiguration="{Binding YAxisConfiguration}"
+                                                            MeasurementName="{Binding ActiveMeasurementName}" />
                                     <StackPanel Grid.Row="1" HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
                                                 Visibility="{Binding HasActiveMeasurement, Converter={StaticResource InverseBoolToVisibility}}">
@@ -251,127 +251,221 @@
                                 </Grid>
                             </Border>
 
-                            <TabControl Height="380" Margin="0,16,0,0"
-                                        SelectedIndex="{Binding SelectedRenderingTabIndex}"
+                            <Border Style="{StaticResource CardBorder}" Margin="0,16,0,0"
+                                    Padding="12" ClipToBounds="True"
+                                    Visibility="{Binding IsReflectance, Converter={StaticResource BoolToVisibility}}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding IlluminantComparisonGroupLabel}"
+                                               FontWeight="SemiBold" FontSize="14" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <RadioButton IsChecked="{Binding IsCieIlluminantSourceSelected}"
+                                                     VerticalAlignment="Center" />
+                                        <ComboBox ItemsSource="{Binding CieIlluminantOptions}"
+                                                  SelectedItem="{Binding SelectedCieIlluminantOption}"
+                                                  DisplayMemberPath="DisplayName"
+                                                  IsEnabled="{Binding IsCieIlluminantSourceSelected}"
+                                                  Width="225" Margin="4,0,10,0" />
+                                        <RadioButton Content="{Binding UserDefined1Label}"
+                                                     IsChecked="{Binding IsUser1IlluminantSourceSelected}"
+                                                     IsEnabled="{Binding HasUser1Illuminant}" Margin="0,0,9,0" />
+                                        <RadioButton Content="{Binding UserDefined2Label}"
+                                                     IsChecked="{Binding IsUser2IlluminantSourceSelected}"
+                                                     IsEnabled="{Binding HasUser2Illuminant}" Margin="0,0,9,0" />
+                                        <RadioButton Content="{Binding UserDefined3Label}"
+                                                     IsChecked="{Binding IsUser3IlluminantSourceSelected}"
+                                                     IsEnabled="{Binding HasUser3Illuminant}" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding UserIlluminantMetadataText}"
+                                               FontSize="11" FontWeight="SemiBold" Margin="0,7,0,0"
+                                               Visibility="{Binding ShowsUserIlluminantMetadata, Converter={StaticResource BoolToVisibility}}" />
+                                    <Separator Margin="0,9" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <Rectangle Width="25" Height="2" Fill="Black" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding MeasuredReflectanceLegendLabel}" Margin="5,0,13,0" />
+                                        <Rectangle Width="25" Height="2" Fill="#FFB000" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding SelectedIlluminantLegendLabel}" Margin="5,0,13,0" />
+                                        <Rectangle Width="25" Height="8" VerticalAlignment="Center">
+                                            <Rectangle.Fill>
+                                                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                                    <GradientStop Color="#5835E6" Offset="0" />
+                                                    <GradientStop Color="#00C9E8" Offset="0.28" />
+                                                    <GradientStop Color="#57DC32" Offset="0.48" />
+                                                    <GradientStop Color="#FFE51C" Offset="0.62" />
+                                                    <GradientStop Color="#FF5B14" Offset="0.78" />
+                                                    <GradientStop Color="#A00008" Offset="1" />
+                                                </LinearGradientBrush>
+                                            </Rectangle.Fill>
+                                        </Rectangle>
+                                        <TextBlock Text="{Binding ReflectedLightLegendLabel}" Margin="5,0,0,0" />
+                                    </StackPanel>
+                                    <controls:ReflectanceIlluminantChart Result="{Binding ReflectanceIlluminantResult}"
+                                                                          Height="360" />
+                                    <Separator Margin="0,9" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding ColorAppearanceComparisonLabel}"
+                                                   FontWeight="SemiBold" Margin="0,0,14,0" />
+                                        <CheckBox Content="{Binding ApplyChromaticAdaptationLabel}"
+                                                  IsChecked="{Binding AppliesChromaticAdaptation}" />
+                                    </StackPanel>
+                                    <Grid Margin="0,9,0,0"
+                                          Visibility="{Binding HasReflectanceColorComparison, Converter={StaticResource BoolToVisibility}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MinWidth="120" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" MinWidth="120" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding MeasuredD50Label}" FontWeight="SemiBold" />
+                                            <Border Height="200" Background="{Binding MeasuredReflectancePatchBrush}"
+                                                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                                    CornerRadius="4" Margin="0,5,0,0" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="→" FontSize="28"
+                                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                                   VerticalAlignment="Center" Margin="18,0" />
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="{Binding SimulatedPatchTitle}" FontWeight="SemiBold" />
+                                            <Border Height="200" Background="{Binding SimulatedReflectancePatchBrush}"
+                                                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                                    CornerRadius="4" Margin="0,5,0,0" />
+                                        </StackPanel>
+                                        <Border Grid.Column="3" BorderBrush="{StaticResource BorderBrush}"
+                                                BorderThickness="1" CornerRadius="5" Padding="14,10"
+                                                Margin="14,22,0,0" VerticalAlignment="Stretch">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Grid.ColumnSpan="2" Text="{Binding DifferenceAfterAdaptationLabel}"
+                                                           FontWeight="SemiBold" Margin="0,0,0,7" />
+                                                <TextBlock Grid.Row="1" Text="ΔE00" Margin="0,0,12,4" />
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DeltaE00Text}" FontWeight="SemiBold" />
+                                                <TextBlock Grid.Row="2" Text="ΔE76" Margin="0,0,12,4" />
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DeltaE76Text}" FontWeight="SemiBold" />
+                                                <TextBlock Grid.Row="3" Text="ΔL*" Margin="0,0,12,4" />
+                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DeltaLText}" FontWeight="SemiBold" />
+                                                <TextBlock Grid.Row="4" Text="Δa*" Margin="0,0,12,4" />
+                                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding DeltaAText}" FontWeight="SemiBold" />
+                                                <TextBlock Grid.Row="5" Text="Δb*" Margin="0,0,12,0" />
+                                                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding DeltaBText}" FontWeight="SemiBold" />
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Text="{Binding ChromaticAdaptationExplanation}"
+                                               FontSize="10" Foreground="{StaticResource SecondaryTextBrush}"
+                                               TextWrapping="Wrap" Margin="0,8,0,0"
+                                               Visibility="{Binding HasReflectanceColorComparison, Converter={StaticResource BoolToVisibility}}" />
+                                    <TextBlock Text="{Binding UvWarningText}" FontSize="10"
+                                               Foreground="#E97818" TextWrapping="Wrap" Margin="0,7,0,0"
+                                               Visibility="{Binding HasReflectanceIlluminantSelection, Converter={StaticResource BoolToVisibility}}" />
+                                </StackPanel>
+                            </Border>
+
+                            <StackPanel Margin="0,16,0,0"
                                         Visibility="{Binding ShowsLightingRenderingTabs, Converter={StaticResource BoolToVisibility}}">
-                                <TabItem Header="CRI">
-                                    <Border Style="{StaticResource CardBorder}" Padding="0"
-                                            Margin="0,8,0,0" ClipToBounds="True">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="*" />
-                                            </Grid.RowDefinitions>
-                                            <TextBlock Text="{Binding RenderingGroupLabel}"
-                                                       FontWeight="SemiBold" Margin="14,10,14,4" />
-                                            <controls:CriChart Grid.Row="1" Margin="5,0,8,8"
-                                                               Measurement="{Binding ActiveMeasurement}" />
-                                        </Grid>
-                                    </Border>
-                                </TabItem>
-                                <TabItem Header="TM-30">
-                                    <Border Style="{StaticResource CardBorder}" Padding="0"
-                                            Margin="0,8,0,0" ClipToBounds="True">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="*" />
-                                            </Grid.RowDefinitions>
-                                            <TextBlock Text="IES TM-30-15" FontWeight="SemiBold"
-                                                       Margin="14,9,14,2" />
-                                            <layout:Tm30ResponsivePanel Grid.Row="1"
-                                                                       ClipToBounds="True">
-                                                <Grid ClipToBounds="True">
-                                                    <controls:Tm30VectorChart Measurement="{Binding ActiveMeasurement}"
-                                                                                ClipToBounds="True" />
-                                                    <TextBlock Text="{Binding Tm30VectorLegendText}"
-                                                               HorizontalAlignment="Right"
-                                                               VerticalAlignment="Bottom"
-                                                               Margin="7" Padding="5,3"
-                                                               FontSize="9"
-                                                               Background="#DFFFFFFF" />
-                                                </Grid>
-                                                <Border Padding="4" ClipToBounds="True">
-                                                    <StackPanel>
-                                                        <TextBlock Text="Rf" Foreground="{StaticResource SecondaryTextBrush}" />
-                                                        <TextBlock Text="{Binding Tm30RfText}" FontSize="22"
-                                                                   FontFamily="Cascadia Mono, Consolas"
-                                                                   FontWeight="SemiBold" />
-                                                        <TextBlock Text="Rg" Foreground="{StaticResource SecondaryTextBrush}"
-                                                                   Margin="0,3,0,0" />
-                                                        <TextBlock Text="{Binding Tm30RgText}" FontSize="22"
-                                                                   FontFamily="Cascadia Mono, Consolas"
-                                                                   FontWeight="SemiBold" />
-                                                        <TextBlock Text="{Binding Tm30GuideOneText}" FontSize="9"
-                                                                   Foreground="{StaticResource SecondaryTextBrush}"
-                                                                   TextWrapping="Wrap" Margin="0,5,0,0" />
-                                                        <TextBlock Text="{Binding Tm30GuideTwoText}" FontSize="9"
-                                                                   Foreground="{StaticResource SecondaryTextBrush}"
-                                                                   TextWrapping="Wrap" />
-                                                        <TextBlock Text="{Binding Tm30CautionText}" FontSize="9"
-                                                                   Foreground="#B56C18" TextWrapping="Wrap" />
-                                                    </StackPanel>
-                                                </Border>
-                                                <Grid ClipToBounds="True">
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto" />
-                                                        <RowDefinition Height="*" />
-                                                    </Grid.RowDefinitions>
-                                                    <TextBlock Text="{Binding Tm30RfRgPlotLabel}"
-                                                               FontWeight="SemiBold" FontSize="11" />
-                                                    <controls:RfRgChart Grid.Row="1"
-                                                                       Measurement="{Binding ActiveMeasurement}"
-                                                                       ClipToBounds="True" />
-                                                </Grid>
-                                                <Grid ClipToBounds="True">
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="Auto" />
-                                                        <RowDefinition Height="*" />
-                                                    </Grid.RowDefinitions>
-                                                    <TextBlock Text="{Binding Tm30SamplesLabel}"
-                                                               FontWeight="SemiBold" FontSize="11" />
-                                                    <controls:Tm30SampleChart Grid.Row="1"
-                                                                             Measurement="{Binding ActiveMeasurement}"
-                                                                             ClipToBounds="True" />
-                                                </Grid>
-                                            </layout:Tm30ResponsivePanel>
-                                        </Grid>
-                                    </Border>
-                                </TabItem>
-                            </TabControl>
+                                <Border Style="{StaticResource CardBorder}" Padding="0"
+                                        Height="330" ClipToBounds="True">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="{Binding RenderingGroupLabel}"
+                                                   FontWeight="SemiBold" Margin="14,10,14,4" />
+                                        <controls:CriChart Grid.Row="1" Margin="5,0,8,8"
+                                                           Measurement="{Binding ActiveMeasurement}" />
+                                    </Grid>
+                                </Border>
+                                <Border Style="{StaticResource CardBorder}" Padding="0"
+                                        Height="330" Margin="0,16,0,0" ClipToBounds="True">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="IES TM-30-15" FontWeight="SemiBold"
+                                                   Margin="14,9,14,2" />
+                                        <layout:Tm30ResponsivePanel Grid.Row="1" ClipToBounds="True">
+                                            <Grid ClipToBounds="True">
+                                                <controls:Tm30VectorChart Measurement="{Binding ActiveMeasurement}"
+                                                                            ClipToBounds="True" />
+                                                <TextBlock Text="{Binding Tm30VectorLegendText}"
+                                                           HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                                           Margin="7" Padding="5,3" FontSize="9"
+                                                           Background="#DFFFFFFF" />
+                                            </Grid>
+                                            <Border Padding="4" ClipToBounds="True">
+                                                <StackPanel>
+                                                    <TextBlock Text="Rf" Foreground="{StaticResource SecondaryTextBrush}" />
+                                                    <TextBlock Text="{Binding Tm30RfText}" FontSize="22"
+                                                               FontFamily="Cascadia Mono, Consolas" FontWeight="SemiBold" />
+                                                    <TextBlock Text="Rg" Foreground="{StaticResource SecondaryTextBrush}"
+                                                               Margin="0,3,0,0" />
+                                                    <TextBlock Text="{Binding Tm30RgText}" FontSize="22"
+                                                               FontFamily="Cascadia Mono, Consolas" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Tm30GuideOneText}" FontSize="9"
+                                                               Foreground="{StaticResource SecondaryTextBrush}"
+                                                               TextWrapping="Wrap" Margin="0,5,0,0" />
+                                                    <TextBlock Text="{Binding Tm30GuideTwoText}" FontSize="9"
+                                                               Foreground="{StaticResource SecondaryTextBrush}" TextWrapping="Wrap" />
+                                                    <TextBlock Text="{Binding Tm30CautionText}" FontSize="9"
+                                                               Foreground="#B56C18" TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </Border>
+                                            <Grid ClipToBounds="True">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="*" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Text="{Binding Tm30RfRgPlotLabel}"
+                                                           FontWeight="SemiBold" FontSize="11" />
+                                                <controls:RfRgChart Grid.Row="1" Measurement="{Binding ActiveMeasurement}"
+                                                                   ClipToBounds="True" />
+                                            </Grid>
+                                            <Grid ClipToBounds="True">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="*" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Text="{Binding Tm30SamplesLabel}"
+                                                           FontWeight="SemiBold" FontSize="11" />
+                                                <controls:Tm30SampleChart Grid.Row="1" Measurement="{Binding ActiveMeasurement}"
+                                                                         ClipToBounds="True" />
+                                            </Grid>
+                                        </layout:Tm30ResponsivePanel>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
 
-                    <GridSplitter Grid.Row="1" Height="6" HorizontalAlignment="Stretch"
-                                  VerticalAlignment="Center" Background="Transparent"
-                                  ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"
-                                  DragCompleted="HistorySplitter_DragCompleted" />
+                    <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Center"
+                                  VerticalAlignment="Stretch" Background="Transparent"
+                                  ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" />
 
-                    <Border Grid.Row="2" Background="#FAFCFD"
+                    <Border Grid.Column="0" Background="#FAFCFD"
                             BorderBrush="{StaticResource BorderBrush}"
                             BorderThickness="1" CornerRadius="8" ClipToBounds="True">
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="30" />
                                 <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <Button x:Name="HistoryToggleButton" Grid.Row="0"
-                                    AutomationProperties.Name="{Binding HistoryLabel}"
-                                    Background="Transparent" BorderThickness="0"
-                                    ToolTip="{Binding HistoryFooterTooltip}"
-                                    Click="HistoryToggle_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <Border Width="14" Height="3" Margin="0,0,4,0"
-                                            CornerRadius="1.5" Background="#63717D" />
-                                    <Border Width="14" Height="3"
-                                            CornerRadius="1.5" Background="#63717D" />
-                                </StackPanel>
-                            </Button>
-                            <ListBox x:Name="HistoryList" Grid.Row="1"
+                            <ListBox x:Name="HistoryList" Grid.Row="0"
                                      ItemsSource="{Binding HistoryItems}"
                                      SelectionMode="Extended"
-                                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
                                      BorderThickness="0" Background="Transparent"
                                      SelectionChanged="HistoryList_SelectionChanged"
                                      PreviewMouseLeftButtonDown="HistoryList_PreviewMouseLeftButtonDown"
@@ -380,9 +474,36 @@
                                      Drop="HistoryList_Drop">
                                 <ListBox.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" />
+                                        <StackPanel Orientation="Vertical" />
                                     </ItemsPanelTemplate>
                                 </ListBox.ItemsPanel>
+                                <ListBox.GroupStyle>
+                                    <GroupStyle>
+                                        <GroupStyle.Panel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </GroupStyle.Panel>
+                                        <GroupStyle.ContainerStyle>
+                                            <Style TargetType="GroupItem">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="GroupItem">
+                                                            <Expander IsExpanded="True" Margin="4,5,4,8">
+                                                                <Expander.Header>
+                                                                    <TextBlock Text="{Binding Name}"
+                                                                               Foreground="{StaticResource AccentBrush}"
+                                                                               FontWeight="SemiBold" />
+                                                                </Expander.Header>
+                                                                <ItemsPresenter Margin="4,5,0,0" />
+                                                            </Expander>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </GroupStyle.ContainerStyle>
+                                    </GroupStyle>
+                                </ListBox.GroupStyle>
                                 <ListBox.ItemContainerStyle>
                                     <Style TargetType="ListBoxItem">
                                         <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=OneWay}" />
@@ -400,6 +521,26 @@
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <Grid Width="{Binding ItemWidth}" Height="{Binding ItemHeight}">
+                                            <Grid.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="{Binding RenameLabel}"
+                                                              Click="HistoryRenameMenu_Click" />
+                                                    <Separator Visibility="{Binding IsLighting, Converter={StaticResource BoolToVisibility}}" />
+                                                    <MenuItem Header="{Binding RegisterUserIlluminantLabel}"
+                                                              Visibility="{Binding IsLighting, Converter={StaticResource BoolToVisibility}}">
+                                                        <MenuItem Header="{Binding UserDefined1Label}" Tag="User1"
+                                                                  Click="RegisterUserIlluminant_Click" />
+                                                        <MenuItem Header="{Binding UserDefined2Label}" Tag="User2"
+                                                                  Click="RegisterUserIlluminant_Click" />
+                                                        <MenuItem Header="{Binding UserDefined3Label}" Tag="User3"
+                                                                  Click="RegisterUserIlluminant_Click" />
+                                                    </MenuItem>
+                                                    <MenuItem Header="{Binding RemoveUserIlluminantLabel}"
+                                                              IsEnabled="{Binding HasUserIlluminantRegistration}"
+                                                              Visibility="{Binding IsLighting, Converter={StaticResource BoolToVisibility}}"
+                                                              Click="RemoveUserIlluminant_Click" />
+                                                </ContextMenu>
+                                            </Grid.ContextMenu>
                                             <Border Width="{x:Static layout:HistoryCardLayout.Width}"
                                                     Height="{x:Static layout:HistoryCardLayout.Height}"
                                                     HorizontalAlignment="Right" VerticalAlignment="Top"
@@ -474,10 +615,38 @@
                                                            Foreground="White" FontSize="9"
                                                            FontWeight="SemiBold" />
                                             </Border>
+                                            <ItemsControl ItemsSource="{Binding UserIlluminantBadgeTexts}"
+                                                          HorizontalAlignment="Left" VerticalAlignment="Top"
+                                                          Margin="3,4,0,0">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Vertical" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="#B8000000" CornerRadius="8"
+                                                                Padding="5,2" Margin="0,0,0,2">
+                                                            <TextBlock Text="{Binding}" Foreground="White"
+                                                                       FontSize="9" FontWeight="SemiBold" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
                                         </Grid>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
+                            <StackPanel Grid.Row="1" Margin="10,7,10,10">
+                                <TextBlock Text="{Binding HistoryPersistenceError}"
+                                           Foreground="#B33A2B" TextWrapping="Wrap"
+                                           FontSize="10" Margin="0,0,0,5"
+                                           Visibility="{Binding HasHistoryPersistenceError, Converter={StaticResource BoolToVisibility}}" />
+                                <Button Content="{Binding DeleteHistoryLabel}"
+                                        IsEnabled="{Binding HasDeletableHistory}"
+                                        Click="DeleteAllHistory_Click"
+                                        Padding="8,5" />
+                            </StackPanel>
                         </Grid>
                     </Border>
                 </Grid>
