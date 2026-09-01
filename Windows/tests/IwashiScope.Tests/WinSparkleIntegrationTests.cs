@@ -108,7 +108,8 @@ public sealed class WinSparkleIntegrationTests
         Assert.Contains("Compress-Archive -Path (Join-Path $payloadFull '*')", installerScript);
         Assert.Contains("Test-WindowsInstaller.ps1", installerScript);
         Assert.Contains("/platform:x64", installerScript);
-        Assert.Contains("payload.zip", installerScript);
+        Assert.Contains("\"/resource:$payloadZip,payload.zip\"", installerScript);
+        Assert.Contains("\"/resource:$manifest,install.properties\"", installerScript);
         Assert.Contains(@"LocalApplicationData", installerSource);
         Assert.Contains(@"Programs", installerSource);
         Assert.Contains("IwashiScopeInstaller.exe", installerSource);

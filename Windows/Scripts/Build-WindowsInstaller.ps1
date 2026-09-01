@@ -105,8 +105,8 @@ try {
         /optimize+ `
         /win32icon:$icon `
         /out:$installerPath `
-        /resource:$payloadZip,payload.zip `
-        /resource:$manifest,install.properties `
+        "/resource:$payloadZip,payload.zip" `
+        "/resource:$manifest,install.properties" `
         /reference:System.IO.Compression.dll `
         /reference:System.IO.Compression.FileSystem.dll `
         /reference:System.Windows.Forms.dll `
