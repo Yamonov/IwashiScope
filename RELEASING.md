@@ -35,7 +35,7 @@ xcodebuild archive \
 公証が完了したArchiveの`Info.plist`を確認します。
 
 ```sh
-IWASHISCOPE_ARCHIVE="/Users/yamo/Library/Developer/Xcode/Archives/YYYY-MM-DD/IwashiScope YYYY-MM-DD, HH.MM.xcarchive"
+IWASHISCOPE_ARCHIVE="$HOME/Library/Developer/Xcode/Archives/YYYY-MM-DD/IwashiScope YYYY-MM-DD, HH.MM.xcarchive"
 plutil -p "$IWASHISCOPE_ARCHIVE/Info.plist"
 ```
 
