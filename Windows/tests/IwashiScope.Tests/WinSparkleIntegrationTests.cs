@@ -130,6 +130,8 @@ public sealed class WinSparkleIntegrationTests
         Assert.Contains("ReparsePoint", installerCore);
         Assert.Contains("<sparkle:version>1.0</sparkle:version>", signingTestScript);
         Assert.Contains("<sparkle:version>0.9.5.3</sparkle:version>", signingTestScript);
+        Assert.Contains("$historicalItems | Select-Object -Skip 1", signingTestScript);
+        Assert.Contains("RemoveChild($obsoleteItem)", signingTestScript);
     }
 
     [Fact]

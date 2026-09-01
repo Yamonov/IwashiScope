@@ -117,9 +117,16 @@ try {
         '<sparkle:shortVersionString>0.9.5.3</sparkle:shortVersionString>').Replace(
         'IwashiScope-1.0-Windows-x64-Setup.exe',
         'IwashiScope-0.9.5.3-Windows-x64-Setup.exe')
+    [xml] $historicalDocument = $historicalXml
+    $historicalItems = @($historicalDocument.rss.channel.item)
+    foreach ($obsoleteItem in @(
+        $historicalItems | Select-Object -Skip 1
+    )) {
+        $null = $historicalDocument.rss.channel.RemoveChild($obsoleteItem)
+    }
     [IO.File]::WriteAllText(
         $historySourceAppcast,
-        $historicalXml,
+        $historicalDocument.OuterXml,
         [Text.UTF8Encoding]::new($false))
     & (Join-Path $PSScriptRoot 'New-WindowsAppcast.ps1') `
         -Version (Get-Item $testInstaller).VersionInfo.ProductVersion `
