@@ -237,6 +237,15 @@ fi
 grep -F '$(DERIVED_FILE_DIR)/iwashiscope-spotread' \
 	IwashiScope.xcodeproj/project.pbxproj >/dev/null \
 	|| fail "the Xcode helper output is not located in DerivedData"
+grep -F 'build_profile=release' Scripts/build-spotread.sh >/dev/null \
+	|| fail "the macOS helper build does not distinguish release output"
+grep -F -- '-sCCDEBUGFLAG=-g0' Scripts/build-spotread.sh >/dev/null \
+	|| fail "the macOS release helper does not disable compiler debug data"
+grep -F '/usr/bin/strip -S "$built_helper_path"' \
+	Scripts/build-spotread.sh >/dev/null \
+	|| fail "the macOS release helper is not stripped before signing"
+grep -F "grep -a -F '/Users/'" Scripts/audit-release.sh >/dev/null \
+	|| fail "the macOS release audit does not reject personal build paths"
 
 grep -F '8BAA00102F23A00000C0DE01' \
 	IwashiScope.xcodeproj/project.pbxproj |

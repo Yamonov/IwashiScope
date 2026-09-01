@@ -8,7 +8,17 @@ built_helper_path="$argyll_root/spectro/iwashiscope-spotread"
 helper_path=${SCRIPT_OUTPUT_FILE_0:-"$built_helper_path"}
 build_stamp="$argyll_root/.iwashiscope-build-config"
 deployment_target=${MACOSX_DEPLOYMENT_TARGET:-14.6}
-build_signature="universal-arm64-x86_64-macos${deployment_target}-jsonl3-patch5-spectrum-analysis-v1"
+configuration=${CONFIGURATION:-Standalone}
+release_build=false
+if [ "$configuration" = "Release" ] \
+	|| [ "${IWASHISCOPE_RELEASE:-}" = "true" ]; then
+	release_build=true
+fi
+build_profile=debug
+if [ "$release_build" = true ]; then
+	build_profile=release
+fi
+build_signature="universal-arm64-x86_64-macos${deployment_target}-jsonl3-patch5-spectrum-analysis-v1-${build_profile}-strip1"
 jam_tool=${JAM:-}
 
 if [ -z "$jam_tool" ]; then
@@ -58,14 +68,26 @@ if [ "$needs_clean" = true ]; then
 		-sIWASHISCOPE_DEPLOYMENT_TARGET="$deployment_target" \
 		clean
 
-	"$jam_tool" -q -fJambase \
-		-sBUILTIN_SSL=true \
-		-sIWASHISCOPE_ONLY=true \
-		-sIWASHISCOPE_UNIVERSAL=true \
-		-sIWASHISCOPE_DEPLOYMENT_TARGET="$deployment_target" \
-		-sIWASHISCOPE_TESTS=true \
-		iwashiscope_spotread_jsonl_test \
-		iwashiscope_spotread
+	if [ "$release_build" = true ]; then
+		"$jam_tool" -q -fJambase \
+			-sBUILTIN_SSL=true \
+			-sIWASHISCOPE_ONLY=true \
+			-sIWASHISCOPE_UNIVERSAL=true \
+			-sIWASHISCOPE_DEPLOYMENT_TARGET="$deployment_target" \
+			-sIWASHISCOPE_TESTS=true \
+			-sCCDEBUGFLAG=-g0 \
+			iwashiscope_spotread_jsonl_test \
+			iwashiscope_spotread
+	else
+		"$jam_tool" -q -fJambase \
+			-sBUILTIN_SSL=true \
+			-sIWASHISCOPE_ONLY=true \
+			-sIWASHISCOPE_UNIVERSAL=true \
+			-sIWASHISCOPE_DEPLOYMENT_TARGET="$deployment_target" \
+			-sIWASHISCOPE_TESTS=true \
+			iwashiscope_spotread_jsonl_test \
+			iwashiscope_spotread
+	fi
 
 	"$argyll_root/spectro/iwashiscope-spotread-jsonl-test"
 
@@ -76,6 +98,15 @@ if [ "$needs_clean" = true ]; then
 	if ! /usr/bin/lipo "$built_helper_path" -verify_arch arm64 x86_64; then
 		printf '%s\n' "error: iwashiscope-spotread is not a Universal Binary." >&2
 		exit 1
+	fi
+	if [ "$release_build" = true ]; then
+		/usr/bin/strip -S "$built_helper_path"
+		if LC_ALL=C /usr/bin/grep -a -F "$project_root" \
+			"$built_helper_path" >/dev/null; then
+			printf '%s\n' \
+				"error: release iwashiscope-spotread contains its source path." >&2
+			exit 1
+		fi
 	fi
 
 	printf '%s\n' "$build_signature" > "$build_stamp"

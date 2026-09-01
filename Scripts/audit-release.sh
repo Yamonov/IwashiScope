@@ -101,6 +101,15 @@ if [ -n "$test_artifacts" ]; then
 	fail "test artifacts are present in the release app"
 fi
 
+for first_party_executable in "$main_executable" "$measurement_helper"; do
+	if LC_ALL=C grep -a -F '/Users/' "$first_party_executable" >/dev/null; then
+		fail "personal macOS build path is embedded in $first_party_executable"
+	fi
+	if LC_ALL=C grep -a -F 'C:\Users\' "$first_party_executable" >/dev/null; then
+		fail "personal Windows build path is embedded in $first_party_executable"
+	fi
+done
+
 while IFS= read -r candidate; do
 	if file "$candidate" | grep -q 'Mach-O'; then
 		/usr/bin/lipo "$candidate" -verify_arch arm64 x86_64 \
