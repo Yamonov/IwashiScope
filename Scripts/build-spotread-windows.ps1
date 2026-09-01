@@ -88,13 +88,32 @@ $commands = @(
 ) -join " && "
 
 Push-Location $argyllRoot
+$hadPriorCl = Test-Path Env:CL
+$priorCl = if ($hadPriorCl) { $env:CL } else { $null }
 try {
+    if ($Release) {
+        $releaseCompilerFlags =
+            "/experimental:deterministic /pathmap:$projectRoot=."
+        $env:CL = if ([string]::IsNullOrWhiteSpace($priorCl)) {
+            $releaseCompilerFlags
+        }
+        else {
+            "$priorCl $releaseCompilerFlags"
+        }
+    }
+
     & $env:ComSpec /d /s /c $commands
     if ($LASTEXITCODE -ne 0) {
         throw "The Windows spotread build failed with exit code $LASTEXITCODE."
     }
 }
 finally {
+    if ($hadPriorCl) {
+        $env:CL = $priorCl
+    }
+    else {
+        Remove-Item Env:CL -ErrorAction SilentlyContinue
+    }
     Pop-Location
 }
 

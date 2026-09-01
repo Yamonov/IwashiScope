@@ -246,6 +246,9 @@ grep -F '/usr/bin/strip -S "$built_helper_path"' \
 	|| fail "the macOS release helper is not stripped before signing"
 grep -F "grep -a -F '/Users/'" Scripts/audit-release.sh >/dev/null \
 	|| fail "the macOS release audit does not reject personal build paths"
+grep -F '/pathmap:$projectRoot=.' \
+	Scripts/build-spotread-windows.ps1 >/dev/null \
+	|| fail "the Windows release helper does not map personal source paths"
 
 grep -F '8BAA00102F23A00000C0DE01' \
 	IwashiScope.xcodeproj/project.pbxproj |

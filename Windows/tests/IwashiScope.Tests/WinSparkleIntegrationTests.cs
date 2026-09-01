@@ -124,6 +124,9 @@ public sealed class WinSparkleIntegrationTests
         Assert.Contains("Assert-NoPersonalBuildPaths", releaseScript);
         Assert.Contains("[switch] $Release", helperBuildScript);
         Assert.Contains("-sLINKDEBUGFLAG=/INCREMENTAL:NO", helperBuildScript);
+        Assert.Contains("/experimental:deterministic", helperBuildScript);
+        Assert.Contains("/pathmap:$projectRoot=.", helperBuildScript);
+        Assert.Contains("Remove-Item Env:CL", helperBuildScript);
         Assert.Contains("[string] $Version = '1.0'", installerScript);
         Assert.Contains("Compress-Archive -Path (Join-Path $payloadFull '*')", installerScript);
         Assert.Contains("Test-WindowsInstaller.ps1", installerScript);
