@@ -6,6 +6,51 @@
         <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
         <item>
+            <title>1.0</title>
+            <pubDate>Tue, 01 Sep 2026 21:57:50 +0900</pubDate>
+            <link>https://yamonov.github.io/IwashiScope/</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v1.0</sparkle:fullReleaseNotesLink>
+            <sparkle:version>32</sparkle:version>
+            <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# IwashiScope 1.0
+
+測定履歴を継続して活用できる左パネルと、CIE参考光源および実測光源による反射色の予測・比較機能を追加し、macOS版とWindows版を1.0として統一しました。
+
+- 全測定モードの履歴を左パネルへ移し、再起動後の復元、日付別の折りたたみ、最新順の追加、複数選択、手動並べ替えに対応
+- モード単位の「履歴を削除」を追加し、ユーザー定義光源として使用中の履歴は削除対象から保護
+- 環境光・発光の履歴を`User定義１`〜`User定義３`として登録し、反射原稿モードで再利用可能
+- CIEの標準光源・昼光・屋内昼光・蛍光ランプ・高圧放電ランプ・LED・校正用参考スペクトル計50種を収録
+- 反射測定へ、選択光源のスペクトル、予測反射光、色パッチ比較、Bradford色順応を追加
+- 色の差としてΔE00、ΔE76、ΔL*、Δa*、Δb*を表示
+- UVデータを含まない反射測定では、蛍光増白紙・蛍光インキに関する注意を表示
+- スペクトルグラフと書き出し画像へ、履歴名、D50 Labまたは照度・輝度、CCT、ピーク値を表示
+- 環境光・発光のCRIとTM-30を上下に連続表示
+- macOS版とWindows版の機能・UI・版番号を1.0へ統一
+
+macOS版はIntel MacとAppleシリコンMacに対応するUniversal Binaryで、Developer ID署名とApple公証を完了しています。macOS 14.6以降に対応します。
+
+Windows版は.NETランタイムを含む自己完結型x64版です。標準installerとportable ZIPを収録しています。公開用Authenticode証明書がないため未署名で、初回起動時にMicrosoft Defender SmartScreenの警告が表示される場合があります。WinSparkleによる更新ファイルはEdDSA署名で検証されます。
+
+このReleaseには、macOS版・Windows版・両OSのhelperに対応する完全なソース一式を含めています。ライセンス、第三者著作物、ArgyllCMSからの変更内容は、ソースZIP内の`LICENSE`、`NOTICE`、`THIRD_PARTY_NOTICES.md`、`ARGYLL_CHANGES.md`を参照してください。
+
+[v1.0のソースコード](https://github.com/Yamonov/IwashiScope/tree/v1.0)
+
+## SHA-256
+
+- `IwashiScope-1.0.zip`: `f513e89bdb21fee76411629728e37183f3e975d6b38a5c821a250878f4e4fbbd`
+- `IwashiScope-1.0-Windows-x64-Setup.exe`: `cd1f31d83144d0a8f83b0e3135f94a7baa85c3b6f1fee2c98f9d846d53b2b7b3`
+- `IwashiScope-1.0-Windows-x64.zip`: `ec2e228c98bc8a13a7afce27b5ca93fa65b3d72c877665480013de1aa75d571c`
+- `IwashiScope-1.0-source.zip`: `877a5978c74c42b1cd08658229a089311c0664c8dadc26f1df152f0bd914bfe0`
+]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v1.0/IwashiScope-1.0.zip"
+                length="11113384"
+                type="application/octet-stream"
+                sparkle:edSignature="8TD3duKKnjIV7Px+hFID5Ryqqwv+yBVoh3c6TwJfJddXJckglfguAuMlXyEiqBvrnSlN1LsTO6NPqDM6RDkwDw=="
+            />
+        </item>
+        <item>
             <title>0.9.6</title>
             <pubDate>Wed, 05 Aug 2026 18:11:54 +0900</pubDate>
             <link>https://yamonov.github.io/IwashiScope/</link>
