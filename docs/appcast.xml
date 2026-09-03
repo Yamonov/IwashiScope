@@ -6,6 +6,40 @@
         <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
         <item>
+            <title>1.0.1</title>
+            <pubDate>Thu, 03 Sep 2026 11:54:25 +0900</pubDate>
+            <link>https://yamonov.github.io/IwashiScope/</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v1.0.1</sparkle:fullReleaseNotesLink>
+            <sparkle:version>36</sparkle:version>
+            <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# IwashiScope 1.0.1
+
+- UIの不具合を修正
+
+macOS版はIntel MacとAppleシリコンMacに対応するUniversal Binaryで、Developer ID署名とApple公証を完了しています。macOS 14.6以降に対応します。
+
+Windows版は.NETランタイムを含む自己完結型x64版です。標準installerとportable ZIPを収録しています。公開用Authenticode証明書がないため未署名で、初回起動時にMicrosoft Defender SmartScreenの警告が表示される場合があります。WinSparkleによる更新ファイルはEdDSA署名で検証されます。
+
+このReleaseには、macOS版・Windows版・両OSのhelperに対応する完全なソース一式を含めています。
+
+[v1.0.1のソースコード](https://github.com/Yamonov/IwashiScope/tree/v1.0.1)
+
+## SHA-256
+
+- `IwashiScope-1.0.1.zip`: `431b7d137c53ea672f0ffd191d1796b72374ed46b3d0cd0423405f299a99f82b`
+- `IwashiScope-1.0.1-Windows-x64-Setup.exe`: `d9dd975b754ef67f8295dceb140f1b8376a191233bcc1c67b4a37b7c1264062d`
+- `IwashiScope-1.0.1-Windows-x64.zip`: `512076277adf05f48c7326feb6dd9074b4000f9a3df770fb33cf0deca9c772de`
+- `IwashiScope-1.0.1-source.zip`: `1aae94e7f7df071acc2d9a7890e7b5c1078d677661a46b02c7a3462414113c13`
+]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v1.0.1/IwashiScope-1.0.1.zip"
+                length="11121721"
+                type="application/octet-stream"
+                sparkle:edSignature="mgAKMGEVz/TpHtHUUIyjExxH6wN91wdRY6W7QfaxFaHz9PItlp0XDkBZHjHOTN/XJFzCY45BNsIBGNAcr6fsCQ=="
+            />
+        </item>
+        <item>
             <title>1.0</title>
             <pubDate>Tue, 01 Sep 2026 21:57:50 +0900</pubDate>
             <link>https://yamonov.github.io/IwashiScope/</link>
