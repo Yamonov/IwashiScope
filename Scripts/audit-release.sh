@@ -4,6 +4,7 @@ set -eu
 
 application_path=${1:-}
 expected_team_identifier=${IWASHISCOPE_DEVELOPMENT_TEAM:-5NFE273M7M}
+project_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
 if [ -z "$application_path" ]; then
 	printf '%s\n' "usage: Scripts/audit-release.sh IwashiScope.app" >&2
@@ -20,9 +21,18 @@ fail() {
 main_executable="$application_path/Contents/MacOS/IwashiScope"
 measurement_helper="$application_path/Contents/MacOS/iwashiscope-spotread"
 sparkle_executable="$application_path/Contents/Frameworks/Sparkle.framework/Versions/B/Sparkle"
+sparkle_info_plist="$application_path/Contents/Frameworks/Sparkle.framework/Versions/B/Resources/Info.plist"
 [ -x "$main_executable" ] || fail "main executable is missing"
 [ -x "$measurement_helper" ] || fail "iwashiscope-spotread is missing"
 [ -x "$sparkle_executable" ] || fail "Sparkle.framework is missing"
+[ -f "$sparkle_info_plist" ] || fail "Sparkle.framework Info.plist is missing"
+
+expected_sparkle_version=$(plutil -extract pins.0.state.version raw -o - \
+	"$project_root/IwashiScope.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved")
+bundled_sparkle_version=$(/usr/libexec/PlistBuddy \
+	-c 'Print :CFBundleShortVersionString' "$sparkle_info_plist")
+[ "$bundled_sparkle_version" = "$expected_sparkle_version" ] \
+	|| fail "bundled Sparkle $bundled_sparkle_version does not match resolved $expected_sparkle_version"
 
 main_dependencies=$(/usr/bin/otool -L "$main_executable")
 printf '%s\n' "$main_dependencies" |

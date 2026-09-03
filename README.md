@@ -93,7 +93,7 @@ macOS版のローカルテストは公開リポジトリへ含めていません
 
 ## ビルド
 
-macOS版に必要な環境と手順は[BUILDING.md](BUILDING.md)を参照してください。Xcodeでは`IwashiScope.xcworkspace`を開きます。初回ビルド時にSparkle 2.9.4を取得し、`Scripts/build-spotread.sh`が同梱ソースからUniversal Binaryの`iwashiscope-spotread`を作成します。
+macOS版に必要な環境と手順は[BUILDING.md](BUILDING.md)を参照してください。Xcodeでは`IwashiScope.xcworkspace`を開きます。初回ビルド時にSparkle 2.9.6を取得し、`Scripts/build-spotread.sh`が同梱ソースからUniversal Binaryの`iwashiscope-spotread`を作成します。
 
 Windows版は.NET 10、WPF、WinSparkle 0.9.4を使用します。ビルド、テスト、自己完結型x64 ZIP、更新機能の構成は[Windows/README.md](Windows/README.md)を参照してください。
 

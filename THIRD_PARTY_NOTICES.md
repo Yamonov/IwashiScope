@@ -40,7 +40,7 @@ IwashiScopeは反射光測定のマンセル値を補間するために、Colour
 「All Munsell Colours」データをCSVへ変換して同梱します。取得元、固定した
 SHA-256、変換手順は`ThirdParty/Munsell/README.md`に記録しています。
 
-## Sparkle 2.9.4
+## Sparkle 2.9.6
 
 - プロジェクト: <https://github.com/sparkle-project/Sparkle>
 - ライセンス: MIT Licenseを中心とする許諾ライセンス

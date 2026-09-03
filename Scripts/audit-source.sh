@@ -150,6 +150,26 @@ printf '%s\n' "$required_files" |
 			|| fail "required source or license file is not tracked by Git: $required_file"
 	done
 
+project_sparkle_lock=IwashiScope.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+workspace_sparkle_lock=IwashiScope.xcworkspace/xcshareddata/swiftpm/Package.resolved
+project_sparkle_version=$(plutil -extract pins.0.state.version raw -o - \
+	"$project_sparkle_lock")
+workspace_sparkle_version=$(plutil -extract pins.0.state.version raw -o - \
+	"$workspace_sparkle_lock")
+project_sparkle_revision=$(plutil -extract pins.0.state.revision raw -o - \
+	"$project_sparkle_lock")
+workspace_sparkle_revision=$(plutil -extract pins.0.state.revision raw -o - \
+	"$workspace_sparkle_lock")
+[ "$project_sparkle_version" = "$workspace_sparkle_version" ] \
+	|| fail "project and workspace Sparkle versions do not match"
+[ "$project_sparkle_revision" = "$workspace_sparkle_revision" ] \
+	|| fail "project and workspace Sparkle revisions do not match"
+grep -F 'kind = exactVersion;' IwashiScope.xcodeproj/project.pbxproj >/dev/null \
+	|| fail "Sparkle package requirement is not pinned to an exact version"
+grep -F "version = $project_sparkle_version;" \
+	IwashiScope.xcodeproj/project.pbxproj >/dev/null \
+	|| fail "Sparkle package requirement does not match Package.resolved"
+
 # Preserve the downloaded CIE originals byte-for-byte, including their CRLF
 # newlines. Their checksums are verified by the generator immediately below.
 for diff_mode in working staged; do

@@ -18,7 +18,7 @@ ArgyllCMSにはGPL、LGPL、MIT、BSD系など、個別条件を持つ構成要�
 
 アプリには主ライセンスに加え、直接使用するCGATSおよびICC構成要素のMIT Licenseも同梱します。
 
-## Sparkle 2.9.4
+## Sparkle 2.9.6
 
 - プロジェクト: <https://github.com/sparkle-project/Sparkle>
 - ライセンス: MIT Licenseを中心とする許諾ライセンス
