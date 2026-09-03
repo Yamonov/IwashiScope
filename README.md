@@ -6,7 +6,7 @@
 ArgyllCMS 3.5.0を改変した同梱コマンド`iwashiscope-spotread`を対話操作し、スペクトルと測色・光源評価値を表示する分光・測色アプリです。macOS版はSwiftUI、Windows版はWPFで実装し、同じ改変ソースから各OS用の`iwashiscope-spotread`をビルドします。
 
 > [!IMPORTANT]
-> macOS版Version 0.9には、Sparkle.frameworkを見つけられず起動できない問題があります。Version 0.9をダウンロードした場合は、署名・公証済みの[IwashiScope 1.0](https://github.com/Yamonov/IwashiScope/releases/tag/v1.0)を手動でダウンロードして置き換えてください。macOS版・Windows版の配布バイナリに対応する完全なソース一式も、同じReleaseで公開しています。
+> macOS版Version 0.9には、Sparkle.frameworkを見つけられず起動できない問題があります。Version 0.9をダウンロードした場合は、署名・公証済みの[IwashiScope 1.0.1](https://github.com/Yamonov/IwashiScope/releases/tag/v1.0.1)を手動でダウンロードして置き換えてください。macOS版・Windows版の配布バイナリに対応する完全なソース一式も、同じReleaseで公開しています。
 
 ## 現在の実装
 

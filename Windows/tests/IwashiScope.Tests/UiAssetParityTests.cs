@@ -322,9 +322,10 @@ public sealed class UiAssetParityTests
             "MainWindow.xaml"));
 
         Assert.Contains(
-            "<ColumnDefinition x:Name=\"HistoryColumn\" Width=\"320\" MinWidth=\"180\" MaxWidth=\"420\" />",
+            "<ColumnDefinition x:Name=\"HistoryColumn\" Width=\"360\" MinWidth=\"180\" MaxWidth=\"800\" />",
             xaml,
             StringComparison.Ordinal);
+        Assert.Contains("Cursor=\"SizeWE\"", xaml, StringComparison.Ordinal);
         Assert.Contains("<Expander IsExpanded=\"True\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding Name}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Content=\"{Binding DeleteHistoryLabel}\"", xaml, StringComparison.Ordinal);

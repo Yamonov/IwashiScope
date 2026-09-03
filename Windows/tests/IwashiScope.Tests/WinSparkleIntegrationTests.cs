@@ -107,7 +107,7 @@ public sealed class WinSparkleIntegrationTests
             "IwashiScopeInstallerCore.cs"));
 
         Assert.Contains("Build-WindowsInstaller.ps1", releaseScript);
-        Assert.Contains("[string] $Version = '1.0'", releaseScript);
+        Assert.Contains("[string] $Version = '1.0.1'", releaseScript);
         Assert.Contains("Windows-x64-Setup.exe", releaseScript);
         Assert.Contains("Release = $true", releaseScript);
         Assert.Equal(
@@ -127,7 +127,7 @@ public sealed class WinSparkleIntegrationTests
         Assert.Contains("/experimental:deterministic", helperBuildScript);
         Assert.Contains("/pathmap:$projectRoot=.", helperBuildScript);
         Assert.Contains("Remove-Item Env:CL", helperBuildScript);
-        Assert.Contains("[string] $Version = '1.0'", installerScript);
+        Assert.Contains("[string] $Version = '1.0.1'", installerScript);
         Assert.Contains("Compress-Archive -Path (Join-Path $payloadFull '*')", installerScript);
         Assert.Contains("Test-WindowsInstaller.ps1", installerScript);
         Assert.Contains("/platform:x64", installerScript);
@@ -151,8 +151,8 @@ public sealed class WinSparkleIntegrationTests
         Assert.Contains("FileRenameInfo", installerCore);
         Assert.Contains("FileDispositionInfoEx", installerCore);
         Assert.Contains("ReparsePoint", installerCore);
+        Assert.Contains("<sparkle:version>1.0.1</sparkle:version>", signingTestScript);
         Assert.Contains("<sparkle:version>1.0</sparkle:version>", signingTestScript);
-        Assert.Contains("<sparkle:version>0.9.5.3</sparkle:version>", signingTestScript);
         Assert.Contains("$historicalItems | Select-Object -Skip 1", signingTestScript);
         Assert.Contains("RemoveChild($obsoleteItem)", signingTestScript);
     }
@@ -246,7 +246,7 @@ public sealed class WinSparkleIntegrationTests
         Assert.Equal("Yamonov", native.CompanyName);
         Assert.Equal("IwashiScope", native.AppName);
         Assert.False(string.IsNullOrWhiteSpace(native.AppVersion));
-        Assert.Equal("1.0.0.0", native.BuildVersion);
+        Assert.Equal("1.0.1.0", native.BuildVersion);
         Assert.Equal("en", native.Language);
         Assert.Equal(1, native.InitializeCount);
         Assert.Equal(1, native.CanShutdownCallback!());

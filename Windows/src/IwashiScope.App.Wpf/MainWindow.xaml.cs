@@ -226,7 +226,7 @@ public partial class MainWindow : Window
         var source = "https://github.com/Yamonov/IwashiScope";
         var version = Assembly.GetEntryAssembly()?
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-            .InformationalVersion ?? "1.0";
+            .InformationalVersion ?? "1.0.1";
         var result = MessageBox.Show(
             this,
             $"IwashiScope {version}: AGPL-3.0-only\n" +

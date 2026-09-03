@@ -111,12 +111,12 @@ try {
         -Raw -Encoding UTF8
     $appcastItemCount = @($generated.rss.channel.item).Count
     $historicalXml = $generated.OuterXml.Replace(
-        '<sparkle:version>1.0</sparkle:version>',
-        '<sparkle:version>0.9.5.3</sparkle:version>').Replace(
-        '<sparkle:shortVersionString>1.0</sparkle:shortVersionString>',
-        '<sparkle:shortVersionString>0.9.5.3</sparkle:shortVersionString>').Replace(
-        'IwashiScope-1.0-Windows-x64-Setup.exe',
-        'IwashiScope-0.9.5.3-Windows-x64-Setup.exe')
+        '<sparkle:version>1.0.1</sparkle:version>',
+        '<sparkle:version>1.0</sparkle:version>').Replace(
+        '<sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>',
+        '<sparkle:shortVersionString>1.0</sparkle:shortVersionString>').Replace(
+        'IwashiScope-1.0.1-Windows-x64-Setup.exe',
+        'IwashiScope-1.0-Windows-x64-Setup.exe')
     [xml] $historicalDocument = $historicalXml
     $historicalItems = @($historicalDocument.rss.channel.item)
     foreach ($obsoleteItem in @(
@@ -141,8 +141,8 @@ try {
         -Raw -Encoding UTF8
     $historyAppcastItemCount = @($historyGenerated.rss.channel.item).Count
     if ($historyAppcastItemCount -ne 2 -or
-        $historyGenerated.rss.channel.item[0].version -ne '1.0' -or
-        $historyGenerated.rss.channel.item[1].version -ne '0.9.5.3') {
+        $historyGenerated.rss.channel.item[0].version -ne '1.0.1' -or
+        $historyGenerated.rss.channel.item[1].version -ne '1.0') {
         throw 'Windows appcast history was not preserved in newest-first order.'
     }
     $temporarySignedHash = (Get-FileHash -LiteralPath $testInstaller `

@@ -1,9 +1,11 @@
+import AppKit
 import SwiftUI
 
 enum MeasurementHistoryPanelLayout {
     static let minimumWidth: CGFloat = 180
-    static let initialWidth: CGFloat = 320
-    static let maximumWidth: CGFloat = 420
+    // Two 110-point cards plus drop zones, panel padding, and a visible scrollbar.
+    static let initialWidth: CGFloat = 360
+    static let maximumWidth: CGFloat = 800
     static let accessibilityStep: CGFloat = 20
 
     static func clampedWidth(_ width: CGFloat) -> CGFloat {
@@ -26,6 +28,7 @@ struct MeasurementHistoryPanelDivider: View {
         .frame(width: 9)
         .frame(maxHeight: .infinity)
         .contentShape(Rectangle())
+        .modifier(MeasurementHistoryPanelResizeCursor())
         .gesture(resizeGesture)
         .help("左右にドラッグして測定履歴パネルの幅を変更します")
         .accessibilityElement()
@@ -37,7 +40,9 @@ struct MeasurementHistoryPanelDivider: View {
     }
 
     private var resizeGesture: some Gesture {
-        DragGesture(minimumDistance: 1)
+        // The divider moves as panelWidth changes. Measure against the fixed
+        // window coordinate space so that movement does not shift its origin.
+        DragGesture(minimumDistance: 1, coordinateSpace: .global)
             .onChanged { value in
                 if dragStartWidth == nil {
                     dragStartWidth = panelWidth
@@ -69,5 +74,26 @@ struct MeasurementHistoryPanelDivider: View {
         }
 
         panelWidth = MeasurementHistoryPanelLayout.clampedWidth(panelWidth + change)
+    }
+}
+
+private struct MeasurementHistoryPanelResizeCursor: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(macOS 15.0, *) {
+            content.pointerStyle(.columnResize)
+        } else {
+            content
+                .onHover { isHovering in
+                    if isHovering {
+                        NSCursor.resizeLeftRight.set()
+                    } else {
+                        NSCursor.arrow.set()
+                    }
+                }
+                .onDisappear {
+                    NSCursor.arrow.set()
+                }
+        }
     }
 }
