@@ -6,6 +6,27 @@
         <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
         <item>
+            <title>1.0.4</title>
+            <pubDate>Mon, 21 Sep 2026 11:41:27 +0000</pubDate>
+            <link>https://github.com/Yamonov/IwashiScope/releases/tag/v1.0.4</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v1.0.4</sparkle:fullReleaseNotesLink>
+            <sparkle:version>47</sparkle:version>
+            <sparkle:shortVersionString>1.0.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+            <description><![CDATA[<ul>
+<li>測定器に接続していないとき、接続をキャンセルできるようにしました。</li>
+<li>反射光測定の光源による見え方シミュレーションの精度を上げました。</li>
+<li>UIを微調整</li>
+</ul>]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v1.0.4/IwashiScope-1.0.4.zip"
+                length="6797006"
+                type="application/octet-stream"
+                sparkle:os="macos"
+                sparkle:edSignature="6o1vlI3h1pyD2USQ+fkTpYHmIDxV2euY4+P+BZ2LLD5hRpM+b1F0fxH2NyAkDbYYYP4MIAs5yd2v9R+bZTsQAA=="
+            />
+        </item>
+        <item>
             <title>1.0.1</title>
             <pubDate>Thu, 03 Sep 2026 11:54:25 +0900</pubDate>
             <link>https://yamonov.github.io/IwashiScope/</link>
