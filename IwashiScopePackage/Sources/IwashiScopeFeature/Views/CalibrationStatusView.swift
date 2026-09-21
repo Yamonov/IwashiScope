@@ -209,7 +209,7 @@ struct CalibrationStatusView: View {
             }
             .buttonStyle(.borderedProminent)
 
-        case .failed, .stopped:
+        case .failed, .stopped, .connectionCancelled:
             Button {
                 session.restart()
             } label: {
@@ -313,6 +313,13 @@ struct CalibrationStatusView: View {
                 detail: localized("保存された測定結果を表示しています。測定器には接続していません。"),
                 systemImage: "folder",
                 color: .blue
+            )
+        case .connectionCancelled:
+            StatusPresentation(
+                title: localized("接続がキャンセルされました"),
+                detail: localized("測定器を接続してから、spotreadを再起動してください。"),
+                systemImage: "stop.circle",
+                color: .secondary
             )
         case .stopped:
             StatusPresentation(

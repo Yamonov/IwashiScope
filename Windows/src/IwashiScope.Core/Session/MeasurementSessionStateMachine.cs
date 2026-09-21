@@ -18,6 +18,7 @@ public enum MeasurementSessionPhase
     Workspace,
     Stopped,
     Failed,
+    ConnectionCancelled,
 }
 
 public enum SessionTimeoutKind
@@ -53,6 +54,7 @@ public sealed class MeasurementSessionStateMachine
     public SpotreadInstrumentIdentity? Instrument { get; private set; }
     public CalibrationPrompt? CurrentCalibrationPrompt { get; private set; }
     public int RecoveryAttempts { get; private set; }
+    public bool CanCancelConnection => Phase == MeasurementSessionPhase.Launching;
 
     public void Start(MeasurementMode mode)
     {
@@ -65,18 +67,21 @@ public sealed class MeasurementSessionStateMachine
 
     public void Apply(SpotreadEvent @event)
     {
+        // Drained output from a cancelled startup is not a new session.
+        if (Phase == MeasurementSessionPhase.ConnectionCancelled) { return; }
         switch (@event)
         {
             case HelloAcceptedEvent:
-                Phase = MeasurementSessionPhase.WaitingForInstrument;
+                // The protocol handshake precedes USB discovery. Keep the
+                // connection overlay cancellable until initialization advances.
+                if (Phase == MeasurementSessionPhase.Recovering)
+                {
+                    Phase = MeasurementSessionPhase.Launching;
+                }
                 CurrentIssue = null;
                 break;
             case InstrumentIdentityEvent identity:
                 Instrument = identity.Identity;
-                if (Phase is MeasurementSessionPhase.Launching or MeasurementSessionPhase.WaitingForInstrument)
-                {
-                    Phase = MeasurementSessionPhase.WaitingForInstrument;
-                }
                 break;
             case CalibrationStartedEvent:
                 Phase = MeasurementSessionPhase.Calibrating;
@@ -123,6 +128,7 @@ public sealed class MeasurementSessionStateMachine
 
     public bool TryBeginAutomaticRecovery()
     {
+        if (Phase == MeasurementSessionPhase.ConnectionCancelled) { return false; }
         if (RecoveryAttempts >= 1)
         {
             Phase = MeasurementSessionPhase.Failed;
@@ -136,6 +142,7 @@ public sealed class MeasurementSessionStateMachine
 
     public void Timeout(SessionTimeoutKind timeout)
     {
+        if (Phase == MeasurementSessionPhase.ConnectionCancelled) { return; }
         CurrentIssue = new SpotreadIssue
         {
             Kind = timeout == SessionTimeoutKind.Calibration
@@ -152,5 +159,15 @@ public sealed class MeasurementSessionStateMachine
     public void Stop()
     {
         Phase = MeasurementSessionPhase.Stopped;
+    }
+
+    public bool CancelConnection()
+    {
+        if (!CanCancelConnection) { return false; }
+        Phase = MeasurementSessionPhase.ConnectionCancelled;
+        CurrentIssue = null;
+        CurrentCalibrationPrompt = null;
+        Instrument = null;
+        return true;
     }
 }

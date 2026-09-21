@@ -13,6 +13,8 @@ using IwashiScope.App.Wpf.Updates;
 using IwashiScope.App.Wpf.ViewModels;
 using IwashiScope.Core.Calculations;
 using IwashiScope.Core.Models;
+using IwashiScope.Core.History;
+using IwashiScope.Core.Export;
 using Microsoft.Win32;
 
 namespace IwashiScope.App.Wpf;
@@ -23,10 +25,22 @@ public partial class MainWindow : Window
     private readonly MainWindowViewModel _viewModel = new();
     private readonly MeasurementExportService _exportService = new();
     private readonly DragExportCache _dragExportCache = new();
+    private readonly HistoryDragCoordinator _historyDragCoordinator = new();
     private readonly WinSparkleUpdater _updater;
     private Point _dragStart;
     private bool _isApplyingSelection;
     private bool _shutdownApproved;
+    private readonly HashSet<(MeasurementMode Mode, string Date)> _collapsedHistoryDates = [];
+    private HistoryDragContext? _activeHistoryDrag;
+
+    private sealed class HistoryDragContext(MeasurementMode mode, IReadOnlySet<Guid> ids)
+    {
+        public string Token { get; } = Guid.NewGuid().ToString("N");
+        public MeasurementMode Mode { get; } = mode;
+        public IReadOnlySet<Guid> Ids { get; } = ids;
+        public bool HasInternalDrop { get; set; }
+        public Guid? DropBeforeId { get; set; }
+    }
 
     public MainWindow()
     {
@@ -34,14 +48,31 @@ public partial class MainWindow : Window
         _updater = ((App)Application.Current).Updater;
         DataContext = _viewModel;
         var historyView = CollectionViewSource.GetDefaultView(_viewModel.HistoryItems);
-        historyView.GroupDescriptions.Add(
-            new PropertyGroupDescription(nameof(HistoryItemViewModel.DateKey)));
+        var dateGrouping = new PropertyGroupDescription(nameof(HistoryItemViewModel.DateKey));
+        dateGrouping.SortDescriptions.Add(new SortDescription(nameof(CollectionViewGroup.Name), ListSortDirection.Descending));
+        historyView.GroupDescriptions.Add(dateGrouping);
         SpotreadLogTextBox.Text = _viewModel.LogText;
         _viewModel.LogAppended += AppendLog;
         _viewModel.LogReset += ResetLog;
         _viewModel.HistoryRefreshed += ApplyHistorySelection;
         _viewModel.PropertyChanged += ViewModel_PropertyChanged;
         Loaded += MainWindow_Loaded;
+        PreviewMouseLeftButtonUp += (_, _) =>
+        {
+            if (!_historyDragCoordinator.IsDragging) _historyDragCoordinator.Cancel();
+        };
+        Deactivated += (_, _) =>
+        {
+            if (!_historyDragCoordinator.IsDragging) _historyDragCoordinator.Cancel();
+        };
+        HistoryList.QueryContinueDrag += (_, e) =>
+        {
+            if (_historyDragCoordinator.IsCancellationRequested)
+            {
+                e.Action = DragAction.Cancel;
+                e.Handled = true;
+            }
+        };
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -58,8 +89,11 @@ public partial class MainWindow : Window
     {
         if (e.PropertyName == nameof(MainWindowViewModel.Mode))
         {
+            _historyDragCoordinator.Cancel();
             ResetExportOptions();
         }
+        if (e.PropertyName == nameof(MainWindowViewModel.IsModeSelectionVisible) &&
+            _viewModel.IsModeSelectionVisible) _historyDragCoordinator.Cancel();
     }
 
     private void AppendLog(string text)
@@ -216,6 +250,140 @@ public partial class MainWindow : Window
         }
     }
 
+    private sealed record HistoryDeletionRequest(MeasurementMode Mode, IReadOnlySet<Guid> Ids, string Title);
+    private sealed record HistoryDateExportRequest(
+        MeasurementMode Mode, MeasurementHistoryDateGroup Group,
+        IReadOnlyList<MeasurementHistoryEntry> OrderedEntries, bool PracticalRange, SpectrumYAxisConfiguration YAxis);
+    private sealed record SwatchExportRequest(byte[] Data, string SuggestedName);
+
+    private void HistoryDateExpander_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is Expander expander && expander.DataContext is CollectionViewGroup group)
+            expander.IsExpanded = !_collapsedHistoryDates.Contains((_viewModel.Mode, group.Name.ToString() ?? string.Empty));
+    }
+
+    private void HistoryDateExpander_Changed(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Expander expander || !expander.IsLoaded ||
+            expander.DataContext is not CollectionViewGroup group || !ReferenceEquals(e.Source, expander)) return;
+        var key = (_viewModel.Mode, group.Name.ToString() ?? string.Empty);
+        if (expander.IsExpanded) _collapsedHistoryDates.Remove(key);
+        else _collapsedHistoryDates.Add(key);
+    }
+
+    private void HistoryCard_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: HistoryItemViewModel item, ContextMenu: { } menu } ||
+            !item.IsRegularHistoryItem) return;
+        var ids = _viewModel.ContextMenuEntryIds(item.Id);
+        var ordered = _viewModel.OrderedEntries();
+        var entries = ordered.Where(entry => ids.Contains(entry.Id)).ToArray();
+        var deletion = _viewModel.DeletableEntryIds(ids, _viewModel.Mode);
+        var japanese = _viewModel.Language == "ja";
+        foreach (var action in menu.Items.OfType<MenuItem>())
+        {
+            // Items remain at their declared positions; Tags hold immutable request snapshots.
+            if (ReferenceEquals(action, menu.Items[menu.Items.Count - 1]))
+            {
+                action.Header = japanese ? "選択履歴を削除" : "Delete Selected History";
+                action.IsEnabled = deletion.Count > 0;
+                action.Tag = new HistoryDeletionRequest(_viewModel.Mode, deletion,
+                    japanese ? "選択履歴を削除しますか？" : "Delete the selected history?");
+            }
+            else if (ReferenceEquals(action, menu.Items[1]))
+            {
+                action.Header = japanese ? "選択カードをスウォッチに書き出し" : "Export Selected Cards as Swatches";
+                action.IsEnabled = item.IsReflectance && entries.Length > 0 && entries.All(entry => entry.Measurement.Lab is not null);
+                action.Tag = null;
+                if (action.IsEnabled)
+                {
+                    var names = MeasurementExportFileNamer.BaseNames(entries, ordered);
+                    try
+                    {
+                        action.Tag = new SwatchExportRequest(
+                            AdobeSwatchExchangeEncoder.Encode(entries.Select(entry =>
+                                new AdobeLabSwatch(names[entry.Id], entry.Measurement.Lab!)).ToArray()),
+                            Path.GetFileNameWithoutExtension(MeasurementExportFileNamer.CombinedSwatchFileName(entries, ordered)));
+                    }
+                    catch (InvalidDataException) { action.IsEnabled = false; }
+                }
+            }
+        }
+    }
+
+    private void HistoryDate_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: CollectionViewGroup collection, ContextMenu: { } menu }) return;
+        var entries = collection.Items.OfType<HistoryItemViewModel>()
+            .Where(item => item.IsRegularHistoryItem).Select(item => item.Entry).ToArray();
+        if (entries.Length == 0) { e.Handled = true; return; }
+        var group = new MeasurementHistoryDateGroup(MeasurementHistoryDateGrouping.LocalDate(entries[0]), entries);
+        var ids = _viewModel.DeletableEntryIds(entries.Select(entry => entry.Id), _viewModel.Mode);
+        var japanese = _viewModel.Language == "ja";
+        var export = (MenuItem)menu.Items[0];
+        export.Header = japanese ? $"{group.ExportName}の履歴を書きだし" : $"Export History from {group.ExportName}";
+        export.IsEnabled = MeasurementExportService.CanExportDate(group, _viewModel.Mode);
+        export.Tag = new HistoryDateExportRequest(_viewModel.Mode, group, _viewModel.OrderedEntries(),
+            _viewModel.UsePracticalRange, _viewModel.YAxisConfiguration);
+        var delete = (MenuItem)menu.Items[2];
+        delete.Header = japanese ? $"{group.Title}の履歴を削除" : $"Delete History from {group.Title}";
+        delete.IsEnabled = ids.Count > 0;
+        delete.Tag = new HistoryDeletionRequest(_viewModel.Mode, ids,
+            japanese ? $"{group.Title}の履歴を削除しますか？" : $"Delete the history from {group.Title}?");
+    }
+
+    private void HistoryContextDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { Tag: HistoryDeletionRequest request } || request.Ids.Count == 0) return;
+        var message = _viewModel.Language == "ja"
+            ? $"対象の{request.Ids.Count}件の測定履歴を削除します。ユーザー定義光源に登録中の履歴は残ります。この操作は取り消せません。"
+            : $"Delete these {request.Ids.Count} records. User illuminant registrations will be kept. This cannot be undone.";
+        if (MessageBox.Show(this, message, request.Title, MessageBoxButton.OKCancel, MessageBoxImage.Warning) == MessageBoxResult.OK)
+            _viewModel.DeleteEntries(request.Ids, request.Mode);
+    }
+
+    private async void HistorySwatchExport_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem { Tag: SwatchExportRequest request })
+            await SaveSwatchesWithDialogAsync(request.Data, request.SuggestedName);
+    }
+
+    private async Task SaveSwatchesWithDialogAsync(byte[] data, string suggestedName)
+    {
+        var dialog = new SaveFileDialog
+        {
+            Title = _viewModel.Language == "ja" ? "Lab特色スウォッチを書き出し" : "Export Lab Spot-Color Swatches",
+            Filter = "Adobe Swatch Exchange (*.ase)|*.ase", DefaultExt = ".ase", AddExtension = true,
+            FileName = suggestedName,
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try { await IwashiScope.Infrastructure.Windows.Storage.AtomicFile.WriteAllBytesAsync(dialog.FileName, data); }
+        catch (Exception exception) { MessageBox.Show(this, exception.Message, "IwashiScope", MessageBoxButton.OK, MessageBoxImage.Error); }
+    }
+
+    private async void HistoryDateExport_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { Tag: HistoryDateExportRequest request }) return;
+        try
+        {
+            if (request.Mode == MeasurementMode.Reflectance)
+            {
+                await SaveSwatchesWithDialogAsync(
+                    MeasurementExportService.DateSwatches(request.Group, request.OrderedEntries), request.Group.ExportName);
+                return;
+            }
+            var dialog = new OpenFolderDialog
+            {
+                Title = _viewModel.Language == "ja" ? $"{request.Group.ExportName}の履歴を書きだし" : $"Export History from {request.Group.ExportName}",
+                Multiselect = false,
+            };
+            if (dialog.ShowDialog(this) != true) return;
+            await _exportService.ExportLightingDateAsync(dialog.FolderName, request.Group, request.OrderedEntries,
+                request.Mode, request.PracticalRange, request.YAxis);
+        }
+        catch (Exception exception) { MessageBox.Show(this, exception.Message, "IwashiScope", MessageBoxButton.OK, MessageBoxImage.Error); }
+    }
+
     private void Japanese_Click(object sender, RoutedEventArgs e) => _viewModel.Language = "ja";
     private void English_Click(object sender, RoutedEventArgs e) => _viewModel.Language = "en";
 
@@ -226,7 +394,7 @@ public partial class MainWindow : Window
         var source = "https://github.com/Yamonov/IwashiScope";
         var version = Assembly.GetEntryAssembly()?
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-            .InformationalVersion ?? "1.0.1";
+            .InformationalVersion ?? "1.0.4";
         var result = MessageBox.Show(
             this,
             $"IwashiScope {version}: AGPL-3.0-only\n" +
@@ -275,7 +443,7 @@ public partial class MainWindow : Window
             return false;
         }
         return Dispatcher.Invoke(() =>
-            UpdateShutdownPolicy.CanShutdown(
+            !_historyDragCoordinator.IsBusy && UpdateShutdownPolicy.CanShutdown(
                 _viewModel.HasUnsavedChanges,
                 _viewModel.IsBusy));
     }
@@ -320,6 +488,8 @@ public partial class MainWindow : Window
 
     private void ApplyHistorySelection()
     {
+        var dateKeys = _viewModel.HistoryItems.Select(item => item.DateKey).ToHashSet();
+        _collapsedHistoryDates.RemoveWhere(key => key.Mode == _viewModel.Mode && !dateKeys.Contains(key.Date));
         _isApplyingSelection = true;
         try
         {
@@ -335,12 +505,20 @@ public partial class MainWindow : Window
         }
     }
 
-    private void HistoryList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) =>
+    private void HistoryList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
         _dragStart = e.GetPosition(HistoryList);
+        var item = FindAncestor<ListBoxItem>(e.OriginalSource as DependencyObject);
+        if (item?.DataContext is HistoryItemViewModel { CanSelect: true } &&
+            FindAncestor<TextBox>(e.OriginalSource as DependencyObject) is null)
+            _historyDragCoordinator.Arm();
+        else
+            _historyDragCoordinator.Cancel();
+    }
 
     private async void HistoryList_PreviewMouseMove(object sender, MouseEventArgs e)
     {
-        if (e.LeftButton != MouseButtonState.Pressed ||
+        if (_historyDragCoordinator.IsBusy || e.LeftButton != MouseButtonState.Pressed ||
             FindAncestor<TextBox>(e.OriginalSource as DependencyObject) is not null)
         {
             return;
@@ -361,47 +539,57 @@ public partial class MainWindow : Window
 
         try
         {
-            Cursor = Cursors.Wait;
-            var dragOptions = _viewModel.Mode == MeasurementMode.Reflectance
-                ? CurrentExportOptions() with
+            var context = new HistoryDragContext(_viewModel.Mode, entries.Select(entry => entry.Id).ToHashSet());
+            var dragOptions = MeasurementExportOptions.ForDrag(
+                context.Mode, _viewModel.UsePracticalRange, _viewModel.YAxisConfiguration);
+            var ordered = _viewModel.OrderedEntries();
+            await _historyDragCoordinator.TryRunAsync(
+                cancellation =>
                 {
-                    SpectrumPng = false,
-                    CriPng = false,
-                    Tm30Png = false,
-                    Csv = false,
-                    Ase = true,
-                    SpectrumYAxisConfiguration = _viewModel.YAxisConfiguration,
-                }
-                : CurrentExportOptions() with
+                    Cursor = Cursors.Wait;
+                    return _dragExportCache.CreateAsync(entries, dragOptions, ordered, cancellation);
+                },
+                () => !_shutdownApproved && IsActive && _viewModel.IsWorkspaceVisible &&
+                    Mouse.LeftButton == MouseButtonState.Pressed && _viewModel.Mode == context.Mode &&
+                    context.Ids.SetEquals(_viewModel.SelectedEntries().Select(entry => entry.Id)),
+                paths =>
                 {
-                    SpectrumPng = true,
-                    CriPng = true,
-                    Tm30Png = true,
-                    Csv = false,
-                    Ase = false,
-                    ShowD50 = false,
-                    ShowD65 = false,
-                };
-            var paths = await _dragExportCache.CreateAsync(
-                entries,
-                dragOptions,
-                _viewModel.OrderedEntries());
-            var data = new DataObject();
-            data.SetData(InternalHistoryFormat, entries.Select(entry => entry.Id).ToArray());
-            data.SetData(DataFormats.FileDrop, paths.ToArray());
-            Cursor = Cursors.Arrow;
-            DragDrop.DoDragDrop(HistoryList, data, DragDropEffects.Move | DragDropEffects.Copy);
+                    if (paths.Count == 0) return;
+                    var data = new DataObject();
+                    // A per-operation string token avoids exporting serialized application objects.
+                    data.SetData(InternalHistoryFormat, context.Token, autoConvert: false);
+                    data.SetData(DataFormats.FileDrop, paths.ToArray(), autoConvert: false);
+                    Cursor = Cursors.Arrow;
+                    _activeHistoryDrag = context;
+                    try
+                    {
+                        var effect = DragDrop.DoDragDrop(HistoryList, data, DragDropEffects.Move | DragDropEffects.Copy);
+                        // Do not rebuild WPF drop targets inside the OLE Drop callback.
+                        if (effect == DragDropEffects.Move && context.HasInternalDrop &&
+                            !_historyDragCoordinator.IsCancellationRequested)
+                            _viewModel.ReorderEntriesBefore(context.Mode, context.Ids, context.DropBeforeId);
+                    }
+                    finally { _activeHistoryDrag = null; }
+                });
         }
         catch (Exception exception)
         {
-            Cursor = Cursors.Arrow;
-            MessageBox.Show(this, exception.Message, "IwashiScope", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (!_shutdownApproved)
+                MessageBox.Show(this, exception.Message, "IwashiScope", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+        finally { Cursor = Cursors.Arrow; }
     }
+
+    private bool IsCurrentHistoryDrag(DragEventArgs e) =>
+        _historyDragCoordinator.IsDragging && !_historyDragCoordinator.IsCancellationRequested &&
+        _activeHistoryDrag is { } context && context.Mode == _viewModel.Mode &&
+        e.AllowedEffects.HasFlag(DragDropEffects.Move) &&
+        e.Data.GetDataPresent(InternalHistoryFormat, autoConvert: false) &&
+        e.Data.GetData(InternalHistoryFormat, autoConvert: false) is string token && token == context.Token;
 
     private void HistoryList_DragOver(object sender, DragEventArgs e)
     {
-        e.Effects = e.Data.GetDataPresent(InternalHistoryFormat)
+        e.Effects = IsCurrentHistoryDrag(e)
             ? DragDropEffects.Move
             : DragDropEffects.None;
         e.Handled = true;
@@ -409,16 +597,18 @@ public partial class MainWindow : Window
 
     private void HistoryList_Drop(object sender, DragEventArgs e)
     {
-        if (!e.Data.GetDataPresent(InternalHistoryFormat))
+        e.Effects = DragDropEffects.None;
+        e.Handled = true;
+        if (!IsCurrentHistoryDrag(e))
         {
             return;
         }
 
         var target = FindAncestor<ListBoxItem>(e.OriginalSource as DependencyObject);
         var targetItem = target?.DataContext as HistoryItemViewModel;
-        _viewModel.ReorderSelectionBefore(targetItem?.CanSelect == true ? targetItem.Id : null);
+        _activeHistoryDrag!.HasInternalDrop = true;
+        _activeHistoryDrag.DropBeforeId = targetItem?.CanSelect == true ? targetItem.Id : null;
         e.Effects = DragDropEffects.Move;
-        e.Handled = true;
     }
 
     private void HistoryNameEditor_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -535,6 +725,15 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (_historyDragCoordinator.IsBusy)
+        {
+            e.Cancel = true;
+            _historyDragCoordinator.Cancel();
+            await _historyDragCoordinator.WhenIdle;
+            Close();
+            return;
+        }
+
         if (_viewModel.HasUnsavedChanges)
         {
             var result = MessageBox.Show(
@@ -570,6 +769,12 @@ public partial class MainWindow : Window
     {
         if (e.Key == Key.Escape)
         {
+            if (_historyDragCoordinator.IsBusy)
+            {
+                _historyDragCoordinator.Cancel();
+                e.Handled = true;
+                return;
+            }
             if (_viewModel.IsWorkspaceVisible)
             {
                 _viewModel.ReturnToModeSelectionCommand.Execute(null);
@@ -687,7 +892,9 @@ public partial class MainWindow : Window
             {
                 return found;
             }
-            current = VisualTreeHelper.GetParent(current);
+            current = current is System.Windows.Media.Visual or System.Windows.Media.Media3D.Visual3D
+                ? VisualTreeHelper.GetParent(current)
+                : current is FrameworkContentElement content ? content.Parent : LogicalTreeHelper.GetParent(current);
         }
         return null;
     }

@@ -5,6 +5,8 @@ struct MeasurementHistoryDateGroup: Identifiable, Equatable, Sendable {
     let id: Date
     let title: String
     let entries: [MeasurementHistoryEntry]
+
+    var exportName: String { title.replacingOccurrences(of: "/", with: "-") }
 }
 
 enum MeasurementHistoryDateGrouping {
@@ -61,13 +63,25 @@ struct MeasurementHistoryDateGroupView<Content: View>: View {
     @State private var isCollapsed = false
 
     let group: MeasurementHistoryDateGroup
+    let deletableEntryIDs: Set<MeasurementHistoryEntry.ID>
+    let canExport: Bool
+    let onRequestDelete: (Set<MeasurementHistoryEntry.ID>, String) -> Void
+    let onExport: (MeasurementHistoryDateGroup) -> Void
     @ViewBuilder let content: Content
 
     init(
         group: MeasurementHistoryDateGroup,
+        deletableEntryIDs: Set<MeasurementHistoryEntry.ID>,
+        canExport: Bool,
+        onRequestDelete: @escaping (Set<MeasurementHistoryEntry.ID>, String) -> Void,
+        onExport: @escaping (MeasurementHistoryDateGroup) -> Void,
         @ViewBuilder content: () -> Content
     ) {
         self.group = group
+        self.deletableEntryIDs = deletableEntryIDs
+        self.canExport = canExport
+        self.onRequestDelete = onRequestDelete
+        self.onExport = onExport
         self.content = content()
     }
 
@@ -99,16 +113,41 @@ struct MeasurementHistoryDateGroupView<Content: View>: View {
             .accessibilityValue(isCollapsed ? "折りたたみ" : "展開中")
             .accessibilityHint("クリックしてこの日付の測定履歴を表示または非表示にします")
             .accessibilityIdentifier("measurement-history-date-\(group.title)")
+            .contextMenu {
+                Button {
+                    onExport(group)
+                } label: {
+                    Label("\(group.exportName)の履歴を書きだし", systemImage: "square.and.arrow.up")
+                }
+                .disabled(canExport == false)
+
+                Divider()
+
+                Button(role: .destructive) {
+                    onRequestDelete(
+                        deletableEntryIDs,
+                        String(localized: "\(group.title)の履歴を削除しますか？")
+                    )
+                } label: {
+                    Label("\(group.title)の履歴を削除", systemImage: "trash")
+                }
+                .disabled(deletableEntryIDs.isEmpty)
+            }
 
             if isCollapsed == false {
                 content
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .transition(.identity)
             }
         }
     }
 
     private func toggleCollapsed() {
-        withAnimation(.snappy(duration: 0.22)) {
+        // Moving a tall grid out of the hierarchy sweeps offscreen cards over
+        // other dates. Collapse only this group immediately; card reordering
+        // keeps its own animation in the history grids.
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
             isCollapsed.toggle()
         }
     }

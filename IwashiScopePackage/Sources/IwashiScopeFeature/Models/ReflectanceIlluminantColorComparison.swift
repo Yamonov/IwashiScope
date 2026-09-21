@@ -1,17 +1,44 @@
 import Foundation
 
+enum ReflectanceAppearanceMethod: String, CaseIterable, Identifiable, Sendable {
+    case unadapted
+    case bradford
+    case ciecam16
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .unadapted: String(localized: "順応なし")
+        case .bradford: String(localized: "従来方式（Bradford）")
+        case .ciecam16: String(localized: "CIECAM16（標準）")
+        }
+    }
+}
+
 struct ReflectanceIlluminantColorComparisonResult: Equatable, Sendable {
     let source: IlluminantSpectrumDefinition
-    let appliesChromaticAdaptation: Bool
-    let measuredLab: Vector3
-    let simulatedXYZ: Vector3
+    let method: ReflectanceAppearanceMethod
+    /// Original measurement, retained for diagnostics. Never overwritten with the prediction.
+    let measuredLab: Vector3?
+    let referenceLab: Vector3
+    let referenceXYZ: Vector3
+    let referenceWhiteXYZ: Vector3
+    let sourceXYZ: Vector3
     let sourceWhiteXYZ: Vector3
+    let simulatedXYZ: Vector3
     let simulatedLab: Vector3
-    let deltaL: Double
-    let deltaA: Double
-    let deltaB: Double
-    let deltaE76: Double
-    let deltaE2000: Double
+    let referenceAppearance: AppearanceCorrelates?
+    let sourceAppearance: AppearanceCorrelates?
+    let referenceAdaptationDegree: Double?
+    let sourceAdaptationDegree: Double?
+    let wavelengthRange: ClosedRange<Double>
+
+    var deltaL: Double { simulatedLab.first - referenceLab.first }
+    var deltaA: Double { simulatedLab.second - referenceLab.second }
+    var deltaB: Double { simulatedLab.third - referenceLab.third }
+    var deltaE76: Double { CIEColorDifference.deltaE76(referenceLab, simulatedLab) }
+    var deltaE2000: Double { CIEColorDifference.deltaE2000(referenceLab, simulatedLab) }
 
     var illuminant: CIEReferenceIlluminant? {
         guard case let .cie(illuminant) = source.origin else { return nil }
@@ -20,217 +47,90 @@ struct ReflectanceIlluminantColorComparisonResult: Equatable, Sendable {
 }
 
 enum ReflectanceIlluminantColorComparisonCalculator {
-    /// ICC profile connection-space D50, scaled so Y = 100.
+    /// ICC PCS reference, also used by existing callers of the Lab utilities.
     static let d50White = Vector3(first: 96.42, second: 100, third: 82.49)
 
-    static func result(
-        for measurement: SpotMeasurement?,
-        illuminant: CIEReferenceIlluminant?,
-        appliesChromaticAdaptation: Bool
-    ) -> ReflectanceIlluminantColorComparisonResult? {
-        result(
-            for: measurement,
-            source: illuminant.map {
-                IlluminantSpectrumDefinition(cie: $0)
-            },
-            appliesChromaticAdaptation: appliesChromaticAdaptation
-        )
+    /// The baseline remains available before a comparison illuminant is selected.
+    static func referenceLab(for measurement: SpotMeasurement) throws -> Vector3 {
+        guard measurement.mode == .reflectance else {
+            throw ColorAppearanceError.invalidStimulus
+        }
+        guard let reference = SpectralTristimulusIntegrator.integrate(
+            reflectance: measurement.spectrum,
+            illuminant: CIEReferenceIlluminant.d50.samples
+        ) else {
+            throw ColorAppearanceError.insufficientSpectrum
+        }
+        guard let lab = CIELabColorimetry.lab(from: reference.objectXYZ, white: reference.whiteXYZ) else {
+            throw ColorAppearanceError.outsideModelDomain
+        }
+        return lab
     }
 
-    static func result(
-        for measurement: SpotMeasurement?,
-        source: IlluminantSpectrumDefinition?,
-        appliesChromaticAdaptation: Bool
-    ) -> ReflectanceIlluminantColorComparisonResult? {
-        guard let measurement,
-              measurement.mode == .reflectance,
-              let source,
-              let measuredLab = measurement.lab,
-              [measuredLab.first, measuredLab.second, measuredLab.third]
-                .allSatisfy(\.isFinite) else {
-            return nil
+    static func compare(
+        measurement: SpotMeasurement,
+        source: IlluminantSpectrumDefinition,
+        method: ReflectanceAppearanceMethod
+    ) throws -> ReflectanceIlluminantColorComparisonResult {
+        guard measurement.mode == .reflectance else {
+            throw ColorAppearanceError.invalidStimulus
         }
-        if let whitePoint = measurement.labWhitePoint,
-           whitePoint.localizedCaseInsensitiveContains("D50") == false {
-            return nil
-        }
-
-        guard let integration = integrate(
+        guard let selected = SpectralTristimulusIntegrator.integrate(
+            reflectance: measurement.spectrum, illuminant: source.samples
+        ), let reference = SpectralTristimulusIntegrator.integrate(
             reflectance: measurement.spectrum,
-            illuminant: source.samples
-        ) else {
-            return nil
+            illuminant: CIEReferenceIlluminant.d50.samples,
+            wavelengths: selected.wavelengths
+        ), reference.wavelengths == selected.wavelengths,
+        let first = selected.wavelengths.first, let last = selected.wavelengths.last else {
+            throw ColorAppearanceError.insufficientSpectrum
         }
 
         let simulatedXYZ: Vector3
-        if appliesChromaticAdaptation {
-            guard let adaptedXYZ = BradfordChromaticAdaptation.adapt(
-                integration.objectXYZ,
-                sourceWhite: integration.whiteXYZ,
-                destinationWhite: d50White
+        var sourceAppearance: AppearanceCorrelates?
+        var referenceAppearance: AppearanceCorrelates?
+        var sourceDegree: Double?
+        var referenceDegree: Double?
+        switch method {
+        case .unadapted:
+            simulatedXYZ = selected.objectXYZ
+        case .bradford:
+            guard let adapted = BradfordChromaticAdaptation.adapt(
+                selected.objectXYZ,
+                sourceWhite: selected.whiteXYZ,
+                destinationWhite: reference.whiteXYZ
             ) else {
-                return nil
+                throw ColorAppearanceError.outsideModelDomain
             }
-            simulatedXYZ = adaptedXYZ
-        } else {
-            simulatedXYZ = integration.objectXYZ
+            simulatedXYZ = adapted
+        case .ciecam16:
+            let sourceModel = try CIECAM16(conditions: .init(whiteXYZ: selected.whiteXYZ))
+            let referenceModel = try CIECAM16(conditions: .init(whiteXYZ: reference.whiteXYZ))
+            let appearance = try sourceModel.forward(selected.objectXYZ)
+            sourceAppearance = appearance
+            referenceAppearance = try referenceModel.forward(reference.objectXYZ)
+            sourceDegree = sourceModel.adaptationDegree
+            referenceDegree = referenceModel.adaptationDegree
+            // Preserve the selected illuminant's predicted Q/M/h as one set.
+            simulatedXYZ = try referenceModel.inverse(appearance)
         }
-
-        guard let simulatedLab = CIELabColorimetry.lab(
-            from: simulatedXYZ,
-            white: d50White
-        ) else {
-            return nil
+        // Both patches and their deltas use the same integrated D50 white. This avoids
+        // mixing the instrument's integration/PCS rounding with the new prediction.
+        guard let referenceLab = CIELabColorimetry.lab(from: reference.objectXYZ, white: reference.whiteXYZ),
+              let simulatedLab = CIELabColorimetry.lab(from: simulatedXYZ, white: reference.whiteXYZ) else {
+            throw ColorAppearanceError.outsideModelDomain
         }
 
         return ReflectanceIlluminantColorComparisonResult(
-            source: source,
-            appliesChromaticAdaptation: appliesChromaticAdaptation,
-            measuredLab: measuredLab,
-            simulatedXYZ: simulatedXYZ,
-            sourceWhiteXYZ: integration.whiteXYZ,
-            simulatedLab: simulatedLab,
-            deltaL: simulatedLab.first - measuredLab.first,
-            deltaA: simulatedLab.second - measuredLab.second,
-            deltaB: simulatedLab.third - measuredLab.third,
-            deltaE76: CIEColorDifference.deltaE76(measuredLab, simulatedLab),
-            deltaE2000: CIEColorDifference.deltaE2000(measuredLab, simulatedLab)
+            source: source, method: method, measuredLab: measurement.lab,
+            referenceLab: referenceLab, referenceXYZ: reference.objectXYZ,
+            referenceWhiteXYZ: reference.whiteXYZ,
+            sourceXYZ: selected.objectXYZ, sourceWhiteXYZ: selected.whiteXYZ,
+            simulatedXYZ: simulatedXYZ, simulatedLab: simulatedLab,
+            referenceAppearance: referenceAppearance, sourceAppearance: sourceAppearance,
+            referenceAdaptationDegree: referenceDegree, sourceAdaptationDegree: sourceDegree,
+            wavelengthRange: first...last
         )
-    }
-
-    private struct IntegrationResult {
-        let objectXYZ: Vector3
-        let whiteXYZ: Vector3
-    }
-
-    private static func integrate(
-        reflectance: [SpectralSample],
-        illuminant: [SpectralSample]
-    ) -> IntegrationResult? {
-        let orderedReflectance = reflectance
-            .filter {
-                $0.wavelength.isFinite && $0.value.isFinite
-            }
-            .sorted { $0.wavelength < $1.wavelength }
-        let orderedIlluminant = illuminant
-            .filter {
-                $0.wavelength.isFinite
-                    && $0.value.isFinite
-                    && $0.value >= 0
-            }
-            .sorted { $0.wavelength < $1.wavelength }
-        guard orderedReflectance.count >= 2,
-              orderedIlluminant.count >= 2 else {
-            return nil
-        }
-
-        var whiteX = 0.0
-        var whiteY = 0.0
-        var whiteZ = 0.0
-        var objectX = 0.0
-        var objectY = 0.0
-        var objectZ = 0.0
-        var usedSampleCount = 0
-
-        for wavelength in stride(from: 380.0, through: 730.0, by: 5.0) {
-            guard let source = interpolatedValue(
-                      in: orderedIlluminant,
-                      at: wavelength
-                  ),
-                  let observer = observerValues(at: wavelength),
-                  let reflectanceValue = interpolatedValue(
-                      in: orderedReflectance,
-                      at: wavelength
-                  ) else {
-                continue
-            }
-
-            let scaledReflectance = max(0, reflectanceValue) / 100
-            whiteX += source * observer.x
-            whiteY += source * observer.y
-            whiteZ += source * observer.z
-            objectX += source * scaledReflectance * observer.x
-            objectY += source * scaledReflectance * observer.y
-            objectZ += source * scaledReflectance * observer.z
-            usedSampleCount += 1
-        }
-
-        guard usedSampleCount >= 2,
-              whiteY.isFinite,
-              whiteY > 1e-12 else {
-            return nil
-        }
-
-        let normalization = 100 / whiteY
-        let whiteXYZ = Vector3(
-            first: whiteX * normalization,
-            second: 100,
-            third: whiteZ * normalization
-        )
-        let objectXYZ = Vector3(
-            first: objectX * normalization,
-            second: objectY * normalization,
-            third: objectZ * normalization
-        )
-        guard [
-            whiteXYZ.first, whiteXYZ.second, whiteXYZ.third,
-            objectXYZ.first, objectXYZ.second, objectXYZ.third,
-        ].allSatisfy(\.isFinite) else {
-            return nil
-        }
-        return IntegrationResult(objectXYZ: objectXYZ, whiteXYZ: whiteXYZ)
-    }
-
-    private static func observerValues(
-        at wavelength: Double
-    ) -> (x: Double, y: Double, z: Double)? {
-        let indexValue = (
-            wavelength - ColorRenderingReferenceData.startWavelength
-        ) / ColorRenderingReferenceData.interval
-        let index = Int(indexValue.rounded())
-        guard abs(indexValue - Double(index)) < 1e-9,
-              ColorRenderingReferenceData.xBar.indices.contains(index),
-              ColorRenderingReferenceData.yBar.indices.contains(index),
-              ColorRenderingReferenceData.zBar.indices.contains(index) else {
-            return nil
-        }
-        return (
-            ColorRenderingReferenceData.xBar[index],
-            ColorRenderingReferenceData.yBar[index],
-            ColorRenderingReferenceData.zBar[index]
-        )
-    }
-
-    private static func interpolatedValue(
-        in samples: [SpectralSample],
-        at wavelength: Double
-    ) -> Double? {
-        guard let first = samples.first,
-              let last = samples.last,
-              wavelength >= first.wavelength,
-              wavelength <= last.wavelength else {
-            return nil
-        }
-        if wavelength == first.wavelength { return first.value }
-        if wavelength == last.wavelength { return last.value }
-
-        var lowerIndex = 0
-        var upperIndex = samples.count - 1
-        while lowerIndex + 1 < upperIndex {
-            let midpoint = (lowerIndex + upperIndex) / 2
-            if samples[midpoint].wavelength <= wavelength {
-                lowerIndex = midpoint
-            } else {
-                upperIndex = midpoint
-            }
-        }
-
-        let lower = samples[lowerIndex]
-        let upper = samples[upperIndex]
-        let width = upper.wavelength - lower.wavelength
-        guard width > 0 else { return nil }
-        let fraction = (wavelength - lower.wavelength) / width
-        return lower.value + ((upper.value - lower.value) * fraction)
     }
 }
 

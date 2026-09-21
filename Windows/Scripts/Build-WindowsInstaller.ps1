@@ -4,7 +4,7 @@ param(
     [string] $PayloadPath,
 
     [ValidatePattern('^\d+\.\d+(?:\.\d+){0,2}$')]
-    [string] $Version = '1.0.1',
+    [string] $Version = '1.0.4',
 
     [string] $OutputRoot,
 
@@ -24,6 +24,13 @@ if (-not (Test-Path -LiteralPath $payloadFull -PathType Container)) {
 }
 if (-not (Test-Path -LiteralPath (Join-Path $payloadFull 'IwashiScope.exe') -PathType Leaf)) {
     throw "IwashiScope.exe was not found in the payload: $payloadFull"
+}
+$applicationVersion = (Get-Item -LiteralPath (Join-Path $payloadFull 'IwashiScope.exe')).VersionInfo
+$buildVersion = $applicationVersion.FileVersion
+if ($applicationVersion.ProductVersion -ne $Version -or
+    $buildVersion -notmatch '^\d+\.\d+(?:\.\d+){0,2}$' -or
+    ($buildVersion -ne $Version -and -not $buildVersion.StartsWith($Version + '.'))) {
+    throw 'The payload product/build version does not match the requested installer version.'
 }
 
 if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
@@ -91,8 +98,8 @@ try {
             '[assembly: AssemblyTitle("IwashiScope Installer")]'
             '[assembly: AssemblyProduct("IwashiScope")]'
             '[assembly: AssemblyCompany("Yamonov")]'
-            "[assembly: AssemblyVersion(`"$Version`")]"
-            "[assembly: AssemblyFileVersion(`"$Version`")]"
+            "[assembly: AssemblyVersion(`"$buildVersion`")]"
+            "[assembly: AssemblyFileVersion(`"$buildVersion`")]"
             "[assembly: AssemblyInformationalVersion(`"$Version`")]"
         ),
         [Text.UTF8Encoding]::new($false)

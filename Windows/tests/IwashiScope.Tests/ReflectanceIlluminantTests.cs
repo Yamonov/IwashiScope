@@ -68,14 +68,14 @@ public sealed class ReflectanceIlluminantTests
             new Vector3(100, 0, 0));
         var source = IlluminantSpectrumDefinition.Cie(CieReferenceIlluminant.D65);
 
-        var adapted = ReflectanceIlluminantColorComparisonCalculator.Calculate(
+        var adapted = ReflectanceIlluminantColorComparisonCalculator.Compare(
             measurement,
             source,
-            true);
-        var unadapted = ReflectanceIlluminantColorComparisonCalculator.Calculate(
+            ReflectanceAppearanceMethod.Bradford);
+        var unadapted = ReflectanceIlluminantColorComparisonCalculator.Compare(
             measurement,
             source,
-            false);
+            ReflectanceAppearanceMethod.Unadapted);
 
         Assert.NotNull(adapted);
         Assert.NotNull(unadapted);

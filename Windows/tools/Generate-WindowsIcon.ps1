@@ -18,15 +18,20 @@ if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
 }
 
 $assetRoot = Join-Path $ReferenceRoot 'IwashiScope\Assets.xcassets\AppIcon.appiconset'
-$source1024 = Join-Path $assetRoot 'IwashiScope-512@2x.png'
-$requiredSizes = @(16, 20, 24, 32, 40, 48, 64, 128, 256)
-$exactSources = @{
-    16  = 'IwashiScope-16.png'
-    32  = 'IwashiScope-32.png'
-    64  = 'IwashiScope-32@2x.png'
-    128 = 'IwashiScope-128.png'
-    256 = 'IwashiScope-256.png'
+$catalog = Get-Content -LiteralPath (Join-Path $assetRoot 'Contents.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$sourcesBySize = @{}
+foreach ($image in $catalog.images) {
+    if ($image.idiom -ne 'mac' -or [string]::IsNullOrWhiteSpace($image.filename)) { continue }
+    $points = [int]($image.size.Split('x')[0])
+    $scale = [int]($image.scale.TrimEnd('x'))
+    $pixels = $points * $scale
+    # Prefer the exact 1x artwork when multiple slots have the same pixel size.
+    if (-not $sourcesBySize.ContainsKey($pixels) -or $scale -eq 1) {
+        $sourcesBySize[$pixels] = Join-Path $assetRoot $image.filename
+    }
 }
+$source1024 = $sourcesBySize[1024]
+$requiredSizes = @(16, 20, 24, 32, 40, 48, 64, 128, 256)
 
 if (-not (Test-Path -LiteralPath $source1024 -PathType Leaf)) {
     throw "Mac app icon source not found: $source1024"
@@ -89,8 +94,8 @@ function Save-HighQualityPng {
 $pngPaths = [System.Collections.Generic.List[string]]::new()
 foreach ($size in $requiredSizes) {
     $destination = Join-Path $OutputRoot "IwashiScope-$size.png"
-    if ($exactSources.ContainsKey($size)) {
-        Copy-Item -LiteralPath (Join-Path $assetRoot $exactSources[$size]) `
+    if ($sourcesBySize.ContainsKey($size)) {
+        Copy-Item -LiteralPath $sourcesBySize[$size] `
             -Destination $destination -Force
     }
     else {

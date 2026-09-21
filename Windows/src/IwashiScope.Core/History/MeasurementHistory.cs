@@ -126,6 +126,26 @@ public sealed class MeasurementHistory
     public int DeletableCount(MeasurementMode mode) =>
         Ordered(mode).Count(entry => !IsDeletionProtected(entry.Id));
 
+    public IReadOnlySet<Guid> ContextMenuIds(MeasurementMode mode, Guid entryId)
+    {
+        if (Entry(entryId)?.Measurement.Mode != mode) return new HashSet<Guid>();
+        return SelectedIdsFor(mode).Contains(entryId)
+            ? SelectedIdsFor(mode).ToHashSet() : new HashSet<Guid> { entryId };
+    }
+
+    public IReadOnlySet<Guid> DeletableIds(MeasurementMode mode, IEnumerable<Guid> candidateIds)
+    {
+        var candidates = candidateIds.ToHashSet();
+        return Ordered(mode).Where(entry => candidates.Contains(entry.Id) && !IsDeletionProtected(entry.Id))
+            .Select(entry => entry.Id).ToHashSet();
+    }
+
+    public IReadOnlyList<MeasurementHistoryEntry> DeleteEntries(MeasurementMode mode, IEnumerable<Guid> candidateIds)
+    {
+        _lastSelectionMode = mode;
+        return RemoveEntries(mode, DeletableIds(mode, candidateIds));
+    }
+
     public bool RegisterUserIlluminant(Guid entryId, UserIlluminantSlot slot)
     {
         var entry = Entry(entryId);
@@ -291,6 +311,17 @@ public sealed class MeasurementHistory
         {
             Name = MeasurementHistoryEntry.NormalizeName(name),
         };
+    }
+
+    public void MoveEntriesBefore(MeasurementMode mode, IReadOnlySet<Guid> ids, Guid? targetId)
+    {
+        var order = _presentationOrder[mode];
+        var moving = order.Where(ids.Contains).ToArray();
+        if (moving.Length == 0 || (targetId is { } target &&
+            (!order.Contains(target) || ids.Contains(target)))) return;
+        order.RemoveAll(ids.Contains);
+        var index = targetId is { } before ? order.IndexOf(before) : order.Count;
+        order.InsertRange(index, moving);
     }
 
     public void MoveSelectionBefore(MeasurementMode mode, Guid targetId)
@@ -490,8 +521,16 @@ public sealed class MeasurementHistory
         var removed = _acquisitionOrder
             .Where(entry => entryIds.Contains(entry.Id))
             .ToArray();
+        var selectionAffected = _selectedIds[mode].Overlaps(entryIds);
         _acquisitionOrder.RemoveAll(entry => entryIds.Contains(entry.Id));
         _presentationOrder[mode].RemoveAll(entryIds.Contains);
+
+        if (!selectionAffected)
+        {
+            if (_anchorIds[mode] is { } anchor && entryIds.Contains(anchor))
+                _anchorIds[mode] = _activeIds[mode];
+            return removed;
+        }
 
         var selection = _selectedIds[mode];
         selection.ExceptWith(entryIds);

@@ -253,153 +253,105 @@ public static class ReflectanceIlluminantSpectrumCalculator
     }
 }
 
+public enum ReflectanceAppearanceMethod
+{
+    Unadapted,
+    Bradford,
+    CieCam16,
+}
+
 public sealed record ReflectanceIlluminantColorComparisonResult(
     IlluminantSpectrumDefinition Source,
-    bool AppliesChromaticAdaptation,
-    Vector3 MeasuredLab,
-    Vector3 SimulatedXyz,
+    ReflectanceAppearanceMethod Method,
+    Vector3? MeasuredLab,
+    Vector3 ReferenceLab,
+    Vector3 ReferenceXyz,
+    Vector3 ReferenceWhiteXyz,
+    Vector3 SourceXyz,
     Vector3 SourceWhiteXyz,
+    Vector3 SimulatedXyz,
     Vector3 SimulatedLab,
-    double DeltaL,
-    double DeltaA,
-    double DeltaB,
-    double DeltaE76,
-    double DeltaE2000);
+    AppearanceCorrelates? ReferenceAppearance,
+    AppearanceCorrelates? SourceAppearance,
+    double? ReferenceAdaptationDegree,
+    double? SourceAdaptationDegree,
+    WavelengthRange WavelengthRange)
+{
+    public double DeltaL => SimulatedLab.First - ReferenceLab.First;
+    public double DeltaA => SimulatedLab.Second - ReferenceLab.Second;
+    public double DeltaB => SimulatedLab.Third - ReferenceLab.Third;
+    public double DeltaE76 => CieColorDifference.DeltaE76(ReferenceLab, SimulatedLab);
+    public double DeltaE2000 => CieColorDifference.DeltaE2000(ReferenceLab, SimulatedLab);
+}
 
 public static class ReflectanceIlluminantColorComparisonCalculator
 {
     public static readonly Vector3 D50White = new(96.42, 100, 82.49);
 
-    public static ReflectanceIlluminantColorComparisonResult? Calculate(
-        SpotMeasurement? measurement,
-        IlluminantSpectrumDefinition? source,
-        bool appliesChromaticAdaptation)
+    public static Vector3 ReferenceLab(SpotMeasurement measurement)
     {
-        if (measurement is null ||
-            measurement.Mode != MeasurementMode.Reflectance ||
-            source is null ||
-            measurement.LabWhitePoint is { } whitePoint &&
-                !whitePoint.Contains("D50", StringComparison.OrdinalIgnoreCase))
+        if (measurement.Mode != MeasurementMode.Reflectance)
+            throw new ColorAppearanceException(ColorAppearanceError.InvalidStimulus);
+        var reference = SpectralTristimulusIntegrator.Integrate(
+            measurement.Spectrum, CieReferenceIlluminants.Samples(CieReferenceIlluminant.D50))
+            ?? throw new ColorAppearanceException(ColorAppearanceError.InsufficientSpectrum);
+        return CieLabColorimetry.Lab(reference.ObjectXyz, reference.WhiteXyz)
+            ?? throw new ColorAppearanceException(ColorAppearanceError.OutsideModelDomain);
+    }
+
+    public static ReflectanceIlluminantColorComparisonResult Compare(
+        SpotMeasurement measurement,
+        IlluminantSpectrumDefinition source,
+        ReflectanceAppearanceMethod method)
+    {
+        if (measurement.Mode != MeasurementMode.Reflectance)
+            throw new ColorAppearanceException(ColorAppearanceError.InvalidStimulus);
+        var selected = SpectralTristimulusIntegrator.Integrate(measurement.Spectrum, source.Samples)
+            ?? throw new ColorAppearanceException(ColorAppearanceError.InsufficientSpectrum);
+        var reference = SpectralTristimulusIntegrator.Integrate(
+            measurement.Spectrum, CieReferenceIlluminants.Samples(CieReferenceIlluminant.D50),
+            selected.Wavelengths);
+        if (reference is null || !reference.Wavelengths.SequenceEqual(selected.Wavelengths))
+            throw new ColorAppearanceException(ColorAppearanceError.InsufficientSpectrum);
+
+        Vector3 simulated;
+        AppearanceCorrelates? sourceAppearance = null;
+        AppearanceCorrelates? referenceAppearance = null;
+        double? sourceDegree = null;
+        double? referenceDegree = null;
+        switch (method)
         {
-            return null;
-        }
-        var measuredLab = measurement.Lab;
-        if (measuredLab is null || !measuredLab.IsFinite)
-        {
-            return null;
-        }
-        var integration = Integrate(measurement.Spectrum, source.Samples);
-        if (integration is null)
-        {
-            return null;
+            case ReflectanceAppearanceMethod.Unadapted:
+                simulated = selected.ObjectXyz;
+                break;
+            case ReflectanceAppearanceMethod.Bradford:
+                simulated = BradfordChromaticAdaptation.Adapt(
+                    selected.ObjectXyz, selected.WhiteXyz, reference.WhiteXyz)
+                    ?? throw new ColorAppearanceException(ColorAppearanceError.OutsideModelDomain);
+                break;
+            case ReflectanceAppearanceMethod.CieCam16:
+                var sourceModel = new CieCam16(new AppearanceViewingConditions(selected.WhiteXyz));
+                var referenceModel = new CieCam16(new AppearanceViewingConditions(reference.WhiteXyz));
+                sourceAppearance = sourceModel.Forward(selected.ObjectXyz);
+                referenceAppearance = referenceModel.Forward(reference.ObjectXyz);
+                sourceDegree = sourceModel.AdaptationDegree;
+                referenceDegree = referenceModel.AdaptationDegree;
+                simulated = referenceModel.Inverse(sourceAppearance);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(method));
         }
 
-        var simulatedXyz = appliesChromaticAdaptation
-            ? BradfordChromaticAdaptation.Adapt(
-                integration.Value.ObjectXyz,
-                integration.Value.WhiteXyz,
-                D50White)
-            : integration.Value.ObjectXyz;
-        if (simulatedXyz is null || CieLabColorimetry.Lab(simulatedXyz, D50White) is not { } lab)
-        {
-            return null;
-        }
-
+        var referenceLab = CieLabColorimetry.Lab(reference.ObjectXyz, reference.WhiteXyz)
+            ?? throw new ColorAppearanceException(ColorAppearanceError.OutsideModelDomain);
+        var simulatedLab = CieLabColorimetry.Lab(simulated, reference.WhiteXyz)
+            ?? throw new ColorAppearanceException(ColorAppearanceError.OutsideModelDomain);
         return new ReflectanceIlluminantColorComparisonResult(
-            source,
-            appliesChromaticAdaptation,
-            measuredLab,
-            simulatedXyz,
-            integration.Value.WhiteXyz,
-            lab,
-            lab.First - measuredLab.First,
-            lab.Second - measuredLab.Second,
-            lab.Third - measuredLab.Third,
-            CieColorDifference.DeltaE76(measuredLab, lab),
-            CieColorDifference.DeltaE2000(measuredLab, lab));
-    }
-
-    private readonly record struct IntegrationResult(Vector3 ObjectXyz, Vector3 WhiteXyz);
-
-    private static IntegrationResult? Integrate(
-        IReadOnlyList<SpectralSample> reflectance,
-        IReadOnlyList<SpectralSample> illuminant)
-    {
-        var orderedReflectance = reflectance
-            .Where(sample => double.IsFinite(sample.Wavelength) && double.IsFinite(sample.Value))
-            .OrderBy(sample => sample.Wavelength)
-            .ToArray();
-        var orderedIlluminant = illuminant
-            .Where(sample =>
-                double.IsFinite(sample.Wavelength) &&
-                double.IsFinite(sample.Value) &&
-                sample.Value >= 0)
-            .OrderBy(sample => sample.Wavelength)
-            .ToArray();
-        if (orderedReflectance.Length < 2 || orderedIlluminant.Length < 2)
-        {
-            return null;
-        }
-
-        var whiteX = 0.0;
-        var whiteY = 0.0;
-        var whiteZ = 0.0;
-        var objectX = 0.0;
-        var objectY = 0.0;
-        var objectZ = 0.0;
-        var usedSamples = 0;
-        for (var wavelength = 380.0; wavelength <= 730; wavelength += 5)
-        {
-            var source = ReflectanceIlluminantSpectrumCalculator.Interpolate(
-                orderedIlluminant,
-                wavelength);
-            var reflected = ReflectanceIlluminantSpectrumCalculator.Interpolate(
-                orderedReflectance,
-                wavelength);
-            var observer = ObserverValues(wavelength);
-            if (source is null || reflected is null || observer is null)
-            {
-                continue;
-            }
-            var scaledReflectance = Math.Max(0, reflected.Value) / 100;
-            whiteX += source.Value * observer.Value.X;
-            whiteY += source.Value * observer.Value.Y;
-            whiteZ += source.Value * observer.Value.Z;
-            objectX += source.Value * scaledReflectance * observer.Value.X;
-            objectY += source.Value * scaledReflectance * observer.Value.Y;
-            objectZ += source.Value * scaledReflectance * observer.Value.Z;
-            usedSamples++;
-        }
-        if (usedSamples < 2 || !double.IsFinite(whiteY) || whiteY <= 1e-12)
-        {
-            return null;
-        }
-
-        var normalization = 100 / whiteY;
-        var white = new Vector3(whiteX * normalization, 100, whiteZ * normalization);
-        var objectValue = new Vector3(
-            objectX * normalization,
-            objectY * normalization,
-            objectZ * normalization);
-        return white.IsFinite && objectValue.IsFinite
-            ? new IntegrationResult(objectValue, white)
-            : null;
-    }
-
-    private static (double X, double Y, double Z)? ObserverValues(double wavelength)
-    {
-        var indexValue = (wavelength - ColorRenderingReferenceData.StartWavelength) /
-            ColorRenderingReferenceData.Interval;
-        var index = (int)Math.Round(indexValue);
-        if (Math.Abs(indexValue - index) >= 1e-9 ||
-            index < 0 || index >= ColorRenderingReferenceData.XBar.Length)
-        {
-            return null;
-        }
-        return (
-            ColorRenderingReferenceData.XBar[index],
-            ColorRenderingReferenceData.YBar[index],
-            ColorRenderingReferenceData.ZBar[index]);
+            source, method, measurement.Lab, referenceLab, reference.ObjectXyz,
+            reference.WhiteXyz, selected.ObjectXyz, selected.WhiteXyz,
+            simulated, simulatedLab, referenceAppearance, sourceAppearance,
+            referenceDegree, sourceDegree,
+            new WavelengthRange(selected.Wavelengths[0], selected.Wavelengths[^1]));
     }
 }
 

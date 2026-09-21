@@ -48,7 +48,7 @@ enum MeasurementHistoryDragItemProvider {
         }
 
         if swatches.isEmpty == false, exportRequest == nil {
-            provider.suggestedName = aseFileName
+            provider.suggestedName = MeasurementExportFileNamer.swatchSuggestedName(for: aseFileName)
             provider.registerFileRepresentation(
                 for: .adobeSwatchExchange,
                 visibility: .all,
@@ -87,7 +87,9 @@ enum MeasurementHistoryDragItemProvider {
         on provider: NSItemProvider,
         preparedExport: Result<URL, any Error>
     ) {
-        provider.suggestedName = try? preparedExport.get().lastPathComponent
+        provider.suggestedName = (try? preparedExport.get()).map {
+            MeasurementExportFileNamer.swatchSuggestedName(for: $0.lastPathComponent)
+        }
         provider.registerFileRepresentation(
             for: .adobeSwatchExchange,
             visibility: .all,

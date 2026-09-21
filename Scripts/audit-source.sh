@@ -125,20 +125,19 @@ IwashiScope/Resources/THIRD-PARTY-NOTICES.txt
 IwashiScope/Resources/Licenses/ArgyllCMS-AGPL-3.0.txt
 IwashiScope/Resources/Licenses/GPL-3.0-only.txt
 IwashiScope.icon/icon.json
-IwashiScope.icon/README.md
 IwashiScope.icon/Assets/Image 2.svg
 IwashiScope.icon/Assets/Image 3.svg
 IwashiScope/Assets.xcassets/AppIcon.appiconset/Contents.json
-IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-16.png
-IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-16@2x.png
-IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-32.png
-IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-32@2x.png
-IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-128.png
-IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-128@2x.png
-IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-256.png
-IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-256@2x.png
-IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-512.png
-IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-512@2x.png
+IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-iOS-Default-16@1x.png
+IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-iOS-Default-32@1x 1.png
+IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-iOS-Default-32@1x.png
+IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-iOS-Default-64@1x.png
+IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-iOS-Default-128@1x.png
+IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-iOS-Default-256@1x 1.png
+IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-iOS-Default-256@1x.png
+IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-iOS-Default-512@1x 1.png
+IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-iOS-Default-512@1x.png
+IwashiScope/Assets.xcassets/AppIcon.appiconset/IwashiScope-iOS-Default-1024@1x.png
 "
 
 printf '%s\n' "$required_files" |

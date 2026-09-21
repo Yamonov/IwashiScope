@@ -18,10 +18,54 @@ public sealed record MeasurementExportOptions
     public bool ShowD50 { get; init; }
     public bool ShowD65 { get; init; }
     public SpectrumYAxisConfiguration? SpectrumYAxisConfiguration { get; init; }
+
+    public static MeasurementExportOptions ForDrag(
+        MeasurementMode mode, bool practicalRange, SpectrumYAxisConfiguration yAxis) => new()
+    {
+        Ase = mode == MeasurementMode.Reflectance,
+        SpectrumPng = mode.IsLighting(),
+        CriPng = mode.IsLighting(),
+        Tm30Png = mode.IsLighting(),
+        Csv = false,
+        ShowD50 = false,
+        ShowD65 = false,
+        UsePracticalSpectrumRange = practicalRange,
+        SpectrumYAxisConfiguration = yAxis,
+    };
 }
 
 public sealed class MeasurementExportService
 {
+    public static bool CanExportDate(MeasurementHistoryDateGroup group, MeasurementMode mode) =>
+        group.Entries.Count > 0 && group.Entries.All(entry => entry.Measurement.Mode == mode) &&
+        (mode == MeasurementMode.Reflectance
+            ? group.Entries.All(entry => entry.Measurement.Lab is not null)
+            : group.Entries.Any(entry => entry.Measurement.Spectrum.Count > 0 ||
+                entry.Measurement.Cri is not null || entry.Measurement.Tm30 is not null));
+
+    public static byte[] DateSwatches(
+        MeasurementHistoryDateGroup group, IReadOnlyList<MeasurementHistoryEntry> orderedEntries)
+    {
+        if (!CanExportDate(group, MeasurementMode.Reflectance))
+            throw new InvalidDataException("The date group has no exportable Lab swatches.");
+        var names = MeasurementExportFileNamer.BaseNames(group.Entries, orderedEntries);
+        return AdobeSwatchExchangeEncoder.Encode(
+            group.Entries.Select(entry => new AdobeLabSwatch(names[entry.Id], entry.Measurement.Lab!)).ToArray(),
+            group.ExportName);
+    }
+
+    public Task<IReadOnlyList<string>> ExportLightingDateAsync(
+        string parentDirectory, MeasurementHistoryDateGroup group,
+        IReadOnlyList<MeasurementHistoryEntry> orderedEntries, MeasurementMode mode,
+        bool practicalRange, SpectrumYAxisConfiguration yAxis,
+        CancellationToken cancellationToken = default)
+    {
+        if (!mode.IsLighting() || !CanExportDate(group, mode))
+            throw new InvalidDataException("The date group has no exportable lighting measurements.");
+        return ExportAsync(Path.Combine(parentDirectory, group.ExportName), group.Entries,
+            MeasurementExportOptions.ForDrag(mode, practicalRange, yAxis), orderedEntries, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<string>> ExportAsync(
         string directory,
         IReadOnlyList<MeasurementHistoryEntry> entries,
@@ -68,7 +112,7 @@ public sealed class MeasurementExportService
         {
             var baseName = baseNames[entry.Id];
             var measurement = entry.Measurement;
-            if (options.SpectrumPng)
+            if (options.SpectrumPng && measurement.Spectrum.Count > 0)
             {
                 var path = UniquePath(directory, $"{baseName}-Spectrum", ".png");
                 await AtomicFile.WriteAllBytesAsync(
@@ -123,7 +167,7 @@ public sealed class MeasurementExportService
     {
         var safeBaseName = WindowsFileNameSanitizer.Sanitize(baseName);
         var candidate = Path.Combine(directory, safeBaseName + extension);
-        for (var suffix = 2; File.Exists(candidate); suffix++)
+        for (var suffix = 2; File.Exists(candidate) || Directory.Exists(candidate); suffix++)
         {
             candidate = Path.Combine(directory, $"{safeBaseName} {suffix}{extension}");
         }
@@ -225,7 +269,8 @@ public sealed class DragExportCache : IDisposable
         MeasurementExportOptions options,
         IReadOnlyList<MeasurementHistoryEntry>? orderedEntries = null,
         CancellationToken cancellationToken = default) =>
-        _exports.ExportAsync(_root, entries, options, orderedEntries, cancellationToken);
+        _exports.ExportAsync(Path.Combine(_root, Guid.NewGuid().ToString("N")),
+            entries, options, orderedEntries, cancellationToken);
 
     public void Dispose()
     {

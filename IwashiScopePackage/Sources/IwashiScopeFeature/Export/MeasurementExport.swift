@@ -3,7 +3,7 @@ import Foundation
 struct MeasurementExportOptions: Equatable, Sendable {
     var includesSwatch = false
     var includesSpectrumImage = false
-    var usesPracticalSpectrumRange = false
+    var usesPracticalSpectrumRange = true
     var spectrumYAxisConfiguration = SpectrumYAxisConfiguration.initial(for: .ambient)
     var includesD50Reference = false
     var includesD65Reference = false
@@ -82,7 +82,7 @@ struct MeasurementHistoryDragExportRequest: Sendable {
         mode: MeasurementMode,
         entries: [MeasurementHistoryEntry],
         orderedEntries: [MeasurementHistoryEntry],
-        usesPracticalSpectrumRange: Bool = false,
+        usesPracticalSpectrumRange: Bool = true,
         spectrumYAxisConfiguration: SpectrumYAxisConfiguration? = nil
     ) {
         self.mode = mode
@@ -115,6 +115,16 @@ enum MeasurementExportError: LocalizedError {
 }
 
 enum MeasurementExportFileNamer {
+    /// AppKit/Finder supplies the extension from the advertised content type.
+    /// Actual export file names and file-representation URLs still include `.ase`.
+    static func swatchSuggestedName(for fileName: String) -> String {
+        let path = fileName as NSString
+        guard path.pathExtension.caseInsensitiveCompare("ase") == .orderedSame else {
+            return fileName
+        }
+        return path.deletingPathExtension
+    }
+
     static func combinedSwatchFileName(
         for entries: [MeasurementHistoryEntry],
         orderedEntries: [MeasurementHistoryEntry]

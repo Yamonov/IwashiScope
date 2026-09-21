@@ -22,6 +22,12 @@ public sealed class MeasurementSidebarTabCoordinator
         }
 
         var phaseChanged = phase != _previousPhase;
+        if (phase == MeasurementSessionPhase.ConnectionCancelled)
+        {
+            _awaitingCalibrationCompletion = false;
+            Remember(phase, calibrationCompleted);
+            return MeasurementSidebarTab.MeasurementValues;
+        }
         if (phaseChanged && BeginsCalibrationOrRecovery(phase))
         {
             _awaitingCalibrationCompletion = true;

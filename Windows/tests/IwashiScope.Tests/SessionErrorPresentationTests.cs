@@ -54,7 +54,7 @@ public sealed class SessionErrorPresentationTests
     }
 
     [Fact]
-    public void SuccessfulAutomaticRecoveryClearsThePreviousIssueFromTheUi()
+    public void RecoveryHandshakeClearsThePreviousIssueAndKeepsConnectionCancellable()
     {
         var state = new MeasurementSessionStateMachine(MeasurementMode.Reflectance);
         state.Start(MeasurementMode.Reflectance);
@@ -65,8 +65,12 @@ public sealed class SessionErrorPresentationTests
 
         state.Apply(new HelloAcceptedEvent(3, "iwashiscope-spotread", 1, "3.5.0"));
 
-        Assert.Equal(MeasurementSessionPhase.WaitingForInstrument, state.Phase);
+        Assert.Equal(MeasurementSessionPhase.Launching, state.Phase);
+        Assert.True(state.CanCancelConnection);
         Assert.Null(state.CurrentIssue);
         Assert.Empty(SessionErrorPresentation.Resolve(state.CurrentIssue));
+        state.Apply(new MeasurementPromptEvent());
+        Assert.Equal(MeasurementSessionPhase.Ready, state.Phase);
+        Assert.False(state.CanCancelConnection);
     }
 }

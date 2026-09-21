@@ -18,8 +18,15 @@ build_profile=debug
 if [ "$release_build" = true ]; then
 	build_profile=release
 fi
-build_signature="universal-arm64-x86_64-macos${deployment_target}-jsonl3-patch5-spectrum-analysis-v1-${build_profile}-strip1"
+build_signature="universal-arm64-x86_64-macos${deployment_target}-jsonl3-patch6-libtool-spectrum-analysis-v1-${build_profile}-strip1"
 jam_tool=${JAM:-}
+
+verify_universal_architectures() {
+	# Check separately: newer lipo versions can parse a second architecture as
+	# another input file, rejecting the formerly accepted multi-architecture form.
+	/usr/bin/lipo "$1" -verify_arch arm64 \
+		&& /usr/bin/lipo "$1" -verify_arch x86_64
+}
 
 if [ -z "$jam_tool" ]; then
 	jam_tool=$(command -v jam || true)
@@ -40,6 +47,11 @@ cd "$argyll_root"
 # Xcode exports OS=MACOS, which overrides Jam's built-in OS=MACOSX and makes
 # ArgyllCMS select its Unix/X11 branch. Let Jam identify the host itself.
 unset OS
+# The bundled TIFF/JPEG configure scripts probe an obsolete Darwin option even
+# though IwashiScope only needs their static libraries. Record that it is not
+# supported instead of invoking the modern linker with -single_module.
+lt_cv_apple_cc_single_mod=no
+export lt_cv_apple_cc_single_mod
 # spotread does not need a machine-local OpenSSL installation. Force Argyll's
 # bundled SSL dependency so an unrelated /usr/local binary cannot change the
 # architecture or reproducibility of the helper executable.
@@ -48,7 +60,7 @@ if [ -r "$build_stamp" ]; then
 	stored_signature=$(sed -n '1p' "$build_stamp")
 	if [ -x "$built_helper_path" ] \
 		&& [ "$stored_signature" = "$build_signature" ] \
-		&& /usr/bin/lipo "$built_helper_path" -verify_arch arm64 x86_64 >/dev/null 2>&1 \
+		&& verify_universal_architectures "$built_helper_path" >/dev/null 2>&1 \
 		&& [ ! "$0" -nt "$built_helper_path" ] \
 		&& ! find "$argyll_root" -type f \
 			! -path "$built_helper_path" \
@@ -95,7 +107,7 @@ if [ "$needs_clean" = true ]; then
 		printf '%s\n' "error: ArgyllCMS completed without producing spectro/iwashiscope-spotread." >&2
 		exit 1
 	fi
-	if ! /usr/bin/lipo "$built_helper_path" -verify_arch arm64 x86_64; then
+	if ! verify_universal_architectures "$built_helper_path"; then
 		printf '%s\n' "error: iwashiscope-spotread is not a Universal Binary." >&2
 		exit 1
 	fi
@@ -126,7 +138,7 @@ if [ ! -x "$helper_path" ]; then
 	printf '%s\n' "error: iwashiscope-spotread was not copied to the Xcode derived output." >&2
 	exit 1
 fi
-if ! /usr/bin/lipo "$helper_path" -verify_arch arm64 x86_64; then
+if ! verify_universal_architectures "$helper_path"; then
 	printf '%s\n' "error: derived iwashiscope-spotread is not a Universal Binary." >&2
 	exit 1
 fi

@@ -49,9 +49,11 @@ if ($installer.Name -cne $expectedInstallerName) {
     throw "Installer filename must be $expectedInstallerName; got $($installer.Name)."
 }
 $versionInfo = $installer.VersionInfo
+$buildVersion = $versionInfo.FileVersion
 if ($versionInfo.ProductVersion -ne $Version -or
-    $versionInfo.FileVersion -ne $Version) {
-    throw "Installer ProductVersion/FileVersion must both be $Version."
+    $buildVersion -notmatch '^\d+\.\d+(?:\.\d+){0,2}$' -or
+    ($buildVersion -ne $Version -and -not $buildVersion.StartsWith($Version + '.'))) {
+    throw "Installer ProductVersion/FileVersion must match the display/build version of $Version."
 }
 
 try {
@@ -136,7 +138,7 @@ if ($null -eq $channel) {
     throw 'Source Windows appcast does not contain /rss/channel.'
 }
 $existing = $document.SelectNodes(
-    "/rss/channel/item[sparkle:version='$Version']",
+    "/rss/channel/item[sparkle:shortVersionString='$Version']",
     $namespace)
 if ($existing.Count -ne 0) {
     throw "Windows appcast already contains version $Version."
@@ -148,7 +150,7 @@ $fragment.InnerXml = @"
   <title>IwashiScope $(Escape-Xml $Version) for Windows</title>
   <pubDate>$pubDate</pubDate>
   <sparkle:releaseNotesLink>$(Escape-Xml $ReleaseNotesUrl)</sparkle:releaseNotesLink>
-  <sparkle:version>$(Escape-Xml $Version)</sparkle:version>
+  <sparkle:version>$(Escape-Xml $buildVersion)</sparkle:version>
   <sparkle:shortVersionString>$(Escape-Xml $Version)</sparkle:shortVersionString>
   <sparkle:minimumSystemVersion>10.0</sparkle:minimumSystemVersion>
   <enclosure

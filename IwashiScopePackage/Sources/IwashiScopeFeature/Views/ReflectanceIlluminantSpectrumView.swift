@@ -4,6 +4,7 @@ import SwiftUI
 struct ReflectanceIlluminantSpectrumView: View {
     @State private var selection: ReflectanceIlluminantSelection = .none
     @State private var sourceKind: ReflectanceIlluminantSourceKind = .cie
+    @State private var appearanceMethod: ReflectanceAppearanceMethod = .ciecam16
 
     let measurement: SpotMeasurement?
     let usesPracticalSpectrumRange: Bool
@@ -52,7 +53,8 @@ struct ReflectanceIlluminantSpectrumView: View {
                     Divider()
                     ReflectanceIlluminantColorComparisonView(
                         measurement: measurement,
-                        source: result.selectedSource
+                        source: result.selectedSource,
+                        method: $appearanceMethod
                     )
 
                     if result.requiresUVWarning {

@@ -11,7 +11,7 @@ public sealed record SpotreadProcessExit(
     bool WasRequested,
     Exception? Failure);
 
-public sealed class SpotreadProcessSession : IAsyncDisposable
+public sealed class SpotreadProcessSession : ISpotreadProcessSession
 {
     private readonly ProcessLaunchSpec _launchSpec;
     private readonly MeasurementMode _mode;

@@ -9,7 +9,7 @@ namespace IwashiScope.Tests;
 public sealed class SpectrumYAxisTests
 {
     [Theory]
-    [InlineData(MeasurementMode.Reflectance, SpectrumYAxisMode.Fixed, 100)]
+    [InlineData(MeasurementMode.Reflectance, SpectrumYAxisMode.Automatic, 100)]
     [InlineData(MeasurementMode.Ambient, SpectrumYAxisMode.Automatic, 200)]
     [InlineData(MeasurementMode.Emissive, SpectrumYAxisMode.Automatic, 200)]
     public void MeasurementModesHaveExpectedYAxisDefaults(

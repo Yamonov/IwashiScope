@@ -34,7 +34,9 @@ struct MeasurementWorkspaceView: View {
     @State private var exportErrorMessage = ""
     @State private var showsExportError = false
     @State private var isExporting = false
-    @State private var usesPracticalSpectrumRange = false
+    @State private var pendingHistoryDeletion: MeasurementHistoryDeletionRequest?
+    @State private var showsHistoryDeletionConfirmation = false
+    @State private var usesPracticalSpectrumRange = true
     @State private var historyPanelWidth = MeasurementHistoryPanelLayout.initialWidth
     @State private var spectrumYAxisConfigurations =
         SpectrumYAxisConfiguration.initialByMeasurementMode
@@ -55,6 +57,8 @@ struct MeasurementWorkspaceView: View {
             if let busyPresentation {
                 InstrumentBusyOverlay(
                     presentation: busyPresentation,
+                    canCancelConnection: session.canCancelConnection,
+                    onCancelConnection: session.cancelConnection,
                     onForceRestart: session.forceRestart
                 )
             }
@@ -72,6 +76,21 @@ struct MeasurementWorkspaceView: View {
             Button("OK") {}
         } message: {
             Text(exportErrorMessage)
+        }
+        .alert(
+            pendingHistoryDeletion?.confirmationTitle ?? String(localized: "選択履歴を削除しますか？"),
+            isPresented: $showsHistoryDeletionConfirmation,
+            presenting: pendingHistoryDeletion
+        ) { request in
+            Button("削除", role: .destructive) {
+                historyStore.removeEntries(entryIDs: request.entryIDs, for: request.mode)
+                pendingHistoryDeletion = nil
+            }
+            Button("キャンセル", role: .cancel) {
+                pendingHistoryDeletion = nil
+            }
+        } message: { request in
+            Text("対象の\(request.entryIDs.count)件の測定履歴を削除します。ユーザー定義光源に登録中の履歴は残ります。この操作は取り消せません。")
         }
         .onChange(of: session.phase, initial: true) { previousPhase, phase in
             let tab = previousPhase == phase
@@ -194,7 +213,9 @@ struct MeasurementWorkspaceView: View {
                     ? session.averagingAccumulator.acceptedCount
                     : nil,
                 canExportSelectedSwatches: canExportSelectedSwatches,
-                onExportSelectedSwatches: exportSelectedSwatches
+                onExportSelectedSwatches: exportSelectedSwatches,
+                onRequestDelete: requestHistoryDeletion,
+                onExportDateGroup: exportDateGroup
             )
         } else {
             LightingMeasurementHistoryView(
@@ -205,7 +226,9 @@ struct MeasurementWorkspaceView: View {
                     ? session.averagingAccumulator.acceptedCount
                     : nil,
                 usesPracticalSpectrumRange: usesPracticalSpectrumRange,
-                spectrumYAxisConfiguration: spectrumYAxisConfiguration
+                spectrumYAxisConfiguration: spectrumYAxisConfiguration,
+                onRequestDelete: requestHistoryDeletion,
+                onExportDateGroup: exportDateGroup
             )
         }
     }
@@ -345,18 +368,19 @@ struct MeasurementWorkspaceView: View {
 
     private func presentSwatchSavePanel(
         data: Data,
-        fileName: String
+        fileName: String,
+        message: String = String(localized: "選択した履歴カードをLab特色スウォッチとして書き出します。")
     ) {
         let panel = NSSavePanel()
         panel.title = String(localized: "Lab特色スウォッチを書き出し")
-        panel.message = String(localized: "選択した履歴カードをLab特色スウォッチとして書き出します。")
+        panel.message = message
         panel.prompt = String(localized: "書き出し")
         panel.nameFieldLabel = String(localized: "ファイル名:")
-        panel.nameFieldStringValue = fileName
         panel.allowedContentTypes = [.adobeSwatchExchange]
         panel.canCreateDirectories = true
         panel.isExtensionHidden = false
         panel.canSelectHiddenExtension = true
+        panel.nameFieldStringValue = MeasurementExportFileNamer.swatchSuggestedName(for: fileName)
 
         let completionHandler: (NSApplication.ModalResponse) -> Void = { response in
             guard response == .OK, let destinationURL = panel.url else { return }
@@ -442,6 +466,101 @@ struct MeasurementWorkspaceView: View {
         }
     }
 
+    private func exportDateGroup(_ group: MeasurementHistoryDateGroup) {
+        guard isExporting == false,
+              MeasurementHistoryDateExporter.canExport(group, mode: mode) else { return }
+        let orderedEntries = historyStore.orderedEntries(for: mode)
+        let exportMode = mode
+        let practicalRange = usesPracticalSpectrumRange
+        let yAxis = spectrumYAxisConfiguration
+
+        do {
+            // Capture data/settings before the menu closes or the instrument adds a reading.
+            let swatchFile = mode == .reflectance
+                ? try MeasurementHistoryDateExporter.swatchFile(for: group, orderedEntries: orderedEntries)
+                : nil
+            RunLoop.main.perform(inModes: [.default]) {
+                Task { @MainActor in
+                    if let swatchFile {
+                        presentSwatchSavePanel(
+                            data: swatchFile.data, fileName: swatchFile.name,
+                            message: String(localized: "\(group.exportName)の履歴をLab特色スウォッチグループとして書き出します。")
+                        )
+                    } else {
+                        presentDateGroupExportPanel(
+                            group, orderedEntries: orderedEntries, mode: exportMode,
+                            usesPracticalSpectrumRange: practicalRange, yAxisConfiguration: yAxis
+                        )
+                    }
+                }
+            }
+        } catch {
+            presentExportError(error.localizedDescription)
+        }
+    }
+
+    private func presentDateGroupExportPanel(
+        _ group: MeasurementHistoryDateGroup,
+        orderedEntries: [MeasurementHistoryEntry],
+        mode: MeasurementMode,
+        usesPracticalSpectrumRange: Bool,
+        yAxisConfiguration: SpectrumYAxisConfiguration
+    ) {
+        let panel = NSOpenPanel()
+        panel.title = String(localized: "\(group.exportName)の履歴を書きだし")
+        panel.message = String(localized: "書き出し先を選択してください。「\(group.exportName)」フォルダに、ドラッグ書き出しと同じ内容を保存します。")
+        panel.prompt = String(localized: "書き出し")
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+
+        let completionHandler: (NSApplication.ModalResponse) -> Void = { response in
+            guard response == .OK, let parentDirectory = panel.url else { return }
+            isExporting = true
+            Task { @MainActor in
+                await Task.yield()
+                defer { isExporting = false }
+                let didAccess = parentDirectory.startAccessingSecurityScopedResource()
+                defer {
+                    if didAccess { parentDirectory.stopAccessingSecurityScopedResource() }
+                }
+                do {
+                    try MeasurementHistoryDateExporter.exportLightingGroup(
+                        group, orderedEntries: orderedEntries, mode: mode,
+                        usesPracticalSpectrumRange: usesPracticalSpectrumRange,
+                        yAxisConfiguration: yAxisConfiguration, to: parentDirectory
+                    )
+                } catch {
+                    presentExportError(error.localizedDescription)
+                }
+            }
+        }
+        if let window = NSApp.keyWindow ?? NSApp.mainWindow {
+            panel.beginSheetModal(for: window, completionHandler: completionHandler)
+        } else {
+            panel.begin(completionHandler: completionHandler)
+        }
+    }
+
+    private func requestHistoryDeletion(
+        _ candidateIDs: Set<MeasurementHistoryEntry.ID>,
+        _ confirmationTitle: String
+    ) {
+        let entryIDs = historyStore.deletableEntryIDs(in: candidateIDs, for: mode)
+        guard entryIDs.isEmpty == false else { return }
+        let request = MeasurementHistoryDeletionRequest(
+            mode: mode, entryIDs: entryIDs, confirmationTitle: confirmationTitle
+        )
+        // Do not retarget an open confirmation if selection or the date group changes.
+        RunLoop.main.perform(inModes: [.default]) {
+            Task { @MainActor in
+                pendingHistoryDeletion = request
+                showsHistoryDeletionConfirmation = true
+            }
+        }
+    }
+
     private func presentExportError(_ message: String) {
         exportErrorMessage = message
         showsExportError = true
@@ -452,6 +571,12 @@ struct MeasurementWorkspaceView: View {
     }
 }
 
+private struct MeasurementHistoryDeletionRequest: Sendable {
+    let mode: MeasurementMode
+    let entryIDs: Set<MeasurementHistoryEntry.ID>
+    let confirmationTitle: String
+}
+
 private struct InstrumentBusyPresentation {
     let title: String
     let detail: String
@@ -460,6 +585,8 @@ private struct InstrumentBusyPresentation {
 private struct InstrumentBusyOverlay: View {
     @ScaledMetric(relativeTo: .title2) private var diameter = 250.0
     let presentation: InstrumentBusyPresentation
+    let canCancelConnection: Bool
+    let onCancelConnection: () -> Void
     let onForceRestart: () -> Void
 
     var body: some View {
@@ -480,6 +607,13 @@ private struct InstrumentBusyOverlay: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
+
+                if canCancelConnection {
+                    Button("キャンセル", action: onCancelConnection)
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .accessibilityIdentifier("cancel-instrument-connection")
+                }
 
                 Button("spotreadを強制再起動", action: onForceRestart)
                     .buttonStyle(.bordered)

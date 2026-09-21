@@ -122,7 +122,8 @@ done
 
 while IFS= read -r candidate; do
 	if file "$candidate" | grep -q 'Mach-O'; then
-		/usr/bin/lipo "$candidate" -verify_arch arm64 x86_64 \
+		/usr/bin/lipo "$candidate" -verify_arch arm64 \
+			&& /usr/bin/lipo "$candidate" -verify_arch x86_64 \
 			|| fail "not Universal Binary: $candidate"
 	fi
 done <<EOF

@@ -26,6 +26,8 @@ struct MeasurementHistoryView: View {
     let averagingAcceptedCount: Int?
     let canExportSelectedSwatches: Bool
     let onExportSelectedSwatches: () -> Void
+    let onRequestDelete: (Set<MeasurementHistoryEntry.ID>, String) -> Void
+    let onExportDateGroup: (MeasurementHistoryDateGroup) -> Void
 
     private let columns = [
         GridItem(
@@ -66,7 +68,15 @@ struct MeasurementHistoryView: View {
                 }
 
                 ForEach(dateGroups) { group in
-                    MeasurementHistoryDateGroupView(group: group) {
+                    MeasurementHistoryDateGroupView(
+                        group: group,
+                        deletableEntryIDs: historyStore.deletableEntryIDs(
+                            in: Set(group.entries.map(\.id)), for: .reflectance
+                        ),
+                        canExport: MeasurementHistoryDateExporter.canExport(group, mode: .reflectance),
+                        onRequestDelete: onRequestDelete,
+                        onExport: onExportDateGroup
+                    ) {
                         historyGrid(for: group)
                     }
                 }
@@ -126,6 +136,18 @@ struct MeasurementHistoryView: View {
                             )
                         }
                         .disabled(canExportSwatch(from: entry) == false)
+
+                        Divider()
+
+                        Button(role: .destructive) {
+                            onRequestDelete(
+                                deletableContextMenuEntryIDs(for: entry.id),
+                                String(localized: "選択履歴を削除しますか？")
+                            )
+                        } label: {
+                            Label("選択履歴を削除", systemImage: "trash")
+                        }
+                        .disabled(deletableContextMenuEntryIDs(for: entry.id).isEmpty)
                     }
                     .overlay {
                         insertionIndicator(
@@ -350,6 +372,15 @@ struct MeasurementHistoryView: View {
         guard historyStore.removeSelectedEntries(for: .reflectance) > 0 else { return }
         clearNameEditingState()
         clearDragState()
+    }
+
+    private func deletableContextMenuEntryIDs(
+        for entryID: MeasurementHistoryEntry.ID
+    ) -> Set<MeasurementHistoryEntry.ID> {
+        historyStore.deletableEntryIDs(
+            in: historyStore.contextMenuEntryIDs(for: entryID, in: .reflectance),
+            for: .reflectance
+        )
     }
 
     private var selectionActionForCurrentEvent: MeasurementHistorySelectionAction {

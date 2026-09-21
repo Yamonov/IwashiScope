@@ -17,7 +17,7 @@ struct SpectrumYAxisConfiguration: Equatable, Sendable {
     static func initial(for measurementMode: MeasurementMode) -> Self {
         switch measurementMode {
         case .reflectance:
-            Self(mode: .fixed, fixedUpperBound: 100)
+            Self(mode: .automatic, fixedUpperBound: 100)
         case .ambient, .emissive:
             Self(mode: .automatic, fixedUpperBound: 200)
         }
@@ -148,7 +148,7 @@ struct SpectrumChartView: View {
         measurementName: String? = nil,
         calibrationCompleted: Bool,
         showsReferenceControls: Bool = true,
-        usesPracticalSpectrumRange: Bool = false,
+        usesPracticalSpectrumRange: Bool = true,
         yAxisConfiguration: SpectrumYAxisConfiguration,
         roundsPlotAreaCorners: Bool = true,
         initialShowsD50Reference: Bool = false,

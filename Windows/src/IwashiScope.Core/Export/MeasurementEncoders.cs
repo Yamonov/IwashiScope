@@ -137,15 +137,27 @@ public sealed record AdobeLabSwatch(string Name, Vector3 Lab);
 public static class AdobeSwatchExchangeEncoder
 {
     private const ushort ColorEntryBlockType = 0x0001;
+    private const ushort GroupStartBlockType = 0xC001;
+    private const ushort GroupEndBlockType = 0xC002;
     private const ushort SpotColorType = 0x0001;
 
-    public static byte[] Encode(IReadOnlyList<AdobeLabSwatch> swatches)
+    public static byte[] Encode(IReadOnlyList<AdobeLabSwatch> swatches, string? groupName = null)
     {
         using var stream = new MemoryStream();
         WriteAscii(stream, "ASEF");
         WriteUInt16(stream, 1);
         WriteUInt16(stream, 0);
-        WriteUInt32(stream, checked((uint)swatches.Count));
+        WriteUInt32(stream, checked((uint)swatches.Count + (groupName is null ? 0u : 2u)));
+
+        if (groupName is not null)
+        {
+            using var payload = new MemoryStream();
+            WriteAseName(payload, groupName);
+            WriteUInt16(stream, GroupStartBlockType);
+            WriteUInt32(stream, checked((uint)payload.Length));
+            payload.Position = 0;
+            payload.CopyTo(stream);
+        }
 
         foreach (var swatch in swatches)
         {
@@ -155,12 +167,21 @@ public static class AdobeSwatchExchangeEncoder
             stream.Write(payload);
         }
 
+        if (groupName is not null)
+        {
+            WriteUInt16(stream, GroupEndBlockType);
+            WriteUInt32(stream, 0);
+        }
+
         return stream.ToArray();
     }
 
     private static byte[] ColorEntryPayload(AdobeLabSwatch swatch)
     {
-        if (!swatch.Lab.IsFinite)
+        if (!swatch.Lab.IsFinite ||
+            !float.IsFinite((float)swatch.Lab.First) ||
+            !float.IsFinite((float)swatch.Lab.Second) ||
+            !float.IsFinite((float)swatch.Lab.Third))
         {
             throw new InvalidDataException($"Swatch '{swatch.Name}' contains a non-finite Lab value.");
         }
@@ -168,7 +189,7 @@ public static class AdobeSwatchExchangeEncoder
         using var stream = new MemoryStream();
         WriteAseName(stream, swatch.Name);
         WriteAscii(stream, "LAB ");
-        WriteSingle(stream, checked((float)(swatch.Lab.First / 100)));
+        WriteSingle(stream, (float)swatch.Lab.First / 100f);
         WriteSingle(stream, checked((float)swatch.Lab.Second));
         WriteSingle(stream, checked((float)swatch.Lab.Third));
         WriteUInt16(stream, SpotColorType);

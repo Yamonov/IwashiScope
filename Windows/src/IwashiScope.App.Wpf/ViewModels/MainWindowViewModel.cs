@@ -79,7 +79,7 @@ public sealed class HistoryItemViewModel : ObservableObject
     public IReadOnlyList<string> UserIlluminantBadgeTexts => RegisteredUserIlluminantSlots
         .Select(slot => $"🔒{UserIlluminantSlots.Title(slot, IsJapanese)}")
         .ToArray();
-    public string DateKey => Entry.Measurement.CapturedAt.ToLocalTime().ToString("yyyy/MM/dd");
+    public string DateKey => MeasurementHistoryDateGrouping.DateKey(Entry);
     public string RegisterUserIlluminantLabel => IsJapanese
         ? "ユーザー定義光源に登録"
         : "Register as User Illuminant";
@@ -151,6 +151,8 @@ public sealed record CieIlluminantOptionViewModel(
     CieReferenceIlluminant? Illuminant,
     string DisplayName);
 
+public sealed record AppearanceMethodOptionViewModel(ReflectanceAppearanceMethod Method, string Title);
+
 public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
 {
     private readonly LocalizationCatalog _localization = new();
@@ -161,7 +163,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     private AppSettings _settings = new();
     private MeasurementMode _mode = MeasurementMode.Reflectance;
     private SpotMeasurement? _activeMeasurement;
-    private bool _usePracticalRange;
+    private bool _usePracticalRange = true;
     private SpectrumYAxisConfiguration _spectrumYAxisConfiguration =
         SpectrumYAxisConfiguration.ForMeasurementMode(MeasurementMode.Reflectance);
     private bool _showD50;
@@ -176,7 +178,10 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     private ReflectanceIlluminantSourceKind _reflectanceIlluminantSourceKind =
         ReflectanceIlluminantSourceKind.Cie;
     private CieIlluminantOptionViewModel? _selectedCieIlluminantOption;
-    private bool _appliesChromaticAdaptation = true;
+    private ReflectanceAppearanceMethod _appearanceMethod = ReflectanceAppearanceMethod.CieCam16;
+    private ReflectanceIlluminantColorComparisonResult? _appearanceComparison;
+    private Vector3? _appearanceReferenceLab;
+    private ColorAppearanceError? _appearanceError;
     private CancellationTokenSource? _historyPersistenceCancellation;
     private Task _historyPersistenceTask = Task.CompletedTask;
     private string? _lastPersistedHistoryFingerprint;
@@ -208,6 +213,9 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             _ => RunAsync(_session.RetryAsync),
             _ => CanRetry);
         RestartCommand = new AsyncRelayCommand(_ => RestartAsync());
+        CancelConnectionCommand = new AsyncRelayCommand(
+            _ => RunAsync(_session.CancelConnectionAsync),
+            _ => CanCancelConnection);
         ConnectCommand = new AsyncRelayCommand(_ => ConnectInstrumentAsync());
         ChangeModeCommand = new AsyncRelayCommand(ChangeModeAsync);
         ReturnToModeSelectionCommand = new AsyncRelayCommand(_ => ReturnToModeSelectionAsync());
@@ -234,6 +242,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public AsyncRelayCommand SkipCalibrationCommand { get; }
     public AsyncRelayCommand RetryCommand { get; }
     public AsyncRelayCommand RestartCommand { get; }
+    public AsyncRelayCommand CancelConnectionCommand { get; }
     public AsyncRelayCommand ConnectCommand { get; }
     public AsyncRelayCommand ChangeModeCommand { get; }
     public AsyncRelayCommand ReturnToModeSelectionCommand { get; }
@@ -285,11 +294,6 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         {
             if (Set(ref _activeMeasurement, value))
             {
-                if (value?.ValidatedPracticalSpectrumRange is null && _usePracticalRange)
-                {
-                    _usePracticalRange = false;
-                    OnPropertyChanged(nameof(UsePracticalRange));
-                }
                 RaiseMeasurementProperties();
                 RaiseReflectanceIlluminantProperties();
             }
@@ -503,17 +507,24 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public bool HasUser3Illuminant =>
         _session.History.UserIlluminantEntry(UserIlluminantSlot.User3) is not null;
 
-    public bool AppliesChromaticAdaptation
+    public ReflectanceAppearanceMethod AppearanceMethod
     {
-        get => _appliesChromaticAdaptation;
+        get => _appearanceMethod;
         set
         {
-            if (Set(ref _appliesChromaticAdaptation, value))
+            if (Set(ref _appearanceMethod, value))
             {
                 RaiseReflectanceIlluminantProperties();
             }
         }
     }
+
+    public IReadOnlyList<AppearanceMethodOptionViewModel> AppearanceMethodOptions =>
+    [
+        new(ReflectanceAppearanceMethod.Unadapted, T("順応なし", "No Adaptation")),
+        new(ReflectanceAppearanceMethod.Bradford, T("従来方式（Bradford）", "Legacy (Bradford)")),
+        new(ReflectanceAppearanceMethod.CieCam16, T("CIECAM16（標準）", "CIECAM16 (Standard)")),
+    ];
 
     public IlluminantSpectrumDefinition? SelectedIlluminantSource
     {
@@ -546,14 +557,17 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             SelectedIlluminantSource,
             UsePracticalRange ? ActiveMeasurement?.ValidatedPracticalSpectrumRange : null);
 
-    public ReflectanceIlluminantColorComparisonResult? ReflectanceColorComparisonResult =>
-        ReflectanceIlluminantColorComparisonCalculator.Calculate(
-            ActiveMeasurement,
-            SelectedIlluminantSource,
-            AppliesChromaticAdaptation);
+    public ReflectanceIlluminantColorComparisonResult? ReflectanceColorComparisonResult => _appearanceComparison;
 
     public bool HasReflectanceIlluminantSelection => SelectedIlluminantSource is not null;
     public bool HasReflectanceColorComparison => ReflectanceColorComparisonResult is not null;
+    public bool HasReflectanceMeasurement => IsReflectance && ActiveMeasurement is not null;
+    public bool CanSelectCieIlluminant => HasReflectanceMeasurement && IsCieIlluminantSourceSelected;
+    public bool ShowsReferencePatchPlaceholder => _appearanceReferenceLab is null;
+    public string ReferencePatchPlaceholder => T("色を計算できません", "Unable to calculate this color");
+    public string SimulatedPatchPlaceholder => HasReflectanceIlluminantSelection
+        ? T("色を計算できません", "Unable to calculate this color")
+        : T("光源を選択してください", "Please select an illuminant");
     public bool ShowsUserIlluminantMetadata =>
         SelectedIlluminantSource?.OriginKind == IlluminantSpectrumOriginKind.User;
     public string UserIlluminantMetadataText
@@ -567,11 +581,9 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
                 .Where(value => !string.IsNullOrWhiteSpace(value)));
         }
     }
-    public string SelectedIlluminantTitle => SelectedIlluminantSource?.DisplayName ?? string.Empty;
-    public string SimulatedPatchTitle => ReflectanceColorComparisonResult is null
-        ? string.Empty
-        : $"{SelectedIlluminantTitle}{(AppliesChromaticAdaptation ? T("・色順応", " · Adapted") : string.Empty)}";
-    public Brush MeasuredReflectancePatchBrush => LabBrush(ActiveMeasurement?.Lab);
+    public string SelectedIlluminantTitle => SelectedIlluminantSource?.DisplayName ?? T("選択光源", "Selected Illuminant");
+    public string SimulatedPatchTitle => SelectedIlluminantTitle;
+    public Brush MeasuredReflectancePatchBrush => LabBrush(_appearanceReferenceLab);
     public Brush SimulatedReflectancePatchBrush => LabBrush(ReflectanceColorComparisonResult?.SimulatedLab);
     public string DeltaE00Text => ReflectanceColorComparisonResult?.DeltaE2000.ToString("0.00") ?? "—";
     public string DeltaE76Text => ReflectanceColorComparisonResult?.DeltaE76.ToString("0.00") ?? "—";
@@ -596,21 +608,79 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public string SelectedIlluminantLegendLabel => T("選択光源", "Selected Illuminant");
     public string ReflectedLightLegendLabel => T("反射光", "Reflected Light");
     public string ColorAppearanceComparisonLabel => T("色の見え方比較", "Color Appearance Comparison");
-    public string ApplyChromaticAdaptationLabel => T("色順応を適用", "Apply Chromatic Adaptation");
-    public string MeasuredD50Label => T("計測値（D50）", "Measured (D50)");
-    public string DifferenceAfterAdaptationLabel => AppliesChromaticAdaptation
-        ? T("色順応後の差", "Difference After Adaptation")
-        : T("光源白色のままの差", "Difference Without Adaptation");
+    public string AppearanceMethodLabel => T("色順応", "Chromatic Adaptation");
+    public string MeasuredD50Label => T("基準（D50・再計算）", "Reference (D50, Recalculated)");
+    public string DifferenceAfterAdaptationLabel => T("予測色差", "Predicted Difference");
     public string UvWarningText => T(
         "UVデータを含まない反射測定からの予測です。蛍光増白紙・蛍光インキでは実際の反射光と一致しない場合があります。",
         "This prediction uses a reflectance measurement without UV data. Fluorescent papers or inks may differ from the actual reflected light.");
-    public string ChromaticAdaptationExplanation => AppliesChromaticAdaptation
-        ? T(
-            "Bradford色順応変換で選択光源の白色点をD50へ合わせ、D50 LabでΔEを計算しています。",
-            "Bradford chromatic adaptation maps the selected illuminant white to D50; differences are calculated in D50 Lab.")
-        : T(
-            "選択光源の白色点をそのままD50 Labへ換算し、計測値との差を計算しています。",
-            "The selected illuminant white is converted directly to D50 Lab without chromatic adaptation.");
+    public string ChromaticAdaptationExplanation => !HasReflectanceIlluminantSelection
+        ? T("参考光源を選択すると、選択光源下の見え方とD50基準との差を表示します。",
+            "Select an illuminant to predict its color appearance and the difference from the D50 reference.")
+        : AppearanceMethod switch
+        {
+            ReflectanceAppearanceMethod.Unadapted => T(
+                "色順応を適用せず、選択光源の色味を含む反射光をD50基準で表示します。",
+                "Shows reflected light, including the illuminant's color cast, against D50 without chromatic adaptation."),
+            ReflectanceAppearanceMethod.Bradford => T(
+                "Bradford変換で選択光源の白色点をD50へ完全に合わせた従来方式です。",
+                "The legacy Bradford method fully adapts the selected illuminant white to D50."),
+            _ => T("基準白の輝度をそろえた想定条件で、明るさ・色相・彩度を予測します。計算後の明るさや彩度は固定していません。",
+                "Predicts brightness, hue and saturation under assumed conditions with equal reference-white luminance. Predicted brightness and colorfulness are not fixed."),
+        };
+
+    public bool HasAppearanceError => _appearanceError is not null;
+    public string AppearanceErrorText => _appearanceError switch
+    {
+        ColorAppearanceError.InvalidViewingConditions => T("色の見え方の観察条件を計算できません。", "The color appearance viewing conditions are invalid."),
+        ColorAppearanceError.InvalidStimulus => T("色の見え方を計算する測色値が不正です。", "The colorimetric input for color appearance is invalid."),
+        ColorAppearanceError.OutsideModelDomain => T("この色は色の見え方モデルの計算範囲外です。", "This color is outside the appearance model's calculation domain."),
+        ColorAppearanceError.InsufficientSpectrum => T("比較に必要な波長範囲のスペクトルが不足しています。", "There is insufficient spectral coverage for this comparison."),
+        _ => string.Empty,
+    };
+    public bool AppearanceExceedsSrgb => new[] { _appearanceReferenceLab, _appearanceComparison?.SimulatedLab }
+        .Any(lab => lab is not null && LabColorConverter.Convert(lab, "D50").Srgb.IsOutOfGamut);
+    public string AppearanceGamutWarning => T(
+        "sRGB色域外の予測値があります。画面での再現はディスプレイの色域に依存します。",
+        "Some predicted values are outside sRGB. Their on-screen reproduction depends on the display gamut.");
+    public string AppearanceDetailsLabel => T("計算条件", "Calculation Conditions");
+    public string AppearanceCalculationDetails
+    {
+        get
+        {
+            if (_appearanceComparison is not { } result) return string.Empty;
+            var lines = new List<string>
+            {
+                T("基準・選択光源とも同じ分光積分で再計算。通常の測定結果と履歴は元の測定値を保持します。",
+                    "Reference and selected illuminants use the same spectral integration. Measurement results and history retain the original readings."),
+                $"CIE 1931 2° / {result.WavelengthRange.Start:0}–{result.WavelengthRange.End:0} nm / Yw = 100",
+            };
+            if (result.SourceAppearance is { } source && result.ReferenceAppearance is { } reference)
+            {
+                lines.Add(T("CIECAM16（CIE 248:2022）／D50基準の比較表示", "CIECAM16 (CIE 248:2022) / D50 comparison conditions"));
+                lines.Add(T("想定条件：白 100 cd/m²、順応輝度 20 cd/m²、中性20%背景、Average。周囲も同じ光源。",
+                    "Assumed conditions: white 100 cd/m², adapting luminance 20 cd/m², neutral 20% background, Average surround, same illuminant throughout."));
+                lines.Add(T($"標準の順応度 D：選択光源 {result.SourceAdaptationDegree:0.0000}／D50 {result.ReferenceAdaptationDegree:0.0000}",
+                    $"Standard D: selected {result.SourceAdaptationDegree:0.0000} / D50 {result.ReferenceAdaptationDegree:0.0000}"));
+                lines.Add(T("標準Dは輝度と周辺条件から算出します。光源色度に依存する研究式は未適用です。",
+                    "Standard D is derived from luminance and surround. No chromaticity-dependent research formula is applied."));
+                lines.Add($"CAM (D50 / {result.Source.DisplayName})");
+                lines.Add($"{T("明るさ Q", "Brightness Q")}: {reference.Brightness:0.00} / {source.Brightness:0.00}");
+                lines.Add($"{T("カラフルネス M", "Colorfulness M")}: {reference.Colorfulness:0.00} / {source.Colorfulness:0.00}");
+                lines.Add($"{T("彩度 s", "Saturation s")}: {reference.Saturation:0.00} / {source.Saturation:0.00}");
+                lines.Add($"{T("色相 h", "Hue h")}: {reference.Hue?.ToString("0.00") ?? "—"} / {source.Hue?.ToString("0.00") ?? "—"}");
+            }
+            if (result.MeasuredLab is { IsFinite: true } measured)
+            {
+                var difference = CieColorDifference.DeltaE2000(measured, result.ReferenceLab);
+                lines.Add(T($"元の測定LabとD50再計算の差：ΔE00 {difference:0.00}（分光積分・白色点の条件差を含みます）",
+                    $"Original Lab vs recalculated D50: ΔE00 {difference:0.00} (includes integration/white-point differences)."));
+            }
+            lines.Add(T("予測色差は共通D50 Labの比較です。画面表示用RGBへ変換する前の値を使用します。",
+                "Predicted differences use a common D50 Lab reference, before conversion or clipping to display RGB."));
+            return string.Join(Environment.NewLine, lines);
+        }
+    }
     public string DeleteHistoryLabel => T("履歴を削除", "Delete History");
     public string DeleteHistoryConfirmationTitle => T(
         $"{ModeTitle}の履歴を削除しますか？",
@@ -691,6 +761,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             MeasurementSessionPhase.ConfigurationRequired => T("測定器の設定を確認してください", "Check Instrument Configuration"),
             MeasurementSessionPhase.Workspace => T("ワークスペースを表示中", "Viewing Workspace"),
             MeasurementSessionPhase.Stopped => T("spotreadは停止しました", "spotread Has Stopped"),
+            MeasurementSessionPhase.ConnectionCancelled => T("接続がキャンセルされました", "Connection Cancelled"),
             MeasurementSessionPhase.Failed => T("spotreadを実行できません", "Unable to Run spotread"),
             _ => StateText(_session.State.Phase),
         };
@@ -734,6 +805,9 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             MeasurementSessionPhase.Workspace => T(
                 "保存された測定結果を表示しています。測定器には接続していません。",
                 "Displaying saved measurements. No instrument is connected."),
+            MeasurementSessionPhase.ConnectionCancelled => T(
+                "測定器を接続してから、spotreadを再起動してください。",
+                "Connect the instrument, then restart spotread."),
             MeasurementSessionPhase.Stopped => T(
                 "再起動するか、別の測定モードを選択してください。",
                 "Restart or select a different measurement mode."),
@@ -756,7 +830,9 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public bool ShowsConnectControl =>
         IsBrowsingRestoredWorkspace || _session.State.Phase == MeasurementSessionPhase.Workspace;
     public bool ShowsRestartControl =>
-        _session.State.Phase is MeasurementSessionPhase.Failed or MeasurementSessionPhase.Stopped;
+        _session.State.Phase is MeasurementSessionPhase.Failed or MeasurementSessionPhase.Stopped or
+            MeasurementSessionPhase.ConnectionCancelled;
+    public bool CanCancelConnection => !IsBrowsingRestoredWorkspace && _session.CanCancelConnection;
     public string InstrumentName => ActiveEntry?.InstrumentIdentity?.DisplayName
         ?? _session.State.Instrument?.DisplayName
         ?? T("測定器未選択", "No instrument");
@@ -1327,7 +1403,10 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public string ContinueLabel => T("キャリブレーション", "Calibrate");
     public string SkipLabel => T("今回はスキップ", "Skip This Time");
     public string RetryLabel => T("再試行", "Retry");
-    public string RestartLabel => T("spotreadを強制再起動", "Force Restart spotread");
+    public string RestartLabel => _session.State.Phase == MeasurementSessionPhase.ConnectionCancelled
+        ? T("spotreadを再起動", "Restart spotread")
+        : T("spotreadを強制再起動", "Force Restart spotread");
+    public string CancelConnectionLabel => T("キャンセル", "Cancel");
     public string ConnectLabel => T("測定器に接続", "Connect Instrument");
     public string ReturnToModeSelectionLabel => T("モード選択へ戻る", "Back to Mode Selection");
     public string RgbValuesLabel => T("RGB値", "RGB Values");
@@ -1406,7 +1485,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
                 $"保存された測定履歴を読み込めませんでした。{exception.Message}",
                 $"Unable to load saved measurement history. {exception.Message}");
         }
-        _usePracticalRange = false;
+        _usePracticalRange = true;
         _showD50 = false;
         _showD65 = false;
         _instrumentIndex = _settings.InstrumentIndex;
@@ -1454,6 +1533,17 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         RefreshHistory();
     }
 
+    public IReadOnlySet<Guid> ContextMenuEntryIds(Guid entryId) => _session.History.ContextMenuIds(Mode, entryId);
+
+    public IReadOnlySet<Guid> DeletableEntryIds(IEnumerable<Guid> candidateIds, MeasurementMode mode) =>
+        _session.History.DeletableIds(mode, candidateIds);
+
+    public void DeleteEntries(IReadOnlySet<Guid> entryIds, MeasurementMode mode)
+    {
+        _session.History.DeleteEntries(mode, entryIds);
+        RefreshHistory();
+    }
+
     public bool RegisterUserIlluminant(Guid entryId, UserIlluminantSlot slot)
     {
         var registered = _session.History.RegisterUserIlluminant(entryId, slot);
@@ -1486,6 +1576,13 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public void DeselectAll()
     {
         _session.History.DeselectAll(Mode);
+        RefreshHistory();
+    }
+
+    public void ReorderEntriesBefore(MeasurementMode mode, IReadOnlySet<Guid> ids, Guid? targetId)
+    {
+        if (Mode != mode) return;
+        _session.History.MoveEntriesBefore(mode, ids, targetId);
         RefreshHistory();
     }
 
@@ -1588,7 +1685,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         }
         Mode = mode;
         IsModeSelectionVisible = false;
-        UsePracticalRange = false;
+        UsePracticalRange = true;
         ShowD50 = false;
         ShowD65 = false;
         SelectedTabIndex = 0;
@@ -1676,6 +1773,8 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         OnPropertyChanged(nameof(ShowsRetryControl));
         OnPropertyChanged(nameof(ShowsConnectControl));
         OnPropertyChanged(nameof(ShowsRestartControl));
+        OnPropertyChanged(nameof(CanCancelConnection));
+        OnPropertyChanged(nameof(RestartLabel));
         OnPropertyChanged(nameof(IsBusy));
         OnPropertyChanged(nameof(BusyMessage));
         OnPropertyChanged(nameof(IsSpotreadRunning));
@@ -1714,6 +1813,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         AverageMeasurementCommand.RaiseCanExecuteChanged();
         CalibrateCommand.RaiseCanExecuteChanged();
         RetryCommand.RaiseCanExecuteChanged();
+        CancelConnectionCommand.RaiseCanExecuteChanged();
         ConfirmCalibrationCommand.RaiseCanExecuteChanged();
         SkipCalibrationCommand.RaiseCanExecuteChanged();
     }
@@ -1929,6 +2029,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     private void RaiseReflectanceIlluminantProperties()
     {
         EnsureSelectedUserIlluminantRemainsAvailable();
+        RefreshAppearanceComparison();
         foreach (var property in new[]
                  {
                      nameof(IsCieIlluminantSourceSelected),
@@ -1956,9 +2057,43 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
                      nameof(DeltaBText),
                      nameof(DifferenceAfterAdaptationLabel),
                      nameof(ChromaticAdaptationExplanation),
+                     nameof(HasReflectanceMeasurement),
+                     nameof(CanSelectCieIlluminant),
+                     nameof(ShowsReferencePatchPlaceholder),
+                     nameof(ReferencePatchPlaceholder),
+                     nameof(SimulatedPatchPlaceholder),
+                     nameof(AppearanceMethodLabel),
+                     nameof(MeasuredD50Label),
+                     nameof(HasAppearanceError),
+                     nameof(AppearanceErrorText),
+                     nameof(AppearanceExceedsSrgb),
+                     nameof(AppearanceGamutWarning),
+                     nameof(AppearanceDetailsLabel),
+                     nameof(AppearanceCalculationDetails),
                  })
         {
             OnPropertyChanged(property);
+        }
+    }
+
+    private void RefreshAppearanceComparison()
+    {
+        _appearanceComparison = null;
+        _appearanceReferenceLab = null;
+        _appearanceError = null;
+        if (ActiveMeasurement is not { Mode: MeasurementMode.Reflectance } measurement) return;
+        try
+        {
+            _appearanceReferenceLab = ReflectanceIlluminantColorComparisonCalculator.ReferenceLab(measurement);
+            if (SelectedIlluminantSource is { } source)
+            {
+                _appearanceComparison = ReflectanceIlluminantColorComparisonCalculator.Compare(measurement, source, AppearanceMethod);
+                _appearanceReferenceLab = _appearanceComparison.ReferenceLab;
+            }
+        }
+        catch (ColorAppearanceException exception)
+        {
+            _appearanceError = exception.Error;
         }
     }
 
@@ -2106,6 +2241,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         MeasurementSessionPhase.Failed => T("接続に失敗しました", "Connection failed"),
         MeasurementSessionPhase.Workspace => T("測定結果", "Measurement result"),
         MeasurementSessionPhase.Stopped => T("停止中", "Stopped"),
+        MeasurementSessionPhase.ConnectionCancelled => T("接続がキャンセルされました", "Connection Cancelled"),
         _ => phase.ToString(),
     };
 

@@ -1,6 +1,405 @@
 {
   "sourceLanguage" : "ja",
   "strings" : {
+    "色順応" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Chromatic Adaptation" } } }
+    },
+    "選択履歴を削除" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete Selected History" } } }
+    },
+    "選択履歴を削除しますか？" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete the selected history?" } } }
+    },
+    "%@の履歴を削除" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete History from %@" } } }
+    },
+    "%@の履歴を削除しますか？" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete the history from %@?" } } }
+    },
+    "%@の履歴を書きだし" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Export History from %@" } } }
+    },
+    "対象の%lld件の測定履歴を削除します。ユーザー定義光源に登録中の履歴は残ります。この操作は取り消せません。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete these %lld measurement records. Records registered as user illuminants will be kept. This action cannot be undone." } } }
+    },
+    "%@の履歴をLab特色スウォッチグループとして書き出します。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Export the history from %@ as a group of Lab spot-color swatches." } } }
+    },
+    "書き出し先を選択してください。「%@」フォルダに、ドラッグ書き出しと同じ内容を保存します。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose a destination. The same files as a drag export will be saved in a folder named “%@”." } } }
+    },
+    "光源を選択してください" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please select an illuminant"
+          }
+        }
+      }
+    },
+    "順応なし" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Adaptation"
+          }
+        }
+      }
+    },
+    "従来方式（Bradford）" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legacy (Bradford)"
+          }
+        }
+      }
+    },
+    "CIECAM16（標準）" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CIECAM16 (Standard)"
+          }
+        }
+      }
+    },
+    "基準（D50・再計算）" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reference (D50, Recalculated)"
+          }
+        }
+      }
+    },
+    "D50基準の再計算色" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recalculated D50 Reference Color"
+          }
+        }
+      }
+    },
+    "予測色差" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predicted Difference"
+          }
+        }
+      }
+    },
+    "計算条件" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculation Conditions"
+          }
+        }
+      }
+    },
+    "計算方式" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculation Method"
+          }
+        }
+      }
+    },
+    "色の見え方の計算方式" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color Appearance Calculation Method"
+          }
+        }
+      }
+    },
+    "色の見え方の観察条件を計算できません。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The color appearance viewing conditions are invalid."
+          }
+        }
+      }
+    },
+    "色の見え方を計算する測色値が不正です。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The colorimetric input for color appearance is invalid."
+          }
+        }
+      }
+    },
+    "この色は色の見え方モデルの計算範囲外です。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This color is outside the appearance model's calculation domain."
+          }
+        }
+      }
+    },
+    "比較に必要な波長範囲のスペクトルが不足しています。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There is insufficient spectral coverage for this comparison."
+          }
+        }
+      }
+    },
+    "参考光源を選択すると、選択光源下の見え方とD50基準との差を表示します。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select an illuminant to predict its color appearance and the difference from the D50 reference."
+          }
+        }
+      }
+    },
+    "色順応を適用せず、選択光源の色味を含む反射光をD50基準で表示します。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows reflected light, including the illuminant's color cast, against D50 without chromatic adaptation."
+          }
+        }
+      }
+    },
+    "Bradford変換で選択光源の白色点をD50へ完全に合わせた従来方式です。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The legacy Bradford method fully adapts the selected illuminant white to D50."
+          }
+        }
+      }
+    },
+    "基準白の輝度をそろえた想定条件で、明るさ・色相・彩度を予測します。計算後の明るさや彩度は固定していません。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predicts brightness, hue, and saturation under assumed conditions with equal reference-white luminance. Predicted brightness and saturation are not fixed afterward."
+          }
+        }
+      }
+    },
+    "sRGB色域外の予測値があります。画面での再現はディスプレイの色域に依存します。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some predicted values are outside sRGB. On-screen reproduction depends on the display gamut."
+          }
+        }
+      }
+    },
+    "基準・選択光源とも同じ分光積分で再計算。通常の測定結果と履歴は元の測定値を保持します。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Both illuminants use the same spectral integration. Measurement results and history retain the original measured values."
+          }
+        }
+      }
+    },
+    "CIE 1931 2°／計算波長 %lld–%lld nm／基準白 Y = 100" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CIE 1931 2° / Integration: %lld–%lld nm / Reference white Y = 100"
+          }
+        }
+      }
+    },
+    "CIECAM16（CIE 248:2022）／D50基準の比較表示" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CIECAM16 (CIE 248:2022) / Comparison under reference D50 conditions"
+          }
+        }
+      }
+    },
+    "想定条件：白 100 cd/m²、順応輝度 20 cd/m²、中性20%背景、Average。周囲も同じ光源。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assumed conditions: white 100 cd/m², adapting luminance 20 cd/m², neutral 20% background, Average surround. The surround uses the same illuminant."
+          }
+        }
+      }
+    },
+    "標準の順応度 D：選択光源 %@／D50 %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard adaptation degree D: selected %@ / D50 %@"
+          }
+        }
+      }
+    },
+    "標準Dは輝度と周辺条件から算出します。光源色度に依存する研究式は未適用です。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard D depends on luminance and surround. Research models of illuminant-chromaticity dependence are not applied."
+          }
+        }
+      }
+    },
+    "CAM予測値" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CAM Predictions"
+          }
+        }
+      }
+    },
+    "D50基準" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "D50 Reference"
+          }
+        }
+      }
+    },
+    "明るさ Q" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brightness Q"
+          }
+        }
+      }
+    },
+    "カラフルネス M" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colorfulness M"
+          }
+        }
+      }
+    },
+    "彩度 s" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saturation s"
+          }
+        }
+      }
+    },
+    "色相 h" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hue h"
+          }
+        }
+      }
+    },
+    "元の測定LabとD50再計算の差：ΔE00 %@（分光積分・白色点の条件差を含みます）" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Original measured Lab vs. recalculated D50: ΔE00 %@ (includes spectral integration and white-point differences)"
+          }
+        }
+      }
+    },
+    "予測色差は共通D50 Labの比較です。画面表示用RGBへ変換する前の値を使用します。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predicted differences use common D50 Lab values before conversion to display RGB."
+          }
+        }
+      }
+    },
     "(nm)" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2869,6 +3268,17 @@
         }
       }
     },
+    "接続がキャンセルされました" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connection Cancelled"
+          }
+        }
+      }
+    },
     "接続と初期化が終わるまで測定器を操作しないでください。" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3800,6 +4210,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reconnect the instrument and wait for macOS to recognize it before continuing. If it does not recover, restart spotread."
+          }
+        }
+      }
+    },
+    "測定器を接続してから、spotreadを再起動してください。" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect the instrument, then restart spotread."
           }
         }
       }

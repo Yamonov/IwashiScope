@@ -156,14 +156,6 @@ struct MeasurementDetailsView: View {
                                         format(lab.third, digits: 3)
                                     )
                                 )
-
-                                if measurement.mode == .reflectance,
-                                   let munsell = MunsellConverter.convert(
-                                       reflectanceSpectrum: measurement.spectrum
-                                   ) {
-                                    Divider()
-                                    MunsellMetricRow(value: munsell.formatted)
-                                }
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -176,6 +168,15 @@ struct MeasurementDetailsView: View {
                             )
                             .frame(width: 146, height: 146)
                         }
+                    }
+
+                    if measurement.lab != nil,
+                       measurement.mode == .reflectance,
+                       let munsell = MunsellConverter.convert(
+                           reflectanceSpectrum: measurement.spectrum
+                       ) {
+                        Divider()
+                        MunsellMetricRow(value: munsell.formatted)
                     }
 
                     if let lab = measurement.lab,
@@ -552,7 +553,7 @@ private struct ColorEncodingMetricsView: View {
         Text(label)
             .font(.caption)
             .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .trailing)
     }
 
     private func rgbRow(
@@ -580,7 +581,7 @@ private struct ColorEncodingMetricsView: View {
     private func component(_ value: Int) -> some View {
         Text(value.formatted())
             .font(.body.monospacedDigit())
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .trailing)
             .textSelection(.enabled)
     }
 
@@ -616,7 +617,7 @@ private struct MunsellMetricRow: View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(String(localized: "マンセル値"))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
                 Spacer(minLength: 8)
                 Text(value)
                     .font(.body.monospacedDigit())

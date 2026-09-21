@@ -1,13 +1,12 @@
 {
-  "fill" : {
-    "automatic-gradient" : "extended-srgb:0.00000,0.53333,1.00000,1.00000"
-  },
+  "fill" : "automatic",
   "groups" : [
     {
       "layers" : [
         {
           "blend-mode" : "screen",
-          "fill" : "automatic",
+          "fill" : "none",
+          "glass" : false,
           "image-name" : "Image 2.svg",
           "name" : "Image 2",
           "position" : {
@@ -19,6 +18,10 @@
           }
         },
         {
+          "blend-mode" : "normal",
+          "fill" : "automatic",
+          "glass" : true,
+          "hidden" : false,
           "image-name" : "Image 3.svg",
           "name" : "Image 3",
           "position" : {

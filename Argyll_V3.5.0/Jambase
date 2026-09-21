@@ -4232,9 +4232,23 @@ else if $(VMS)
 # First the defaults
 #
 
-actions updated together piecemeal Archive
-{
-	$(AR) $(<) $(>)
+# IwashiScope: macOS Universal archives must contain per-architecture archives,
+# not fat object members inserted by ar and then converted by ranlib. libtool
+# handles the slices and symbol tables itself. Keep every object for full rebuilds.
+# Disabled TIFF codecs deliberately compile to empty objects; suppress only the
+# archive tool's no-symbol diagnostic, not compiler or linker warnings.
+if $(OS) = MACOSX && $(IWASHISCOPE_UNIVERSAL) = true {
+	NOARSCAN = true ;
+	RANLIB = ;
+	actions together Archive
+	{
+		/usr/bin/libtool -static -no_warning_for_no_symbols -o $(<) $(>)
+	}
+} else {
+	actions updated together piecemeal Archive
+	{
+		$(AR) $(<) $(>)
+	}
 }
 
 actions together ArchiveArchive
@@ -4828,4 +4842,3 @@ DoInit ;
 
 #PeerInclude $(DOT) ;
 SubInclude $(DOT) ;
-

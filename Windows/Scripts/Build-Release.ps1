@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [ValidatePattern('^\d+\.\d+(?:\.\d+){0,2}$')]
-    [string] $Version = '1.0.1',
+    [string] $Version = '1.0.4',
 
     [Parameter(Mandatory = $true)]
     [string] $JamPath,
@@ -82,7 +82,8 @@ function Assert-NoPersonalBuildPaths {
 
 $windowsRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path $windowsRoot '..'))
-$solutionPath = Join-Path $windowsRoot 'IwashiScope.Windows.slnx'
+$testProjectPath = Join-Path $windowsRoot `
+    'tests\IwashiScope.Tests\IwashiScope.Tests.csproj'
 $appProjectPath = Join-Path $windowsRoot `
     'src\IwashiScope.App.Wpf\IwashiScope.App.Wpf.csproj'
 $helperBuildScript = Join-Path $repositoryRoot `
@@ -161,17 +162,22 @@ try {
 
     Invoke-CheckedCommand -FilePath 'dotnet' -ArgumentList @(
         'build',
-        $solutionPath,
+        $testProjectPath,
         '-c', 'Release',
+        '-r', 'win-x64',
+        '--self-contained', 'true',
         '--nologo',
         '-p:DebugType=None',
-        '-p:DebugSymbols=false'
+        '-p:DebugSymbols=false',
+        "-p:IwashiScopeHelperPath=$temporaryHelper"
     )
     Invoke-CheckedCommand -FilePath 'dotnet' -ArgumentList @(
         'test',
-        $solutionPath,
+        $testProjectPath,
         '-c', 'Release',
+        '-r', 'win-x64',
         '--no-build',
+        '--no-restore',
         '--nologo',
         '--logger', 'console;verbosity=minimal'
     )
@@ -185,6 +191,8 @@ try {
         '--self-contained', 'true',
         '--nologo',
         '-p:PublishSingleFile=false',
+        '--no-build',
+        '--no-restore',
         '-p:DebugType=None',
         '-p:DebugSymbols=false',
         "-p:Version=$Version",

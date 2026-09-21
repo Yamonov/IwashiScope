@@ -34,6 +34,8 @@ struct LightingMeasurementHistoryView: View {
     let averagingAcceptedCount: Int?
     let usesPracticalSpectrumRange: Bool
     let spectrumYAxisConfiguration: SpectrumYAxisConfiguration
+    let onRequestDelete: (Set<MeasurementHistoryEntry.ID>, String) -> Void
+    let onExportDateGroup: (MeasurementHistoryDateGroup) -> Void
 
     private var cardItemWidth: Double {
         LightingMeasurementHistoryCardMetrics.size.width
@@ -81,7 +83,15 @@ struct LightingMeasurementHistoryView: View {
                 }
 
                 ForEach(dateGroups) { group in
-                    MeasurementHistoryDateGroupView(group: group) {
+                    MeasurementHistoryDateGroupView(
+                        group: group,
+                        deletableEntryIDs: historyStore.deletableEntryIDs(
+                            in: Set(group.entries.map(\.id)), for: mode
+                        ),
+                        canExport: MeasurementHistoryDateExporter.canExport(group, mode: mode),
+                        onRequestDelete: onRequestDelete,
+                        onExport: onExportDateGroup
+                    ) {
                         historyGrid(for: group)
                     }
                 }
@@ -173,6 +183,18 @@ struct LightingMeasurementHistoryView: View {
                         .disabled(
                             historyStore.userIlluminantSlots(for: entry.id).isEmpty
                         )
+
+                        Divider()
+
+                        Button(role: .destructive) {
+                            onRequestDelete(
+                                deletableContextMenuEntryIDs(for: entry.id),
+                                String(localized: "選択履歴を削除しますか？")
+                            )
+                        } label: {
+                            Label("選択履歴を削除", systemImage: "trash")
+                        }
+                        .disabled(deletableContextMenuEntryIDs(for: entry.id).isEmpty)
                     }
                     .overlay {
                         insertionIndicator(
@@ -388,6 +410,14 @@ struct LightingMeasurementHistoryView: View {
         guard historyStore.removeSelectedEntries(for: mode) > 0 else { return }
         clearNameEditingState()
         clearDragState()
+    }
+
+    private func deletableContextMenuEntryIDs(
+        for entryID: MeasurementHistoryEntry.ID
+    ) -> Set<MeasurementHistoryEntry.ID> {
+        historyStore.deletableEntryIDs(
+            in: historyStore.contextMenuEntryIDs(for: entryID, in: mode), for: mode
+        )
     }
 
     private var selectionActionForCurrentEvent: MeasurementHistorySelectionAction {

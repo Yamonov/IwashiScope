@@ -263,7 +263,7 @@
                                         <ComboBox ItemsSource="{Binding CieIlluminantOptions}"
                                                   SelectedItem="{Binding SelectedCieIlluminantOption}"
                                                   DisplayMemberPath="DisplayName"
-                                                  IsEnabled="{Binding IsCieIlluminantSourceSelected}"
+                                                  IsEnabled="{Binding CanSelectCieIlluminant}"
                                                   Width="225" Margin="4,0,10,0" />
                                         <RadioButton Content="{Binding UserDefined1Label}"
                                                      IsChecked="{Binding IsUser1IlluminantSourceSelected}"
@@ -301,34 +301,48 @@
                                     <controls:ReflectanceIlluminantChart Result="{Binding ReflectanceIlluminantResult}"
                                                                           Height="360" />
                                     <Separator Margin="0,9" />
-                                    <StackPanel Orientation="Horizontal">
+                                    <WrapPanel>
                                         <TextBlock Text="{Binding ColorAppearanceComparisonLabel}"
-                                                   FontWeight="SemiBold" Margin="0,0,14,0" />
-                                        <CheckBox Content="{Binding ApplyChromaticAdaptationLabel}"
-                                                  IsChecked="{Binding AppliesChromaticAdaptation}" />
-                                    </StackPanel>
+                                                   FontWeight="SemiBold" Margin="0,0,14,0" VerticalAlignment="Center" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding AppearanceMethodLabel}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <ComboBox ItemsSource="{Binding AppearanceMethodOptions}"
+                                                      DisplayMemberPath="Title" SelectedValuePath="Method"
+                                                      SelectedValue="{Binding AppearanceMethod}"
+                                                      IsEnabled="{Binding HasReflectanceIlluminantSelection}"
+                                                      Width="185" AutomationProperties.Name="{Binding AppearanceMethodLabel}" />
+                                        </StackPanel>
+                                    </WrapPanel>
                                     <Grid Margin="0,9,0,0"
-                                          Visibility="{Binding HasReflectanceColorComparison, Converter={StaticResource BoolToVisibility}}">
+                                          Visibility="{Binding HasReflectanceMeasurement, Converter={StaticResource BoolToVisibility}}">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" MinWidth="120" />
+                                            <ColumnDefinition Width="*" MinWidth="100" />
                                             <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" MinWidth="120" />
+                                            <ColumnDefinition Width="*" MinWidth="100" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="{Binding MeasuredD50Label}" FontWeight="SemiBold" />
                                             <Border Height="200" Background="{Binding MeasuredReflectancePatchBrush}"
                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
-                                                    CornerRadius="4" Margin="0,5,0,0" />
+                                                    CornerRadius="4" Margin="0,5,0,0">
+                                                <TextBlock Text="{Binding ReferencePatchPlaceholder}" TextWrapping="Wrap"
+                                                           TextAlignment="Center" VerticalAlignment="Center" Margin="10"
+                                                           Visibility="{Binding ShowsReferencePatchPlaceholder, Converter={StaticResource BoolToVisibility}}" />
+                                            </Border>
                                         </StackPanel>
                                         <TextBlock Grid.Column="1" Text="→" FontSize="28"
                                                    Foreground="{StaticResource SecondaryTextBrush}"
-                                                   VerticalAlignment="Center" Margin="18,0" />
+                                                   VerticalAlignment="Center" Margin="10,0" />
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="{Binding SimulatedPatchTitle}" FontWeight="SemiBold" />
                                             <Border Height="200" Background="{Binding SimulatedReflectancePatchBrush}"
                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
-                                                    CornerRadius="4" Margin="0,5,0,0" />
+                                                    CornerRadius="4" Margin="0,5,0,0">
+                                                <TextBlock Text="{Binding SimulatedPatchPlaceholder}" TextWrapping="Wrap"
+                                                           TextAlignment="Center" VerticalAlignment="Center" Margin="10"
+                                                           Visibility="{Binding HasReflectanceColorComparison, Converter={StaticResource InverseBoolToVisibility}}" />
+                                            </Border>
                                         </StackPanel>
                                         <Border Grid.Column="3" BorderBrush="{StaticResource BorderBrush}"
                                                 BorderThickness="1" CornerRadius="5" Padding="14,10"
@@ -364,7 +378,18 @@
                                     <TextBlock Text="{Binding ChromaticAdaptationExplanation}"
                                                FontSize="10" Foreground="{StaticResource SecondaryTextBrush}"
                                                TextWrapping="Wrap" Margin="0,8,0,0"
-                                               Visibility="{Binding HasReflectanceColorComparison, Converter={StaticResource BoolToVisibility}}" />
+                                               Visibility="{Binding HasReflectanceMeasurement, Converter={StaticResource BoolToVisibility}}" />
+                                    <TextBlock Text="{Binding AppearanceErrorText}" FontSize="10" Foreground="#E97818"
+                                               TextWrapping="Wrap" Margin="0,7,0,0"
+                                               Visibility="{Binding HasAppearanceError, Converter={StaticResource BoolToVisibility}}" />
+                                    <TextBlock Text="{Binding AppearanceGamutWarning}" FontSize="10" Foreground="{StaticResource SecondaryTextBrush}"
+                                               TextWrapping="Wrap" Margin="0,7,0,0"
+                                               Visibility="{Binding AppearanceExceedsSrgb, Converter={StaticResource BoolToVisibility}}" />
+                                    <Expander Header="{Binding AppearanceDetailsLabel}" Margin="0,8,0,0" FontSize="11"
+                                              Visibility="{Binding HasReflectanceColorComparison, Converter={StaticResource BoolToVisibility}}">
+                                        <TextBlock Text="{Binding AppearanceCalculationDetails}" TextWrapping="Wrap"
+                                                   Foreground="{StaticResource SecondaryTextBrush}" Margin="0,5,0,0" />
+                                    </Expander>
                                     <TextBlock Text="{Binding UvWarningText}" FontSize="10"
                                                Foreground="#E97818" TextWrapping="Wrap" Margin="0,7,0,0"
                                                Visibility="{Binding HasReflectanceIlluminantSelection, Converter={StaticResource BoolToVisibility}}" />
@@ -475,14 +500,14 @@
                                      Drop="HistoryList_Drop">
                                 <ListBox.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Vertical" />
+                                        <WrapPanel />
                                     </ItemsPanelTemplate>
                                 </ListBox.ItemsPanel>
                                 <ListBox.GroupStyle>
                                     <GroupStyle>
                                         <GroupStyle.Panel>
                                             <ItemsPanelTemplate>
-                                                <WrapPanel />
+                                                <StackPanel Orientation="Vertical" />
                                             </ItemsPanelTemplate>
                                         </GroupStyle.Panel>
                                         <GroupStyle.ContainerStyle>
@@ -490,11 +515,23 @@
                                                 <Setter Property="Template">
                                                     <Setter.Value>
                                                         <ControlTemplate TargetType="GroupItem">
-                                                            <Expander IsExpanded="True" Margin="4,5,4,8">
+                                                            <Expander IsExpanded="True" Margin="4,5,4,8"
+                                                                      Loaded="HistoryDateExpander_Loaded"
+                                                                      Expanded="HistoryDateExpander_Changed"
+                                                                      Collapsed="HistoryDateExpander_Changed">
                                                                 <Expander.Header>
                                                                     <TextBlock Text="{Binding Name}"
                                                                                Foreground="{StaticResource AccentBrush}"
-                                                                               FontWeight="SemiBold" />
+                                                                               FontWeight="SemiBold"
+                                                                               ContextMenuOpening="HistoryDate_ContextMenuOpening">
+                                                                        <TextBlock.ContextMenu>
+                                                                            <ContextMenu>
+                                                                                <MenuItem Click="HistoryDateExport_Click" />
+                                                                                <Separator />
+                                                                                <MenuItem Click="HistoryContextDelete_Click" />
+                                                                            </ContextMenu>
+                                                                        </TextBlock.ContextMenu>
+                                                                    </TextBlock>
                                                                 </Expander.Header>
                                                                 <ItemsPresenter Margin="4,5,0,0" />
                                                             </Expander>
@@ -521,11 +558,14 @@
                                 </ListBox.ItemContainerStyle>
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Width="{Binding ItemWidth}" Height="{Binding ItemHeight}">
+                                        <Grid Width="{Binding ItemWidth}" Height="{Binding ItemHeight}"
+                                              ContextMenuOpening="HistoryCard_ContextMenuOpening">
                                             <Grid.ContextMenu>
                                                 <ContextMenu>
                                                     <MenuItem Header="{Binding RenameLabel}"
                                                               Click="HistoryRenameMenu_Click" />
+                                                    <MenuItem Tag="swatch-export" Click="HistorySwatchExport_Click"
+                                                              Visibility="{Binding IsReflectance, Converter={StaticResource BoolToVisibility}}" />
                                                     <Separator Visibility="{Binding IsLighting, Converter={StaticResource BoolToVisibility}}" />
                                                     <MenuItem Header="{Binding RegisterUserIlluminantLabel}"
                                                               Visibility="{Binding IsLighting, Converter={StaticResource BoolToVisibility}}">
@@ -540,6 +580,8 @@
                                                               IsEnabled="{Binding HasUserIlluminantRegistration}"
                                                               Visibility="{Binding IsLighting, Converter={StaticResource BoolToVisibility}}"
                                                               Click="RemoveUserIlluminant_Click" />
+                                                    <Separator />
+                                                    <MenuItem Tag="delete-selection" Click="HistoryContextDelete_Click" />
                                                 </ContextMenu>
                                             </Grid.ContextMenu>
                                             <Border Width="{x:Static layout:HistoryCardLayout.Width}"
@@ -943,25 +985,6 @@
                                                                 <TextBlock Text="{Binding BStarText}" FontFamily="Cascadia Mono, Consolas" />
                                                             </StackPanel>
                                                         </UniformGrid>
-                                                        <StackPanel Visibility="{Binding ShowsMunsellValue, Converter={StaticResource BoolToVisibility}}">
-                                                            <Separator Margin="0,9,0,7" />
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                </Grid.ColumnDefinitions>
-                                                                <TextBlock Text="{Binding MunsellValueLabel}"
-                                                                           Style="{StaticResource MetricLabel}"
-                                                                           Margin="0,0,8,0" />
-                                                                <TextBlock Grid.Column="1" Text="{Binding MunsellValueText}"
-                                                                           Style="{StaticResource MetricValue}" />
-                                                            </Grid>
-                                                            <TextBlock Text="{Binding MunsellValuePremiseLabel}"
-                                                                       Style="{StaticResource MetricLabel}"
-                                                                       FontSize="10"
-                                                                       TextWrapping="Wrap"
-                                                                       Margin="0,2,0,0" />
-                                                        </StackPanel>
                                                     </StackPanel>
 
                                                     <controls:LabABChart Grid.Column="1"
@@ -973,6 +996,19 @@
                                                                          AutomationProperties.HelpText="{Binding LabChartAccessibilityValue}"
                                                                          Visibility="{Binding HasLab, Converter={StaticResource BoolToVisibility}}" />
                                                 </Grid>
+                                                <StackPanel Visibility="{Binding ShowsMunsellValue, Converter={StaticResource BoolToVisibility}}">
+                                                    <Separator Margin="0,9,0,7" />
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding MunsellValueLabel}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                        <TextBlock Grid.Column="1" Text="{Binding MunsellValueText}" Style="{StaticResource MetricValue}" />
+                                                    </Grid>
+                                                    <TextBlock Text="{Binding MunsellValuePremiseLabel}" Style="{StaticResource MetricLabel}"
+                                                               FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0" />
+                                                </StackPanel>
                                                 <StackPanel Margin="0,9,0,0"
                                                             Visibility="{Binding ShowsSrgbEncoding, Converter={StaticResource BoolToVisibility}}">
                                                     <Separator Margin="0,0,0,8" />
@@ -1322,6 +1358,11 @@
                                Foreground="{StaticResource SecondaryTextBrush}"
                                TextAlignment="Center" TextWrapping="Wrap"
                                Margin="0,8,0,0" />
+                    <Button Content="{Binding CancelConnectionLabel}"
+                            Command="{Binding CancelConnectionCommand}" Padding="8,4"
+                            Visibility="{Binding CanCancelConnection, Converter={StaticResource BoolToVisibility}}"
+                            AutomationProperties.AutomationId="cancel-instrument-connection"
+                            Margin="0,10,0,0" />
                     <Button Content="{Binding RestartLabel}"
                             Command="{Binding RestartCommand}" Padding="8,4"
                             Margin="0,10,0,0" />

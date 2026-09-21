@@ -15,6 +15,7 @@ enum MeasurementSessionPhase: Equatable {
     case recovering
     case workspace
     case stopped
+    case connectionCancelled
     case failed
 
     var acceptsManualCalibration: Bool {
@@ -111,7 +112,7 @@ final class MeasurementSession {
 
     var isRunning: Bool {
         switch phase {
-        case .idle, .workspace, .stopped, .failed:
+        case .idle, .workspace, .stopped, .connectionCancelled, .failed:
             false
         default:
             true
@@ -120,6 +121,10 @@ final class MeasurementSession {
 
     var isAveragingMeasurement: Bool {
         averagingOperationPhase != .inactive
+    }
+
+    var canCancelConnection: Bool {
+        phase == .launching
     }
 
     var isCollectingAveragingMeasurements: Bool {
@@ -405,6 +410,17 @@ final class MeasurementSession {
 
     func restart() {
         guard let mode else { return }
+        if phase == .connectionCancelled {
+            // Cancellation removes the overlay immediately. Allow the old
+            // process's 250 ms termination grace to finish before reconnecting.
+            scheduleForcedRelaunch(
+                mode: mode,
+                resetsMeasurements: false,
+                resetsInteractionLog: false,
+                resetsRecoveryBudget: true
+            )
+            return
+        }
         launch(
             mode: mode,
             resetsMeasurements: false,
@@ -432,6 +448,27 @@ final class MeasurementSession {
         relaunchTask?.cancel()
         relaunchTask = nil
         stopRunner(markStopped: true)
+    }
+
+    func cancelConnection() {
+        guard canCancelConnection else { return }
+        appendInteraction(
+            direction: .lifecycle,
+            content: String(localized: "接続がキャンセルされました"),
+            sessionID: generation
+        )
+        relaunchTask?.cancel()
+        relaunchTask = nil
+        stopRunner(markStopped: false)
+        // Invalidate even a launch that has not installed its runner yet.
+        generation = UUID()
+        stopWasRequested = true
+        calibrationPrompt = nil
+        calibrationCompleted = false
+        activeIssue = nil
+        errorMessage = nil
+        notice = nil
+        transition(to: .connectionCancelled)
     }
 
     func stopForApplicationTermination() {

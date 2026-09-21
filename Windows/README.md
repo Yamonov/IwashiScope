@@ -1,6 +1,6 @@
 # IwashiScope for Windows
 
-IwashiScope 1.0.1 for Windows is the .NET 10 + WPF port of the macOS
+IwashiScope 1.0.4 for Windows is the .NET 10 + WPF port of the macOS
 application in this repository. It uses the same modified ArgyllCMS 3.5.0
 source and JSON Lines protocol version 3 as the macOS build.
 
@@ -20,6 +20,12 @@ top-level `Argyll_V3.5.0` source tree, must be placed beside
 
 The self-contained release ZIP includes the .NET runtime and does not require
 a separate .NET installation on the target computer.
+
+Recent macOS parity changes and their Windows verification are recorded in
+[`PARITY_VALIDATION.md`](PARITY_VALIDATION.md), including CIECAM16 appearance,
+history date actions, export grouping, defaults, and updated icons.
+The drag re-entry correction and its verification boundaries are recorded in
+[`DRAG_FIX_VALIDATION.md`](DRAG_FIX_VALIDATION.md).
 
 ## Source layout
 
@@ -60,14 +66,14 @@ measurement backend.
 The release script builds and runs the common C helper test, builds and tests
 the WPF solution, publishes a self-contained win-x64 application, includes
 the common licenses and corresponding-source metadata, and creates both
-`IwashiScope-1.0.1-Windows-x64.zip` and the directly executable
-`IwashiScope-1.0.1-Windows-x64-Setup.exe`.
+`IwashiScope-1.0.4-Windows-x64.zip` and the directly executable
+`IwashiScope-1.0.4-Windows-x64-Setup.exe`.
 
 ```powershell
 .\Windows\Scripts\Build-Release.ps1 `
-  -Version 1.0.1 `
+  -Version 1.0.4 `
   -JamPath C:\path\to\jam.exe `
-  -OutputRoot C:\path\to\artifacts\release-1.0.1
+  -OutputRoot C:\path\to\artifacts\release-1.0.4
 ```
 
 The installer follows the established Scripta for Windows pattern: it installs
@@ -115,14 +121,14 @@ detached signature back to Windows, then generate a checked feed file:
 
 ```sh
 /path/to/Sparkle/bin/sign_update \
-  IwashiScope-1.0.1-Windows-x64-Setup.exe
+  IwashiScope-1.0.4-Windows-x64-Setup.exe
 ```
 
 ```powershell
 .\Windows\Scripts\New-WindowsAppcast.ps1 `
-  -Version 1.0.1 `
-  -TagName v1.0.1 `
-  -InstallerPath .\Windows\artifacts\release-1.0.1\IwashiScope-1.0.1-Windows-x64-Setup.exe `
+  -Version 1.0.4 `
+  -TagName v1.0.4 `
+  -InstallerPath .\Windows\artifacts\release-1.0.4\IwashiScope-1.0.4-Windows-x64-Setup.exe `
   -EdSignature SIGNATURE_FROM_MAC
 ```
 
@@ -143,7 +149,7 @@ temporary signed artifacts:
 
 ```powershell
 .\Windows\Scripts\Test-WinSparkleSigning.ps1 `
-  -InstallerPath .\Windows\artifacts\release-1.0.1\IwashiScope-1.0.1-Windows-x64-Setup.exe
+  -InstallerPath .\Windows\artifacts\release-1.0.4\IwashiScope-1.0.4-Windows-x64-Setup.exe
 ```
 
 The macOS and Windows feeds are separate files in the same repository. This
@@ -156,8 +162,19 @@ from overwriting the other platform's release history.
 ## Version and signing
 
 The Windows product, assembly, file, and informational versions are defined in
-`Directory.Build.props`. Release 1.0.1 uses `1.0.1` for the product and
-informational versions, and `1.0.1.0` for file and assembly versions.
+`Directory.Build.props`. The product and informational version is `1.0.4`;
+the file and assembly versions are `1.0.4.<IwashiScopeBuildNumber>`. Increase
+`IwashiScopeBuildNumber` before every application build, including a retry.
+WinSparkle receives the full assembly build version for update comparisons.
+The installer retains that full version in FileVersion, while ProductVersion
+remains the display version. The appcast likewise uses the full build version
+in `sparkle:version` and the display version in `sparkle:shortVersionString`.
+Older feed entries whose display and build versions are equal remain valid.
+
+Before each build, check the latest stable WinSparkle release and its NuGet
+package. Update the exact pin when required, and verify the actual DLL in the
+finished payload. Apply the same latest-stable check to Sparkle for macOS;
+see the dependency policy in `../BUILDING.md`.
 
 The release process does not create or trust a certificate automatically.
 Official Authenticode signing requires a separately provisioned, trusted

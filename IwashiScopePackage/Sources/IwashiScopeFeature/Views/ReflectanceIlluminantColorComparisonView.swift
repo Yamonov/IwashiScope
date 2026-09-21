@@ -6,17 +6,50 @@ struct ReflectanceIlluminantColorComparisonView: View {
     private static let minimumPatchWidth = 100.0
     private static let arrowWidth = 28.0
 
-    @State private var appliesChromaticAdaptation = true
+    @State private var showsCalculationDetails = false
+    @Binding var method: ReflectanceAppearanceMethod
 
     let measurement: SpotMeasurement
     let source: IlluminantSpectrumDefinition?
 
-    private var comparison: ReflectanceIlluminantColorComparisonResult? {
-        ReflectanceIlluminantColorComparisonCalculator.result(
-            for: measurement,
-            source: source,
-            appliesChromaticAdaptation: appliesChromaticAdaptation
-        )
+    private let referenceLab: Vector3?
+    private let comparison: ReflectanceIlluminantColorComparisonResult?
+    private let computationError: String?
+    private let exceedsSRGB: Bool
+
+    init(
+        measurement: SpotMeasurement,
+        source: IlluminantSpectrumDefinition?,
+        method: Binding<ReflectanceAppearanceMethod>
+    ) {
+        self.measurement = measurement
+        self.source = source
+        self._method = method
+        var calculatedReferenceLab: Vector3?
+        var calculatedComparison: ReflectanceIlluminantColorComparisonResult?
+        var calculationError: String?
+        do {
+            calculatedReferenceLab = try ReflectanceIlluminantColorComparisonCalculator.referenceLab(for: measurement)
+            if let source {
+                let result = try ReflectanceIlluminantColorComparisonCalculator.compare(
+                    measurement: measurement, source: source, method: method.wrappedValue
+                )
+                calculatedComparison = result
+                // A selected source may have narrower coverage. Use the common-range
+                // baseline for both the displayed patch and its numerical differences.
+                calculatedReferenceLab = result.referenceLab
+            }
+        } catch {
+            calculationError = error.localizedDescription
+        }
+        referenceLab = calculatedReferenceLab
+        comparison = calculatedComparison
+        computationError = calculationError
+        exceedsSRGB = [calculatedReferenceLab, calculatedComparison?.simulatedLab]
+            .compactMap { $0 }
+            .contains {
+                LabColorConverter.displaySRGB(lab: $0, whitePoint: "D50")?.isOutOfGamut == true
+            }
     }
 
     var body: some View {
@@ -29,6 +62,26 @@ struct ReflectanceIlluminantColorComparisonView: View {
             Text(explanation)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+            if let computationError {
+                Text(computationError)
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .accessibilityIdentifier("appearance-calculation-error")
+            }
+            if exceedsSRGB {
+                Text("sRGB色域外の予測値があります。画面での再現はディスプレイの色域に依存します。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            if let comparison {
+                DisclosureGroup("計算条件", isExpanded: $showsCalculationDetails) {
+                    ReflectanceAppearanceDetailsView(comparison: comparison)
+                        .padding(.top, 4)
+                }
+                .font(.caption)
+                .accessibilityIdentifier("appearance-calculation-details")
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .contain)
@@ -37,28 +90,43 @@ struct ReflectanceIlluminantColorComparisonView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 16) {
-            Label("色の見え方比較", systemImage: "square.split.2x1")
-                .font(.headline)
-
-            Toggle("色順応を適用", isOn: $appliesChromaticAdaptation)
-                .toggleStyle(.checkbox)
-                .disabled(source == nil)
-                .help("Bradford色順応変換で選択光源の白色点をD50へ合わせます")
-                .accessibilityHint("オンにすると選択光源の白色点をD50へ合わせます")
-                .accessibilityIdentifier("chromatic-adaptation-toggle")
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 16) {
+                Label("色の見え方比較", systemImage: "square.split.2x1")
+                    .font(.headline)
+                methodPicker
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                Label("色の見え方比較", systemImage: "square.split.2x1")
+                    .font(.headline)
+                methodPicker
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    private var methodPicker: some View {
+        Picker("色順応", selection: $method) {
+            ForEach(ReflectanceAppearanceMethod.allCases) { method in
+                Text(method.title).tag(method)
+            }
+        }
+        .pickerStyle(.menu)
+        .frame(maxWidth: 300)
+        .disabled(source == nil)
+        .accessibilityLabel("色の見え方の計算方式")
+        .accessibilityIdentifier("appearance-method-picker")
+    }
+
     private var comparisonRow: some View {
         HStack(alignment: .top, spacing: 16) {
-            patchColumn(title: "計測値（D50）") {
+            patchColumn(title: String(localized: "基準（D50・再計算）")) {
                 colorPatch(
-                    lab: measurement.lab,
-                    whitePoint: measurement.labWhitePoint,
-                    label: "計測値の色"
+                    lab: referenceLab,
+                    whitePoint: "D50",
+                    label: "D50基準の再計算色"
                 )
+                .accessibilityIdentifier("appearance-reference-patch")
             }
 
             VStack(spacing: 8) {
@@ -84,9 +152,15 @@ struct ReflectanceIlluminantColorComparisonView: View {
                         label: simulatedPatchTitle
                     )
                 } else {
-                    unavailablePatch
+                    unavailablePatch(
+                        message: source == nil ? "光源を選択してください" : "色を計算できません",
+                        accessibilityLabel: source == nil
+                            ? "光源を選択してください"
+                            : "選択光源の色を計算できません"
+                    )
                 }
             }
+            .accessibilityIdentifier("appearance-simulated-patch")
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(deltaTitle)
@@ -143,15 +217,21 @@ struct ReflectanceIlluminantColorComparisonView: View {
                 .accessibilityLabel(label)
                 .accessibilityValue(labAccessibilityValue(lab))
         } else {
-            unavailablePatch
+            unavailablePatch(
+                message: "色を計算できません",
+                accessibilityLabel: "色を計算できません"
+            )
         }
     }
 
-    private var unavailablePatch: some View {
+    private func unavailablePatch(
+        message: LocalizedStringKey,
+        accessibilityLabel: LocalizedStringKey
+    ) -> some View {
         RoundedRectangle(cornerRadius: 6)
             .fill(.secondary.opacity(0.08))
             .overlay {
-                Text(source == nil ? "参考光源を選択" : "色を計算できません")
+                Text(message)
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -167,11 +247,7 @@ struct ReflectanceIlluminantColorComparisonView: View {
                 maxHeight: Self.patchHeight
             )
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(
-                source == nil
-                    ? "比較する参考光源が選択されていません"
-                    : "選択光源の色を計算できません"
-            )
+            .accessibilityLabel(accessibilityLabel)
     }
 
     private var deltaMetrics: some View {
@@ -212,22 +288,25 @@ struct ReflectanceIlluminantColorComparisonView: View {
 
     private var simulatedPatchTitle: String {
         guard let source else { return "選択光源" }
-        return appliesChromaticAdaptation
-            ? "\(source.displayName)・色順応"
-            : "\(source.displayName)・光源白を保持"
+        return source.displayName
     }
 
     private var deltaTitle: String {
-        appliesChromaticAdaptation ? "色順応後の差" : "光源白保持時の差"
+        String(localized: "予測色差")
     }
 
     private var explanation: String {
         guard source != nil else {
-            return "参考光源を選択すると、選択光源下の見え方と計測値との差を表示します。"
+            return String(localized: "参考光源を選択すると、選択光源下の見え方とD50基準との差を表示します。")
         }
-        return appliesChromaticAdaptation
-            ? "Bradford色順応変換で選択光源の白色点をD50へ合わせ、D50 LabでΔEを計算しています。"
-            : "色順応を適用せず、選択光源の白色を保持したD50 LabでΔEを計算しています。"
+        switch method {
+        case .unadapted:
+            return String(localized: "色順応を適用せず、選択光源の色味を含む反射光をD50基準で表示します。")
+        case .bradford:
+            return String(localized: "Bradford変換で選択光源の白色点をD50へ完全に合わせた従来方式です。")
+        case .ciecam16:
+            return String(localized: "基準白の輝度をそろえた想定条件で、明るさ・色相・彩度を予測します。計算後の明るさや彩度は固定していません。")
+        }
     }
 
     private func formatDeltaE(_ value: Double) -> String {

@@ -55,9 +55,11 @@ foreach ($item in $items) {
     if (-not $versions.Add($versionNode.InnerText)) {
         throw "Duplicate Windows appcast version: $($versionNode.InnerText)"
     }
-    if ($versionNode.InnerText -ne $shortVersionNode.InnerText -or
-        $versionNode.InnerText -notmatch '^\d+\.\d+(?:\.\d+){0,2}$') {
-        throw 'Windows appcast display and build versions must be the same numeric version.'
+    if ($versionNode.InnerText -notmatch '^\d+\.\d+(?:\.\d+){0,2}$' -or
+        $shortVersionNode.InnerText -notmatch '^\d+\.\d+(?:\.\d+){0,2}$' -or
+        ($versionNode.InnerText -ne $shortVersionNode.InnerText -and
+         -not $versionNode.InnerText.StartsWith($shortVersionNode.InnerText + '.'))) {
+        throw 'Windows appcast build version must match or extend its numeric display version.'
     }
 
     $url = $enclosure.GetAttribute('url')
@@ -81,7 +83,7 @@ foreach ($item in $items) {
     if ($os -ne 'windows-x64') {
         throw "Windows enclosure must specify sparkle:os=windows-x64; got $os."
     }
-    $expectedFileName = "IwashiScope-$($versionNode.InnerText)-Windows-x64-Setup.exe"
+    $expectedFileName = "IwashiScope-$($shortVersionNode.InnerText)-Windows-x64-Setup.exe"
     if ($uri.Segments[-1] -ne $expectedFileName) {
         throw "Windows enclosure must name the installable x64 setup: $expectedFileName"
     }
@@ -123,9 +125,8 @@ if (-not [string]::IsNullOrWhiteSpace($InstallerPath)) {
     if ([long]$matchingEnclosure.GetAttribute('length') -ne $installer.Length) {
         throw 'Windows appcast byte length does not match the installer.'
     }
-    if ($matchingVersion -ne $matchingShortVersion -or
-        $matchingVersion -ne $installer.VersionInfo.FileVersion -or
-        $matchingVersion -ne $installer.VersionInfo.ProductVersion) {
+    if ($matchingVersion -ne $installer.VersionInfo.FileVersion -or
+        $matchingShortVersion -ne $installer.VersionInfo.ProductVersion) {
         throw 'Windows appcast version does not match installer metadata.'
     }
 

@@ -52,6 +52,12 @@
 # include <Foundation/Foundation.h>
 # include <AppKit/AppKit.h>
 
+/* IwashiScope: use current event names while retaining older SDK support. */
+# if MAC_OS_X_VERSION_MAX_ALLOWED < 101200
+#  define NSEventMaskAny NSAnyEventMask
+#  define NSEventTypeApplicationDefined NSApplicationDefined
+# endif
+
 /* (Duplicate declaration from numsup.h) */
 
 /* Tell App Nap that this is user initiated */
@@ -168,11 +174,11 @@ int main(int argc, char ** argv) {
 			/* Hmm. Assume to is autorelease */
 			to = [NSDate dateWithTimeIntervalSinceNow:1.0];
 			/* Hmm. Assume event is autorelease */
-			if ((event = [NSApp nextEventMatchingMask:NSAnyEventMask
+			if ((event = [NSApp nextEventMatchingMask:NSEventMaskAny
 			             untilDate:to inMode:NSDefaultRunLoopMode dequeue:YES]) != nil) {
 
 				/* call function message */
-				if ([event type] == NSApplicationDefined
+				if ([event type] == NSEventTypeApplicationDefined
 				 && [event subtype] == 1) {
 					void *cntx = (void *)[event data1];
 					void (*function)(void *cntx) = (void (*)(void *)) [event data2];
@@ -186,7 +192,7 @@ int main(int argc, char ** argv) {
 					[event release];
 
 				/* event flush message */
-				} else if ([event type] == NSApplicationDefined
+				} else if ([event type] == NSEventTypeApplicationDefined
 				 && [event subtype] == 2) {
 					pthread_mutex_lock(&ui_lock2);
 					ui_event2 = 1;
@@ -257,7 +263,7 @@ void ui_runInMainThreadAndWait(void *cntx, void (*function)(void *cntx)) {
 	pthread_mutex_lock(&ui_lock1);
 	ui_event1 = 0;
 
-	event = [NSEvent otherEventWithType:NSApplicationDefined
+	event = [NSEvent otherEventWithType:NSEventTypeApplicationDefined
                                location:point
                           modifierFlags:0
                               timestamp:0.0
@@ -294,7 +300,7 @@ void ui_waitForEvents() {
 	NSPoint point = { 0.0, 0.0 };
 	int rv;
 
-	event = [NSEvent otherEventWithType:NSApplicationDefined
+	event = [NSEvent otherEventWithType:NSEventTypeApplicationDefined
                                location:point
                           modifierFlags:0
                               timestamp:0.0

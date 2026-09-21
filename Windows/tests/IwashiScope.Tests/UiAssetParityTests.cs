@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Xml.Linq;
 
 namespace IwashiScope.Tests;
 
@@ -81,9 +83,14 @@ public sealed class UiAssetParityTests
             "Source=\"Resources/Icons/IwashiScope-128.png\"",
             xaml,
             StringComparison.Ordinal);
-        Assert.Equal(
-            "BB5C6F06ADE2EAC99FE05B14BF0014B779D434D4AA72FECDD7307F77343EE9D2",
-            titleIconHash);
+        var macAssetRoot = Path.Combine(Directory.GetParent(root)!.FullName,
+            "IwashiScope", "Assets.xcassets", "AppIcon.appiconset");
+        using var catalog = JsonDocument.Parse(File.ReadAllText(Path.Combine(macAssetRoot, "Contents.json")));
+        var source128 = catalog.RootElement.GetProperty("images").EnumerateArray().Single(image =>
+            image.GetProperty("idiom").GetString() == "mac" &&
+            image.GetProperty("size").GetString() == "128x128" &&
+            image.GetProperty("scale").GetString() == "1x").GetProperty("filename").GetString()!;
+        Assert.Equal(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(Path.Combine(macAssetRoot, source128)))), titleIconHash);
 
         foreach (var textSubstitute in new[] { "⌁", "▤", "☀", "◉", "⚠" })
         {
@@ -278,10 +285,11 @@ public sealed class UiAssetParityTests
         Assert.Contains("T(\"自動\", \"Automatic\")", viewModel, StringComparison.Ordinal);
         Assert.Contains("T(\"固定\", \"Fixed\")", viewModel, StringComparison.Ordinal);
         Assert.Equal(
-            3,
+            2,
             CountOccurrences(
                 codeBehind,
                 "SpectrumYAxisConfiguration = _viewModel.YAxisConfiguration"));
+        Assert.Contains("MeasurementExportOptions.ForDrag(", codeBehind, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -332,9 +340,31 @@ public sealed class UiAssetParityTests
         Assert.Contains("Header=\"{Binding RegisterUserIlluminantLabel}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Header=\"{Binding RemoveUserIlluminantLabel}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("<controls:ReflectanceIlluminantChart", xaml, StringComparison.Ordinal);
-        Assert.Contains("IsChecked=\"{Binding AppliesChromaticAdaptation}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SelectedValue=\"{Binding AppearanceMethod}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding AppearanceMethodLabel}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding SimulatedPatchPlaceholder}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding AppearanceCalculationDetails}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("HistoryDate_ContextMenuOpening", xaml, StringComparison.Ordinal);
+        Assert.Contains("HistoryCard_ContextMenuOpening", xaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding DeltaE00Text}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding DeltaLText}\"", xaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void HistoryDateGroupsStackVerticallyAndCardsWrapWithinEachDate()
+    {
+        XNamespace presentation = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+        var document = XDocument.Load(Path.Combine(FindRepositoryRoot(), "src", "IwashiScope.App.Wpf", "MainWindow.xaml"));
+        var history = document.Descendants(presentation + "ListBox")
+            .Single(node => (string?)node.Attribute(x + "Name") == "HistoryList");
+        // WPF uses GroupStyle.Panel for top-level groups and ItemsPanel for leaf cards.
+        var cardPanel = history.Element(presentation + "ListBox.ItemsPanel")!;
+        Assert.Single(cardPanel.Descendants(presentation + "WrapPanel"));
+        var datePanel = history.Descendants(presentation + "GroupStyle.Panel").Single();
+        var stack = Assert.Single(datePanel.Descendants(presentation + "StackPanel"));
+        Assert.Equal("Vertical", (string?)stack.Attribute("Orientation"));
+        Assert.Empty(datePanel.Descendants(presentation + "WrapPanel"));
     }
 
     private static ushort ReadUInt16(byte[] bytes, int offset) =>

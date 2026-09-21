@@ -8,12 +8,16 @@ IwashiScopeは、ArgyllCMS 3.5.0の`spotread`をGUIから安全に制御する�
 - 改変日: 2026-07-23
 - 追加改変日: 2026-07-29
 - 追加改変日: 2026-07-30
+- 追加改変日: 2026-09-21
 
 ## 改変ファイル
 
 | ファイル | 改変内容 |
 | --- | --- |
 | `Jamfile` | IwashiScopeのビルド時に、`spotread`へ必要なサブプロジェクトだけを読み込む分岐を追加 |
+| `Jambase` | IwashiScopeのmacOS UniversalビルドではAppleの`libtool -static`で静的ライブラリを作成し、fatオブジェクトを`ar`・`ranlib`で処理する警告を解消 |
+| `spectro/hidio.c`・`spectro/usbio_ox.c` | IOKitの既定ポートを同値の`MACH_PORT_NULL`で指定し、非推奨の定数名への依存を解消 |
+| `numlib/ui.c` | AppKitイベント定数を現在の名称へ更新し、古いSDK向けの名称互換を維持 |
 | `spectro/Jamfile` | JSON Lines実装を追加し、上流版と混同しない`iwashiscope-spotread`ビルドターゲットとUTF-8テストターゲットを定義 |
 | `spectro/inst.h` | 現在のモード・解像度に対する実用波長範囲を取得する任意APIを追加 |
 | `spectro/instappsup.c` | 既存APIを維持したまま校正状態を通知する任意コールバックを追加し、各ドライバ呼び出し前に校正識別子出力を初期化 |

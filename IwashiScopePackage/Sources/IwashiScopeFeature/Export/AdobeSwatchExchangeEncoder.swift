@@ -29,10 +29,13 @@ extension AdobeSwatchExchangeEncodingError: LocalizedError {
 
 enum AdobeSwatchExchangeEncoder {
     private static let colorEntryBlockType: UInt16 = 0x0001
+    private static let groupStartBlockType: UInt16 = 0xC001
+    private static let groupEndBlockType: UInt16 = 0xC002
     private static let spotColorType: UInt16 = 0x0001
 
-    static func encode(swatches: [AdobeLabSwatch]) throws -> Data {
-        guard UInt64(swatches.count) <= UInt64(UInt32.max) else {
+    static func encode(swatches: [AdobeLabSwatch], groupName: String? = nil) throws -> Data {
+        let blockCount = UInt64(swatches.count) + (groupName == nil ? 0 : 2)
+        guard blockCount <= UInt64(UInt32.max) else {
             throw AdobeSwatchExchangeEncodingError.tooManySwatches
         }
 
@@ -40,7 +43,15 @@ enum AdobeSwatchExchangeEncoder {
         writer.appendASCII("ASEF")
         writer.append(UInt16(1))
         writer.append(UInt16(0))
-        writer.append(UInt32(swatches.count))
+        writer.append(UInt32(blockCount))
+
+        if let groupName {
+            var payload = BigEndianDataWriter()
+            try payload.appendASEName(groupName)
+            writer.append(groupStartBlockType)
+            writer.append(UInt32(payload.data.count))
+            writer.append(payload.data)
+        }
 
         for swatch in swatches {
             let payload = try colorEntryPayload(for: swatch)
@@ -51,6 +62,11 @@ enum AdobeSwatchExchangeEncoder {
             writer.append(colorEntryBlockType)
             writer.append(UInt32(payload.count))
             writer.append(payload)
+        }
+
+        if groupName != nil {
+            writer.append(groupEndBlockType)
+            writer.append(UInt32(0))
         }
 
         return writer.data

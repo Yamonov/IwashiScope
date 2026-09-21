@@ -145,6 +145,27 @@ final class MeasurementHistoryStore {
         }.count
     }
 
+    func contextMenuEntryIDs(
+        for entryID: MeasurementHistoryEntry.ID,
+        in mode: MeasurementMode
+    ) -> Set<MeasurementHistoryEntry.ID> {
+        guard entry(for: entryID)?.measurement.mode == mode else { return [] }
+        let selectedIDs = selectedEntryIDs(for: mode)
+        return selectedIDs.contains(entryID) ? selectedIDs : [entryID]
+    }
+
+    func deletableEntryIDs(
+        in candidateIDs: Set<MeasurementHistoryEntry.ID>,
+        for mode: MeasurementMode
+    ) -> Set<MeasurementHistoryEntry.ID> {
+        Set(entries.lazy.compactMap { entry in
+            entry.measurement.mode == mode
+                && candidateIDs.contains(entry.id)
+                && self.isDeletionProtected(entry.id) == false
+                ? entry.id : nil
+        })
+    }
+
     @discardableResult
     func registerUserIlluminant(
         entryID: MeasurementHistoryEntry.ID,
@@ -410,42 +431,33 @@ final class MeasurementHistoryStore {
 
     @discardableResult
     func removeSelectedEntries(for mode: MeasurementMode) -> Int {
-        let removableEntryIDs = selectedEntryIDs(for: mode).filter {
-            isDeletionProtected($0) == false
-        }
-        guard removableEntryIDs.isEmpty == false else {
-            return 0
-        }
-
-        remove(entryIDs: removableEntryIDs, from: mode)
-        notifyPersistentChange()
-        return removableEntryIDs.count
+        removeEntries(entryIDs: selectedEntryIDs(for: mode), for: mode)
     }
 
     @discardableResult
     func remove(entryID: MeasurementHistoryEntry.ID) -> Bool {
-        guard isDeletionProtected(entryID) == false,
-              let entry = entries.first(where: { $0.id == entryID }) else {
+        guard let entry = entry(for: entryID) else {
             return false
         }
-
-        remove(entryIDs: [entryID], from: entry.measurement.mode)
-        notifyPersistentChange()
-        return true
+        return removeEntries(entryIDs: [entryID], for: entry.measurement.mode) > 0
     }
 
     @discardableResult
     func removeAllEntries(for mode: MeasurementMode) -> Int {
-        let entryIDs = Set(orderedEntries(for: mode).lazy.compactMap { entry in
-            self.isDeletionProtected(entry.id) ? nil : entry.id
-        })
-        guard entryIDs.isEmpty == false else {
-            return 0
-        }
+        removeEntries(entryIDs: Set(orderedEntries(for: mode).map(\.id)), for: mode)
+    }
 
-        remove(entryIDs: entryIDs, from: mode)
+    /// Revalidates captured targets at confirmation time, including light registrations.
+    @discardableResult
+    func removeEntries(
+        entryIDs: Set<MeasurementHistoryEntry.ID>,
+        for mode: MeasurementMode
+    ) -> Int {
+        let removableIDs = deletableEntryIDs(in: entryIDs, for: mode)
+        guard removableIDs.isEmpty == false else { return 0 }
+        remove(entryIDs: removableIDs, from: mode)
         notifyPersistentChange()
-        return entryIDs.count
+        return removableIDs.count
     }
 
     private func setExclusiveSelection(

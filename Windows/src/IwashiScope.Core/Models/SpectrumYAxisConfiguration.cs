@@ -20,7 +20,7 @@ public readonly record struct SpectrumYAxisConfiguration(
 
     public static SpectrumYAxisConfiguration ForMeasurementMode(MeasurementMode mode) => mode switch
     {
-        MeasurementMode.Reflectance => new(SpectrumYAxisMode.Fixed, 100),
+        MeasurementMode.Reflectance => new(SpectrumYAxisMode.Automatic, 100),
         MeasurementMode.Ambient => new(SpectrumYAxisMode.Automatic, 200),
         MeasurementMode.Emissive => new(SpectrumYAxisMode.Automatic, 200),
         _ => throw new ArgumentOutOfRangeException(nameof(mode)),

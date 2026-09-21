@@ -20,8 +20,10 @@ public sealed class MeasurementSessionController : IAsyncDisposable
 {
     private readonly Func<MeasurementMode, ProcessLaunchSpec> _launchSpec;
     private readonly Func<SessionTimeoutKind, TimeSpan> _timeoutFor;
+    private readonly Func<ProcessLaunchSpec, MeasurementMode, int, ISpotreadProcessSession> _processFactory;
     private readonly SemaphoreSlim _lifecycle = new(1, 1);
-    private SpotreadProcessSession? _process;
+    private readonly object _eventGate = new();
+    private ISpotreadProcessSession? _process;
     private long _generation;
     private bool _intentionalStop;
     private bool _recoveryScheduled;
@@ -35,9 +37,20 @@ public sealed class MeasurementSessionController : IAsyncDisposable
         Func<MeasurementMode, ProcessLaunchSpec> launchSpec,
         MeasurementMode initialMode = MeasurementMode.Reflectance,
         Func<SessionTimeoutKind, TimeSpan>? timeoutFor = null)
+        : this(launchSpec, initialMode, timeoutFor,
+            static (spec, mode, index) => new SpotreadProcessSession(spec, mode, index))
+    {
+    }
+
+    internal MeasurementSessionController(
+        Func<MeasurementMode, ProcessLaunchSpec> launchSpec,
+        MeasurementMode initialMode,
+        Func<SessionTimeoutKind, TimeSpan>? timeoutFor,
+        Func<ProcessLaunchSpec, MeasurementMode, int, ISpotreadProcessSession> processFactory)
     {
         _launchSpec = launchSpec;
         _timeoutFor = timeoutFor ?? MeasurementSessionTimeouts.For;
+        _processFactory = processFactory;
         State = new MeasurementSessionStateMachine(initialMode);
     }
 
@@ -59,6 +72,7 @@ public sealed class MeasurementSessionController : IAsyncDisposable
         AveragingPhase is AveragingOperationPhase.WaitingForSpectrumInput or
             AveragingOperationPhase.AnalyzingSpectrum;
     public bool IsRunning => _process?.IsRunning == true;
+    public bool CanCancelConnection => State.CanCancelConnection;
     public string? ExecutablePath => _process?.ExecutablePath;
 
     public event Action? Changed;
@@ -200,6 +214,36 @@ public sealed class MeasurementSessionController : IAsyncDisposable
         }
     }
 
+    public async Task CancelConnectionAsync(CancellationToken cancellationToken = default)
+    {
+        await _lifecycle.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            lock (_eventGate)
+            {
+                if (!State.CancelConnection()) { return; }
+                _intentionalStop = true;
+                ++_generation;
+                _recoveryScheduled = false;
+                _awaitingRecoveryConfirmation = false;
+                CalibrationCompleted = false;
+                SupportsSpectrumAnalysis = false;
+                CancelWatchdog();
+            }
+            Log.Append(new SpotreadLogEntry(
+                DateTimeOffset.UtcNow, SpotreadLogKind.Lifecycle,
+                "Instrument connection was cancelled by the user."));
+            Changed?.Invoke();
+            // Complete cleanup even if the command's caller later cancels.
+            await StopCoreAsync(CancellationToken.None).ConfigureAwait(false);
+            Changed?.Invoke();
+        }
+        finally
+        {
+            _lifecycle.Release();
+        }
+    }
+
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
         await _lifecycle.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -228,7 +272,7 @@ public sealed class MeasurementSessionController : IAsyncDisposable
         CancellationToken cancellationToken)
     {
         var generation = ++_generation;
-        var process = new SpotreadProcessSession(_launchSpec(mode), mode, InstrumentIndex);
+        var process = _processFactory(_launchSpec(mode), mode, InstrumentIndex);
         _process = process;
         process.LogReceived += Log.Append;
         process.EventReceived += @event => OnEvent(generation, @event);
@@ -267,11 +311,15 @@ public sealed class MeasurementSessionController : IAsyncDisposable
 
     private void OnEvent(long generation, SpotreadEvent @event)
     {
-        if (generation != _generation)
+        lock (_eventGate)
         {
-            return;
+            if (generation != _generation || _intentionalStop) { return; }
+            ApplyCurrentEvent(generation, @event);
         }
+    }
 
+    private void ApplyCurrentEvent(long generation, SpotreadEvent @event)
+    {
         State.Apply(@event);
         if (@event is HelloAcceptedEvent hello)
         {
@@ -576,30 +624,30 @@ public sealed class MeasurementSessionController : IAsyncDisposable
 
     private async Task OnExitAsync(long generation, SpotreadProcessExit exit)
     {
-        if (generation != _generation || exit.WasRequested || _intentionalStop)
+        lock (_eventGate)
         {
-            return;
-        }
-        if (_recoveryScheduled)
-        {
-            return;
-        }
-        _recoveryScheduled = true;
+            if (generation != _generation || exit.WasRequested || _intentionalStop ||
+                _recoveryScheduled)
+            {
+                return;
+            }
+            _recoveryScheduled = true;
 
-        if (!State.TryBeginAutomaticRecovery())
-        {
-            State.Apply(
-                new FatalIssueEvent(
-                    new SpotreadIssue
-                    {
-                        Kind = SpotreadIssueKind.FatalFailure,
-                        RecoveryAction = SpotreadRecoveryAction.Restart,
-                        Code = "recoveryExhausted",
-                        Reason = $"spotread exited with code {exit.ExitCode}.",
-                        RawText = string.Empty,
-                    }));
-            Changed?.Invoke();
-            return;
+            if (!State.TryBeginAutomaticRecovery())
+            {
+                State.Apply(
+                    new FatalIssueEvent(
+                        new SpotreadIssue
+                        {
+                            Kind = SpotreadIssueKind.FatalFailure,
+                            RecoveryAction = SpotreadRecoveryAction.Restart,
+                            Code = "recoveryExhausted",
+                            Reason = $"spotread exited with code {exit.ExitCode}.",
+                            RawText = string.Empty,
+                        }));
+                Changed?.Invoke();
+                return;
+            }
         }
 
         CalibrationCompleted = false;

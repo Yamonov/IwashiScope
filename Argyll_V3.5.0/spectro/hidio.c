@@ -370,7 +370,8 @@ int hid_get_paths(icompaths *p) {
 		}
 
 		/* Init itterator to find matching types. Consumes sdict reference */
-		if ((kstat = IOServiceGetMatchingServices(kIOMasterPortDefault, sdict, &mit))
+		/* MACH_PORT_NULL selects the default IOKit port on old and current SDKs. */
+		if ((kstat = IOServiceGetMatchingServices(MACH_PORT_NULL, sdict, &mit))
 			                                                          != KERN_SUCCESS) { 
         	a1loge(p->log, ICOM_SYS, "hid_get_paths() IOServiceGetMatchingServices returned %d\n", kstat);
 			return ICOM_SYS;
