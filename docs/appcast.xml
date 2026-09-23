@@ -6,6 +6,26 @@
         <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
         <item>
+            <title>1.1</title>
+            <pubDate>Wed, 23 Sep 2026 15:00:23 +0000</pubDate>
+            <link>https://github.com/Yamonov/IwashiScope/releases/tag/v1.1</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v1.1</sparkle:fullReleaseNotesLink>
+            <sparkle:version>67</sparkle:version>
+            <sparkle:shortVersionString>1.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+            <description><![CDATA[<ul>
+<li>Windows版をカラーマネジメント表示に対応させました。</li>
+<li>色覚シミュレーション機能を搭載しました。P/D/T型色覚で混同するカラーを確認できます。</li>
+</ul>]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v1.1/IwashiScope-1.1.zip"
+                length="6973689"
+                type="application/octet-stream"
+                sparkle:os="macos"
+                sparkle:edSignature="qXYeP6opnKHY2rnw8wC9KugP31k+tskDS6c4MVTUoZz0i/ieSjqaYvDYi+71trxdJxqssTu8pP8kFGAcUDCGBw=="
+            />
+        </item>
+        <item>
             <title>1.0.4</title>
             <pubDate>Mon, 21 Sep 2026 11:41:27 +0000</pubDate>
             <link>https://github.com/Yamonov/IwashiScope/releases/tag/v1.0.4</link>
