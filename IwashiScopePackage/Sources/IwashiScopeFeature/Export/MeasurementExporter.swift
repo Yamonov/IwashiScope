@@ -148,7 +148,10 @@ enum MeasurementExporter {
                             : options.includesD50Reference,
                         includesD65Reference: mode == .reflectance
                             ? false
-                            : options.includesD65Reference
+                            : options.includesD65Reference,
+                        includesCIE2006LMS: mode == .reflectance
+                            ? false
+                            : options.includesCIE2006LMS
                     )
                 )
             )

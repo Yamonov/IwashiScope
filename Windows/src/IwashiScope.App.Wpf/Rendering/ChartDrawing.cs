@@ -6,6 +6,9 @@ using System.Windows.Media.Imaging;
 using IwashiScope.Core.Calculations;
 using IwashiScope.Core.Models;
 
+using System.Runtime.CompilerServices;
+using IwashiScope.App.Wpf.ColorManagement;
+
 namespace IwashiScope.App.Wpf.Rendering;
 
 internal static class ChartDrawing
@@ -19,6 +22,8 @@ internal static class ChartDrawing
         new Pen(new SolidColorBrush(Color.FromArgb(128, 91, 102, 112)), 1));
     private static readonly ConcurrentDictionary<LabPlaneCacheKey, BitmapSource>
         LabPlaneCache = new();
+    private static readonly ConditionalWeakTable<DisplayColorContext, ConcurrentDictionary<LabPlaneCacheKey, BitmapSource>>
+        DisplayLabPlaneCaches = new();
     private static readonly Pen SpectrumPen =
         Freeze(new Pen(new SolidColorBrush(Color.FromRgb(128, 128, 128)), 2)
         {
@@ -110,7 +115,8 @@ internal static class ChartDrawing
         SpectrumYAxisConfiguration yAxisConfiguration,
         SpectralSample? hover = null,
         double pixelsPerDip = 1,
-        string? measurementName = null)
+        string? measurementName = null,
+        bool showLms = false)
     {
         drawing.DrawRectangle(Brushes.White, null, bounds);
         var plot = PlotRect(bounds);
@@ -229,7 +235,8 @@ internal static class ChartDrawing
                 maximumValue);
         }
         var legendX = plot.Right - 116;
-        var legendY = plot.Top + 10;
+        // Keep the reference legend below the measurement/Peak annotation row.
+        var legendY = plot.Top + 34;
         if (d50Overlay.Count > 0)
         {
             drawing.DrawLine(D50Pen, new Point(legendX, legendY + 7), new Point(legendX + 28, legendY + 7));
@@ -240,8 +247,15 @@ internal static class ChartDrawing
         {
             drawing.DrawLine(D65Pen, new Point(legendX, legendY + 7), new Point(legendX + 28, legendY + 7));
             DrawText(drawing, "D65", new Point(legendX + 34, legendY), 11, AxisBrush, pixelsPerDip);
+            legendY += 20;
         }
         DrawPolyline(drawing, spectrumPoints, SpectrumPen);
+        if (showLms && measurement.Mode.IsLighting())
+        {
+            DrawLms(drawing, plot, minimumWavelength, maximumWavelength);
+            drawing.DrawLine(LmsPen, new Point(legendX, legendY + 7), new Point(legendX + 28, legendY + 7));
+            DrawText(drawing, "CIE2006LMS", new Point(legendX + 34, legendY), 10, AxisBrush, pixelsPerDip);
+        }
         drawing.DrawRectangle(null, AxisPen, plot);
 
         var peak = samples.MaxBy(sample => sample.Value);
@@ -329,7 +343,8 @@ internal static class ChartDrawing
         DrawingContext drawing,
         Rect bounds,
         ReflectanceIlluminantSpectrumResult? result,
-        double pixelsPerDip = 1)
+        double pixelsPerDip = 1,
+        bool showLms = false)
     {
         drawing.DrawRectangle(Brushes.White, null, bounds);
         var plot = PlotRect(bounds);
@@ -407,6 +422,7 @@ internal static class ChartDrawing
             minimumWavelength,
             maximumWavelength,
             maximumValue);
+        if (showLms) DrawLms(drawing, plot, minimumWavelength, maximumWavelength);
         drawing.DrawRectangle(null, AxisPen, plot);
         DrawText(
             drawing,
@@ -558,7 +574,8 @@ internal static class ChartDrawing
         DrawingContext drawing,
         Rect bounds,
         SpotMeasurement? measurement,
-        double pixelsPerDip = 1)
+        double pixelsPerDip = 1,
+        DisplayColorContext? displayColors = null)
     {
         var lab = measurement?.Lab;
         var limit = lab is { } finiteLab && finiteLab.IsFinite
@@ -586,7 +603,8 @@ internal static class ChartDrawing
                 plot,
                 backgroundLab.First,
                 measurement.LabWhitePoint,
-                limit);
+                limit,
+                displayColors);
         }
 
         double X(double value) =>
@@ -653,11 +671,12 @@ internal static class ChartDrawing
         Rect plot,
         double lightness,
         string? whitePoint,
-        double limit)
+        double limit,
+        DisplayColorContext? displayColors)
     {
         drawing.PushClip(new RectangleGeometry(plot));
         drawing.PushOpacity(0.5);
-        drawing.DrawImage(LabPlaneImage(lightness, whitePoint, limit), plot);
+        drawing.DrawImage(LabPlaneImage(lightness, whitePoint, limit, displayColors), plot);
         drawing.Pop();
         drawing.Pop();
     }
@@ -665,12 +684,19 @@ internal static class ChartDrawing
     private static BitmapSource LabPlaneImage(
         double lightness,
         string? whitePoint,
-        double limit)
+        double limit,
+        DisplayColorContext? displayColors)
     {
         var key = new LabPlaneCacheKey(
             (int)Math.Round(Math.Clamp(lightness, 0, 100) * 2),
             (int)limit,
             whitePoint?.Contains("D65", StringComparison.OrdinalIgnoreCase) == true);
+        if (displayColors?.Transform != null)
+        {
+            var cache = DisplayLabPlaneCaches.GetValue(displayColors, _ => new());
+            if (cache.Count > 32) cache.Clear();
+            return cache.GetOrAdd(key, k => CreateManagedLabPlaneImage(k, displayColors));
+        }
         if (LabPlaneCache.Count > 32)
         {
             LabPlaneCache.Clear();
@@ -717,6 +743,22 @@ internal static class ChartDrawing
             stride);
         image.Freeze();
         return image;
+    }
+
+    private static BitmapSource CreateManagedLabPlaneImage(LabPlaneCacheKey key, DisplayColorContext displayColors)
+    {
+        const int size = 96;
+        var labs = new double[size * size * 3];
+        for (var row = 0; row < size; row++)
+        for (var column = 0; column < size; column++)
+        {
+            var lab = IccColorTransform.ToD50Lab(new(key.LightnessHalves / 2d,
+                -key.Limit + column / (size - 1d) * 2 * key.Limit,
+                key.Limit - row / (size - 1d) * 2 * key.Limit), key.IsD65 ? "D65" : "D50");
+            var offset = (row * size + column) * 3;
+            labs[offset] = lab.First; labs[offset + 1] = lab.Second; labs[offset + 2] = lab.Third;
+        }
+        return displayColors.LabImage(size, size, labs);
     }
 
     private readonly record struct LabPlaneCacheKey(
@@ -1081,6 +1123,16 @@ internal static class ChartDrawing
             var x = plot.Left + (index - 0.5) * slot;
             DrawText(drawing, index.ToString(), new Point(x - 8, plot.Bottom + 8), 10, AxisBrush, pixelsPerDip);
         }
+    }
+
+    private static readonly Pen LmsPen = Freeze(new Pen(new SolidColorBrush(Color.FromArgb(102, 128, 128, 128)), 2));
+
+    private static void DrawLms(DrawingContext drawing, Rect plot, double start, double end)
+    {
+        drawing.PushClip(new RectangleGeometry(plot));
+        foreach (var curve in Cie2006LmsReference.Curves(start, end))
+            DrawSeries(drawing, curve.Samples, LmsPen, plot, start, end, 1);
+        drawing.Pop();
     }
 
     private static void DrawSeries(

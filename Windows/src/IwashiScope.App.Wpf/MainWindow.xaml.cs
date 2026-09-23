@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using IwashiScope.App.Wpf.ColorManagement;
 using IwashiScope.App.Wpf.Export;
 using IwashiScope.App.Wpf.Layout;
 using IwashiScope.App.Wpf.Updates;
@@ -27,6 +28,7 @@ public partial class MainWindow : Window
     private readonly DragExportCache _dragExportCache = new();
     private readonly HistoryDragCoordinator _historyDragCoordinator = new();
     private readonly WinSparkleUpdater _updater;
+    private readonly DisplayProfileController _displayProfiles;
     private Point _dragStart;
     private bool _isApplyingSelection;
     private bool _shutdownApproved;
@@ -47,6 +49,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         _updater = ((App)Application.Current).Updater;
         DataContext = _viewModel;
+        _displayProfiles = new DisplayProfileController(this, _viewModel.SetDisplayColors);
         var historyView = CollectionViewSource.GetDefaultView(_viewModel.HistoryItems);
         var dateGrouping = new PropertyGroupDescription(nameof(HistoryItemViewModel.DateKey));
         dateGrouping.SortDescriptions.Add(new SortDescription(nameof(CollectionViewGroup.Name), ListSortDirection.Descending));
@@ -868,6 +871,7 @@ public partial class MainWindow : Window
                 UsePracticalSpectrumRange = _viewModel.UsePracticalRange,
                 ShowD50 = ExportD50CheckBox.IsChecked == true,
                 ShowD65 = ExportD65CheckBox.IsChecked == true,
+                ShowLms = ExportLmsCheckBox.IsChecked == true,
                 SpectrumYAxisConfiguration = _viewModel.YAxisConfiguration,
             };
 
@@ -879,6 +883,7 @@ public partial class MainWindow : Window
         LightingSpectrumPngCheckBox.IsChecked = true;
         ExportD50CheckBox.IsChecked = false;
         ExportD65CheckBox.IsChecked = false;
+        ExportLmsCheckBox.IsChecked = false;
         ExportCriPngCheckBox.IsChecked = false;
         ExportTm30PngCheckBox.IsChecked = false;
         LightingCsvCheckBox.IsChecked = false;

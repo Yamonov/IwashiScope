@@ -140,6 +140,7 @@ struct SpectrumChartView: View {
 
     @State private var showsD50Reference = false
     @State private var showsD65Reference = false
+    @State private var showsCIE2006LMS = false
     @State private var hoveredWavelength: Double?
 
     init(
@@ -152,7 +153,8 @@ struct SpectrumChartView: View {
         yAxisConfiguration: SpectrumYAxisConfiguration,
         roundsPlotAreaCorners: Bool = true,
         initialShowsD50Reference: Bool = false,
-        initialShowsD65Reference: Bool = false
+        initialShowsD65Reference: Bool = false,
+        initialShowsCIE2006LMS: Bool = false
     ) {
         self.mode = mode
         self.measurement = measurement
@@ -164,6 +166,11 @@ struct SpectrumChartView: View {
         self.roundsPlotAreaCorners = roundsPlotAreaCorners
         _showsD50Reference = State(initialValue: initialShowsD50Reference)
         _showsD65Reference = State(initialValue: initialShowsD65Reference)
+        _showsCIE2006LMS = State(initialValue: initialShowsCIE2006LMS)
+    }
+
+    private var displaysCIE2006LMS: Bool {
+        mode != .reflectance && showsCIE2006LMS
     }
 
     private var allSamples: [SpectralSample] {
@@ -254,7 +261,7 @@ struct SpectrumChartView: View {
                     if showsReferenceControls {
                         referenceControls
                         Divider()
-                    } else if showsD50Reference || showsD65Reference {
+                    } else if showsD50Reference || showsD65Reference || displaysCIE2006LMS {
                         exportedReferenceLegend
                         Divider()
                     }
@@ -272,31 +279,50 @@ struct SpectrumChartView: View {
     }
 
     private var referenceControls: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 6) {
             Text("基準分光分布")
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
 
             Toggle(isOn: $showsD50Reference) {
                 ReferenceSpectrumToggleLabel(title: "CIE D50（ISO 3664参照）", color: .orange)
             }
             .toggleStyle(.checkbox)
+            .fixedSize()
             .help("ISO 3664で参照されるCIE標準光源D50を重ねます")
 
             Toggle(isOn: $showsD65Reference) {
                 ReferenceSpectrumToggleLabel(title: "CIE D65（ISO 3668参照）", color: .blue)
             }
             .toggleStyle(.checkbox)
+            .fixedSize()
             .help("ISO 3668で参照されるCIE標準光源D65を重ねます")
 
-            Spacer(minLength: 8)
+            Toggle(isOn: $showsCIE2006LMS) {
+                ReferenceSpectrumToggleLabel(
+                    title: "CIE2006LMS",
+                    color: .gray.opacity(CIE2006LMSReference.strokeOpacity)
+                )
+            }
+            .toggleStyle(.checkbox)
+            .fixedSize()
+            .help("CIE 2006の2°視野・エネルギー基準のLMS感度を参考表示します。各曲線のピークを1とし、測色・色順応の計算には使用しません。")
+            .accessibilityIdentifier("spectrum-cie-2006-lms-toggle")
+
+            Spacer(minLength: 0)
 
             if showsD50Reference || showsD65Reference {
-                Text("560 nmで測定値に合わせて表示")
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                ViewThatFits(in: .horizontal) {
+                    Text("560 nmで測定値に合わせて表示")
+                        .fixedSize()
+                    Color.clear.frame(width: 0, height: 0)
+                }
+                .foregroundStyle(.secondary)
+                .layoutPriority(-1)
             }
         }
         .font(.caption)
+        .controlSize(.small)
         .frame(maxWidth: .infinity)
     }
 
@@ -317,9 +343,17 @@ struct SpectrumChartView: View {
                     color: .blue
                 )
             }
+            if displaysCIE2006LMS {
+                ReferenceSpectrumToggleLabel(
+                    title: "CIE2006LMS",
+                    color: .gray.opacity(CIE2006LMSReference.strokeOpacity)
+                )
+            }
             Spacer()
-            Text("560 nmで測定値に合わせて表示")
-                .foregroundStyle(.secondary)
+            if showsD50Reference || showsD65Reference {
+                Text("560 nmで測定値に合わせて表示")
+                    .foregroundStyle(.secondary)
+            }
         }
         .font(.caption)
         .frame(maxWidth: .infinity)
@@ -419,11 +453,22 @@ struct SpectrumChartView: View {
                 )
         }
         .chartOverlay { proxy in
-            spectrumHoverOverlay(proxy: proxy)
+            ZStack {
+                if displaysCIE2006LMS {
+                    CIE2006LMSChartOverlay(
+                        proxy: proxy,
+                        curves: CIE2006LMSReference.curves(in: displayRange),
+                        yUpperBound: resolvedYAxisScale.upperBound,
+                        roundsPlotAreaCorners: roundsPlotAreaCorners
+                    )
+                }
+                spectrumHoverOverlay(proxy: proxy)
+            }
         }
         .frame(height: 400)
         .accessibilityLabel("スペクトル分布グラフ")
         .accessibilityHint("波長ごとの測定値と、選択したD50またはD65の基準分光分布を表示します")
+        .accessibilityValue(displaysCIE2006LMS ? "CIE 2006 LMSの参考曲線を表示中。" : "")
         .overlay(alignment: .topTrailing) {
             if let visiblePeak {
                 Text(

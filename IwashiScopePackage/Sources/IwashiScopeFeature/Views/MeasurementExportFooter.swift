@@ -108,6 +108,12 @@ struct MeasurementExportFooter: View {
                     isAvailable: availability.hasSpectrum
                         && options.includesSpectrumImage
                 )
+                exportToggle(
+                    "CIE2006LMS",
+                    isOn: $options.includesCIE2006LMS,
+                    isAvailable: availability.hasSpectrum
+                        && options.includesSpectrumImage
+                )
             }
             .padding(.leading, 22)
             .opacity(options.includesSpectrumImage ? 1 : 0.45)

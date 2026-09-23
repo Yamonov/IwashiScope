@@ -17,6 +17,7 @@ public sealed record MeasurementExportOptions
     public bool UsePracticalSpectrumRange { get; init; } = true;
     public bool ShowD50 { get; init; }
     public bool ShowD65 { get; init; }
+    public bool ShowLms { get; init; }
     public SpectrumYAxisConfiguration? SpectrumYAxisConfiguration { get; init; }
 
     public static MeasurementExportOptions ForDrag(
@@ -29,6 +30,7 @@ public sealed record MeasurementExportOptions
         Csv = false,
         ShowD50 = false,
         ShowD65 = false,
+        ShowLms = false,
         UsePracticalSpectrumRange = practicalRange,
         SpectrumYAxisConfiguration = yAxis,
     };
@@ -123,7 +125,8 @@ public sealed class MeasurementExportService
                         options.ShowD50,
                         options.ShowD65,
                         options.SpectrumYAxisConfiguration,
-                        entry.Name),
+                        entry.Name,
+                        options.ShowLms),
                     cancellationToken).ConfigureAwait(false);
                 paths.Add(path);
             }

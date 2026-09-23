@@ -1,6 +1,182 @@
 {
   "sourceLanguage" : "ja",
   "strings" : {
+    "明るさ（参考）" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brightness (ref.)"
+          }
+        }
+      }
+    },
+    "押している間、タイプ別の相対輝度を均一なグレーで表示します。離すとカラーに戻ります。" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold to show the type-specific relative luminance as a uniform gray. Release to restore color."
+          }
+        }
+      }
+    },
+    "参考グレー：帯と測定点を同じ相対輝度で表示しています。" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference gray: the band and marker have the same relative luminance."
+          }
+        }
+      }
+    },
+    "タイプ別の相対輝度を一定にして表示（色域外は彩度を調整）。" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type-specific relative luminance is constant; chroma is reduced outside the display gamut."
+          }
+        }
+      }
+    },
+    "PはM、DはL、TはL/Mの輝度成分をD50白に対して規格化した参考モデルです。主観的な明るさや、実際のモニター上の錐体応答一致を保証するものではありません。" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reference model normalizes M for P, L for D, and the L/M luminance component for T to D50 white. It does not guarantee subjective brightness or matching cone responses on a real monitor."
+          }
+        }
+      }
+    },
+    "白を超える相対輝度は、画面の表示上限に合わせています。" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relative luminance above white is limited to the display maximum."
+          }
+        }
+      }
+    },
+    "色覚タイプ" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color vision type"
+          }
+        }
+      }
+    },
+    "の混同色を表示" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "confusion colors"
+          }
+        }
+      }
+    },
+    "xy色度図" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "xy Chromaticity Diagram"
+          }
+        }
+      }
+    },
+    "測定結果（D50）" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Measurement (D50)"
+          }
+        }
+      }
+    },
+    "混同線" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confusion lines"
+          }
+        }
+      }
+    },
+    "測定Labがないため、測定点は輪郭のみで表示します。" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No measured Lab is available; the point is shown as an outline."
+          }
+        }
+      }
+    },
+    "円の色は測定Labの表示色です。座標はRGBから逆算していません。" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The marker uses the measured Lab display color. Its coordinates are not derived from RGB."
+          }
+        }
+      }
+    },
+    "色度を計算できないスペクトルです。" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromaticity cannot be calculated from this spectrum."
+          }
+        }
+      }
+    },
+    "色度の計算に必要な反射スペクトルがありません。" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The reflectance spectrum required to calculate chromaticity is unavailable."
+          }
+        }
+      }
+    },
+    "反射光がゼロのため、色度を定義できません。" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chromaticity is undefined because the reflected light is zero."
+          }
+        }
+      }
+    },
     "色順応" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Chromatic Adaptation"}}}},
     "選択履歴を削除" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Delete Selected History"}}}},
     "選択履歴を削除しますか？" : {"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Delete the selected history?"}}}},

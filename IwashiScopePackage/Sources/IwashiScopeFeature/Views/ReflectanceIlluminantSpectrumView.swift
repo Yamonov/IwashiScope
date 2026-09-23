@@ -1,10 +1,10 @@
-import Charts
 import SwiftUI
 
 struct ReflectanceIlluminantSpectrumView: View {
     @State private var selection: ReflectanceIlluminantSelection = .none
     @State private var sourceKind: ReflectanceIlluminantSourceKind = .cie
     @State private var appearanceMethod: ReflectanceAppearanceMethod = .ciecam16
+    @State private var showsCIE2006LMS = false
 
     let measurement: SpotMeasurement?
     let usesPracticalSpectrumRange: Bool
@@ -48,7 +48,10 @@ struct ReflectanceIlluminantSpectrumView: View {
                         userSourceMetadata(source)
                     }
                     legend(for: result)
-                    chart(result)
+                    ReflectanceIlluminantSpectrumChart(
+                        result: result,
+                        showsCIE2006LMS: showsCIE2006LMS
+                    )
 
                     Divider()
                     ReflectanceIlluminantColorComparisonView(
@@ -79,13 +82,24 @@ struct ReflectanceIlluminantSpectrumView: View {
     }
 
     private var sourceControls: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 6) {
             sourceRadioButton(.cie, showsTitle: false)
             illuminantPicker
             sourceRadioButton(.user1)
             sourceRadioButton(.user2)
             sourceRadioButton(.user3)
+            Spacer(minLength: 0)
+            Toggle(isOn: $showsCIE2006LMS) {
+                Text(verbatim: "CIE2006LMS")
+            }
+            .toggleStyle(.checkbox)
+            .fixedSize()
+            .disabled(measurement == nil)
+            .help("CIE 2006の2°視野・エネルギー基準のLMS感度を参考表示します。各曲線のピークを1とし、測色・色順応の計算には使用しません。")
+            .accessibilityIdentifier("cie-2006-lms-toggle")
         }
+        .font(.callout)
+        .controlSize(.small)
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("光源データ")
@@ -149,7 +163,7 @@ struct ReflectanceIlluminantSpectrumView: View {
         .pickerStyle(.menu)
         .labelsHidden()
         .disabled(measurement == nil || sourceKind != .cie)
-        .frame(width: 210, alignment: .leading)
+        .frame(minWidth: 80, idealWidth: 210, maxWidth: 210, alignment: .leading)
         .help("反射光の計算に使用するCIE参考光源を選択します")
         .accessibilityIdentifier("cie-reference-illuminant-picker")
     }
@@ -214,7 +228,15 @@ struct ReflectanceIlluminantSpectrumView: View {
     private func legend(
         for result: ReflectanceIlluminantSpectrumResult
     ) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        let description = String(localized: result.illuminant.isEmpty
+            ? "縦軸：分光反射率（%）"
+            : "黒：分光反射率（%）／黄：ピーク100の光源SPD／色付き面：光源SPD × 分光反射率"
+        ) + (showsCIE2006LMS
+            ? String(localized: "／グレー：CIE 2006 LMS（2°・エネルギー基準）")
+            : ""
+        )
+
+        return VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 16) {
                 ReflectanceSpectrumLineLegend(
                     title: "計測反射率",
@@ -232,131 +254,23 @@ struct ReflectanceIlluminantSpectrumView: View {
                 if result.reflectedLight.isEmpty == false {
                     ReflectanceSpectrumGradientLegend(title: "反射光")
                 }
-            }
 
-            Text(
-                result.illuminant.isEmpty
-                    ? "縦軸：分光反射率（%）"
-                    : "黒：分光反射率（%）／黄：ピーク100の光源SPD／色付き面：光源SPD × 分光反射率"
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func chart(
-        _ result: ReflectanceIlluminantSpectrumResult
-    ) -> some View {
-        let spectrumGradient = SpectrumChartStyle.gradient(
-            for: result.wavelengthRange
-        )
-        let yAxisScale = SpectrumYAxisScale.resolve(
-            automaticUpperBound: result.automaticUpperBound,
-            configuration: SpectrumYAxisConfiguration(
-                mode: .automatic,
-                fixedUpperBound: 100
-            )
-        )
-
-        return Chart {
-            ForEach(result.reflectedLight) { sample in
-                AreaMark(
-                    x: .value("波長（nm）", sample.wavelength),
-                    yStart: .value("基準", 0.0),
-                    yEnd: .value("反射光相対値", sample.value)
-                )
-                .interpolationMethod(.linear)
-                .foregroundStyle(spectrumGradient)
-                .alignsMarkStylesWithPlotArea()
-            }
-
-            ForEach(result.measuredReflectance) { sample in
-                LineMark(
-                    x: .value("波長（nm）", sample.wavelength),
-                    y: .value("計測反射率（%）", sample.value),
-                    series: .value("系列", "計測反射率")
-                )
-                .interpolationMethod(.linear)
-                .lineStyle(
-                    .init(
-                        lineWidth: 2.2,
-                        lineCap: .round,
-                        lineJoin: .round
+                if showsCIE2006LMS {
+                    ReflectanceSpectrumLineLegend(
+                        title: "CIE2006LMS",
+                        color: .gray.opacity(CIE2006LMSReference.strokeOpacity)
                     )
-                )
-                .foregroundStyle(Color.black)
-            }
-
-            ForEach(result.illuminant) { sample in
-                LineMark(
-                    x: .value("波長（nm）", sample.wavelength),
-                    y: .value("光源相対値", sample.value),
-                    series: .value("系列", "選択光源")
-                )
-                .interpolationMethod(.linear)
-                .lineStyle(
-                    .init(
-                        lineWidth: 2.4,
-                        lineCap: .round,
-                        lineJoin: .round,
-                        dash: [7, 4]
-                    )
-                )
-                .foregroundStyle(Color.yellow)
-            }
-        }
-        .chartXScale(domain: result.wavelengthRange)
-        .chartYScale(domain: 0...yAxisScale.upperBound)
-        .chartXAxis {
-            AxisMarks(
-                values: SpectrumChartScale.axisValues(
-                    for: result.wavelengthRange
-                )
-            ) {
-                AxisGridLine()
-                AxisTick()
-                AxisValueLabel()
-            }
-        }
-        .chartYAxis {
-            AxisMarks(
-                position: .leading,
-                values: yAxisScale.tickValues
-            ) { value in
-                AxisGridLine()
-                AxisTick()
-                if let tickValue = value.as(Double.self) {
-                    AxisValueLabel {
-                        Text(
-                            tickValue.formatted(
-                                .number.precision(.fractionLength(0))
-                            )
-                        )
-                    }
                 }
             }
+
+            Text(description)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .help(description)
         }
-        .chartXAxisLabel(
-            "(nm)",
-            position: .bottom,
-            alignment: .trailing,
-            spacing: 0
-        )
-        .chartLegend(.hidden)
-        .chartPlotStyle { plotArea in
-            plotArea
-                .background(spectrumGradient.opacity(0.17))
-                .compositingGroup()
-                .clipShape(.rect(cornerRadius: 6))
-        }
-        .frame(height: 400)
-        .accessibilityLabel("光源による反射光スペクトルグラフ")
-        .accessibilityHint(
-            result.illuminant.isEmpty
-                ? "波長ごとの計測反射率を表示します"
-                : "計測反射率、選択光源、光源を適用した反射光の相対分光分布を表示します"
-        )
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var uvWarning: some View {

@@ -5,12 +5,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-    <VersionPrefix>1.0.4</VersionPrefix>
-    <Version>1.0.4</Version>
-    <IwashiScopeBuildNumber>54</IwashiScopeBuildNumber>
-    <AssemblyVersion>1.0.4.$(IwashiScopeBuildNumber)</AssemblyVersion>
-    <FileVersion>1.0.4.$(IwashiScopeBuildNumber)</FileVersion>
-    <InformationalVersion>1.0.4</InformationalVersion>
+    <VersionPrefix>1.1</VersionPrefix>
+    <Version>1.1</Version>
+    <ProductVersion>1.1</ProductVersion>
+    <IwashiScopeBuildNumber>80</IwashiScopeBuildNumber>
+    <AssemblyVersion>1.1.0.$(IwashiScopeBuildNumber)</AssemblyVersion>
+    <FileVersion>1.1.0.$(IwashiScopeBuildNumber)</FileVersion>
+    <InformationalVersion>1.1</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Authors>Yamonov</Authors>
     <Product>IwashiScope</Product>

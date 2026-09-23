@@ -2,3 +2,7 @@
 # remain valid regardless of a contributor's line-ending configuration.
 ThirdParty/CIE/*.csv -text
 ThirdParty/CIE/*.json -text
+# Keep the pinned Little CMS upstream sources byte-for-byte, including whitespace.
+Windows/ThirdParty/LittleCMS/include/** -text
+Windows/ThirdParty/LittleCMS/src/** -text
+Windows/ThirdParty/LittleCMS/LICENSE -text

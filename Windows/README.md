@@ -1,8 +1,22 @@
 # IwashiScope for Windows
 
-IwashiScope 1.0.4 for Windows is the .NET 10 + WPF port of the macOS
+IwashiScope 1.1 for Windows is the .NET 10 + WPF port of the macOS
 application in this repository. It uses the same modified ArgyllCMS 3.5.0
 source and JSON Lines protocol version 3 as the macOS build.
+
+Version 1.1 adds CIE2006 LMS reference overlays and the reflectance CIE2015
+xy_F diagram. Raw candidates match P=M/S, D=L/S and T=L/M; display colors
+preserve a type-specific white-relative scalar q, reducing out-of-gamut chroma.
+The momentary brightness-reference button shows the corresponding uniform gray.
+The decorative background is a separate smooth Y_F=20 illustration model.
+The illustration palettes retain their explicit sRGB reference model, then receive
+monitor-ICC display conversion. Measured patches are transformed directly from Lab,
+without first clipping to sRGB. Windows supplies the effective monitor ICC, and
+Little CMS performs the matrix/TRC or LUT conversion. See
+[`DISPLAY_COLOR_MANAGEMENT.md`](DISPLAY_COLOR_MANAGEMENT.md) for the D50 viewing
+condition, SDR/ACM/HDR boundaries and physical-validation requirements.
+These are reference models, not predictions of subjective brightness. Measurement
+XYZ/Lab, CIECAM16, stored histories and drag-export defaults are unchanged.
 
 The normal application does not contain fake measurement data or a fake
 measurement process. A real `iwashiscope-spotread.exe`, built from the
@@ -162,8 +176,8 @@ from overwriting the other platform's release history.
 ## Version and signing
 
 The Windows product, assembly, file, and informational versions are defined in
-`Directory.Build.props`. The product and informational version is `1.0.4`;
-the file and assembly versions are `1.0.4.<IwashiScopeBuildNumber>`. Increase
+`Directory.Build.props`. The product and informational version is `1.1`;
+the file and assembly versions are `1.1.0.<IwashiScopeBuildNumber>`. Increase
 `IwashiScopeBuildNumber` before every application build, including a retry.
 WinSparkle receives the full assembly build version for update comparisons.
 The installer retains that full version in FileVersion, while ProductVersion

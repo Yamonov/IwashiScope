@@ -54,6 +54,8 @@ JAM=/absolute/path/to/jam \
 ```sh
 Scripts/generate-cie-standard-illuminants.swift
 Scripts/generate-cie-standard-illuminants.swift --check
+swift Scripts/generate-cie-2006-lms.swift
+swift Scripts/generate-cie-2006-lms.swift --check
 ```
 
 原データはCC BY-SA 4.0、生成されたSwift・C#適応物はGPL-3.0-onlyです。AGPL-3.0-onlyのIwashiScope部分とはGPLv3・AGPLv3双方の第13条に基づいて結合されます。詳細は`ThirdParty/CIE/README.md`を参照してください。

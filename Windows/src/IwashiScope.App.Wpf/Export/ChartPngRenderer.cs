@@ -28,7 +28,8 @@ public static class ChartPngRenderer
         bool showD50,
         bool showD65,
         SpectrumYAxisConfiguration? yAxisConfiguration = null,
-        string? measurementName = null) =>
+        string? measurementName = null,
+        bool showLms = false) =>
         Render(drawing =>
             ChartDrawing.DrawSpectrum(
                 drawing,
@@ -39,7 +40,8 @@ public static class ChartPngRenderer
                 showD65,
                 yAxisConfiguration ?? SpectrumYAxisConfiguration.ForMeasurementMode(measurement.Mode),
                 pixelsPerDip: 1,
-                measurementName: measurementName));
+                measurementName: measurementName,
+                showLms: showLms));
 
     public static byte[] Cri(SpotMeasurement measurement) =>
         Render(drawing =>

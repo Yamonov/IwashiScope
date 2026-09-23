@@ -80,6 +80,17 @@ Scripts/build-spotread.sh
 Scripts/build-spotread-windows.ps1
 Windows/.gitignore
 Windows/README.md
+Windows/DISPLAY_COLOR_MANAGEMENT.md
+Windows/Native/DisplayColor/build.cmd
+Windows/Native/DisplayColor/display_info.c
+Windows/ThirdParty/LittleCMS/LICENSE
+Windows/ThirdParty/LittleCMS/UPSTREAM.md
+Windows/ThirdParty/LittleCMS/SHA256SUMS
+Scripts/generate-cie-2006-lms.swift
+ThirdParty/CIE/CIE_lms_cf_2deg.csv
+ThirdParty/CIE/CIE_lms_cf_2deg.csv_metadata.json
+IwashiScopePackage/Sources/IwashiScopeFeature/Models/CIE2006LMSData.generated.swift
+Windows/src/IwashiScope.Core/Calculations/Cie2006LmsData.generated.cs
 Windows/Directory.Build.props
 Windows/IwashiScope.Windows.slnx
 Windows/Scripts/Build-Release.ps1
@@ -184,12 +195,19 @@ for diff_mode in working staged; do
 	if ! diff_output=$(
 		$diff_command -- . \
 			':(exclude)ThirdParty/CIE/*.csv' \
-			':(exclude)ThirdParty/CIE/*.json' 2>&1
+			':(exclude)ThirdParty/CIE/*.json' \
+			':(exclude)Windows/ThirdParty/LittleCMS/include/**' \
+			':(exclude)Windows/ThirdParty/LittleCMS/src/**' \
+			':(exclude)Windows/ThirdParty/LittleCMS/LICENSE' 2>&1
 	); then
 		printf '%s\n' "$diff_output" >&2
 		fail "$diff_mode source changes contain whitespace errors"
 	fi
 done
+
+# Vendor whitespace is preserved, not reformatted; verify exact upstream bytes.
+(cd Windows/ThirdParty/LittleCMS && shasum -a 256 -c SHA256SUMS >/dev/null) \
+	|| fail "Little CMS sources differ from the pinned upstream checksums"
 
 cmp -s Argyll_V3.5.0/License3.txt LICENSES/GPL-3.0-only.txt \
 	|| fail "source GPL-3.0-only text does not match the official GPLv3 copy"
@@ -202,6 +220,9 @@ trap 'rm -rf "$module_cache"' EXIT HUP INT TERM
 CLANG_MODULE_CACHE_PATH="$module_cache/clang" \
 SWIFT_MODULECACHE_PATH="$module_cache/swift" \
 	Scripts/generate-cie-standard-illuminants.swift --check
+CLANG_MODULE_CACHE_PATH="$module_cache/clang" \
+SWIFT_MODULECACHE_PATH="$module_cache/swift" \
+	swift Scripts/generate-cie-2006-lms.swift --check
 
 generated_cie_file=IwashiScopePackage/Sources/IwashiScopeFeature/Models/CIEStandardIlluminantData.generated.swift
 grep -F 'SPDX-License-Identifier: GPL-3.0-only' "$generated_cie_file" >/dev/null \

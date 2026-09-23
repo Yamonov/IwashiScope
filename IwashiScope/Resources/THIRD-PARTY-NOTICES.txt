@@ -41,3 +41,16 @@ Sparkleが使用するbsdiff、sais-lite、Ed25519実装などの通知も、同
 生成されたSwiftファイルは、CC BY-SA 4.0データの適応物です。CIEの原データにはCC BY-SA 4.0が引き続き適用され、Yamonovによる適応への寄与は、Creative CommonsがCC BY-SA 4.0の一方向互換ライセンスとして指定したGPL-3.0-onlyで提供されます。CC BY-SA 4.0とGPL-3.0-onlyの双方が適用されます。
 
 このGPL-3.0-only適応物は、GPLv3およびAGPLv3の第13条に基づき、AGPL-3.0-onlyのIwashiScope本体と結合されます。GPL-3.0-onlyは適応物部分に、AGPL-3.0-onlyはIwashiScope部分に引き続き適用されます。完全な帰属、変更表示、チェックサム、再生成方法は公開ソースの`ThirdParty/CIE/README.md`を参照してください。GPLv3本文は`GPL-3.0-only.txt`、AGPLv3本文は`ArgyllCMS-AGPL-3.0.txt`にあります。
+
+## CIE 2006 LMS錐体基本関数（2°視野・エネルギー基準）
+
+- 作成者・公開者: International Commission on Illumination (CIE), Vienna, AT
+- 出典: CIE 170-1:2006, Table 6.7
+- データページ: <https://cie.co.at/datatable/cie-2006-lms-cone-fundamentals-2-field-size-terms-energy>
+- DOI: `10.25039/CIE.DS.tijidesg`
+- 原データのライセンス: CC BY-SA 4.0
+- Swift適応物のライセンス: GNU GPLバージョン3のみ（GPL-3.0-only）
+
+公式CSVとメタデータは`ThirdParty/CIE/CIE_lms_cf_2deg.csv`および同名の`csv_metadata.json`に改変せず収録します。`Scripts/generate-cie-2006-lms.swift`は有限値の5 nmデータを`CIE2006LMSData.generated.swift`へ配列化します。L・Mは390〜830 nm、Sは390〜615 nmです。参考曲線の表示時だけ各ピークを1に正規化します。追加の色度図では、元のLMSデータとD50を積分し、CIE 170-2:2015の行列でx_F・y_Fを求めます。既存の測定XYZ/Lab・色順応計算は変更しません。詳細は`ThirdParty/CIE/README.md`を参照してください。
+
+原データへのCC BY-SA 4.0と、YamonovによるSwift適応へのGPL-3.0-onlyの双方が適用されます。上記のCIE光源データと同じ一方向互換およびGPLv3・AGPLv3第13条の条件で結合します。完全な帰属、変更内容、チェックサム、再生成手順は公開ソースの`ThirdParty/CIE/README.md`を参照してください。

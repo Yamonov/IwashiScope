@@ -1,0 +1,158 @@
+[
+  {
+    "cgName" : "kCGColorSpaceExtendedLinearSRGB",
+    "name" : "sRGB",
+    "probes" : [
+      {
+        "inputLinearSRGB" : [
+          0,
+          0,
+          0
+        ],
+        "outputLinearRGB" : [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "inputLinearSRGB" : [
+          1,
+          0,
+          0
+        ],
+        "outputLinearRGB" : [
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "inputLinearSRGB" : [
+          0,
+          1,
+          0
+        ],
+        "outputLinearRGB" : [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "inputLinearSRGB" : [
+          0,
+          0,
+          1
+        ],
+        "outputLinearRGB" : [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "inputLinearSRGB" : [
+          1,
+          1,
+          1
+        ],
+        "outputLinearRGB" : [
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "inputLinearSRGB" : [
+          -1,
+          2,
+          0.5
+        ],
+        "outputLinearRGB" : [
+          -1,
+          2,
+          0.5
+        ]
+      }
+    ]
+  },
+  {
+    "cgName" : "kCGColorSpaceExtendedLinearDisplayP3",
+    "name" : "Display P3",
+    "probes" : [
+      {
+        "inputLinearSRGB" : [
+          0,
+          0,
+          0
+        ],
+        "outputLinearRGB" : [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "inputLinearSRGB" : [
+          1,
+          0,
+          0
+        ],
+        "outputLinearRGB" : [
+          0.82242608070373535,
+          0.033219829201698303,
+          0.017074177041649818
+        ]
+      },
+      {
+        "inputLinearSRGB" : [
+          0,
+          1,
+          0
+        ],
+        "outputLinearRGB" : [
+          0.17755700647830963,
+          0.96679824590682983,
+          0.072374783456325531
+        ]
+      },
+      {
+        "inputLinearSRGB" : [
+          0,
+          0,
+          1
+        ],
+        "outputLinearRGB" : [
+          1.6891721315914765e-05,
+          -1.806962609407492e-05,
+          0.91055107116699219
+        ]
+      },
+      {
+        "inputLinearSRGB" : [
+          1,
+          1,
+          1
+        ],
+        "outputLinearRGB" : [
+          0.99999994039535522,
+          1,
+          1
+        ]
+      },
+      {
+        "inputLinearSRGB" : [
+          -1,
+          2,
+          0.5
+        ],
+        "outputLinearRGB" : [
+          -0.46730363368988037,
+          1.9003676176071167,
+          0.58295094966888428
+        ]
+      }
+    ]
+  }
+]

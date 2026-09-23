@@ -15,7 +15,8 @@ enum MeasurementExportImageRenderer {
         usesPracticalSpectrumRange: Bool,
         yAxisConfiguration: SpectrumYAxisConfiguration,
         includesD50Reference: Bool,
-        includesD65Reference: Bool
+        includesD65Reference: Bool,
+        includesCIE2006LMS: Bool = false
     ) throws -> Data {
         try png(
             SpectrumChartView(
@@ -28,7 +29,8 @@ enum MeasurementExportImageRenderer {
                 yAxisConfiguration: yAxisConfiguration,
                 roundsPlotAreaCorners: false,
                 initialShowsD50Reference: includesD50Reference,
-                initialShowsD65Reference: includesD65Reference
+                initialShowsD65Reference: includesD65Reference,
+                initialShowsCIE2006LMS: includesCIE2006LMS
             )
         )
     }

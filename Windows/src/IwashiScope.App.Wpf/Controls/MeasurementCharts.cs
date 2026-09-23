@@ -1,13 +1,14 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using IwashiScope.App.Wpf.ColorManagement;
 using IwashiScope.App.Wpf.Rendering;
 using IwashiScope.Core.Calculations;
 using IwashiScope.Core.Models;
 
 namespace IwashiScope.App.Wpf.Controls;
 
-public sealed class SpectrumChart : FrameworkElement
+public sealed class SpectrumChart : ColorManagedChartElement
 {
     public SpectrumChart()
     {
@@ -41,6 +42,11 @@ public sealed class SpectrumChart : FrameworkElement
             typeof(bool),
             typeof(SpectrumChart),
             new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty ShowLmsProperty = DependencyProperty.Register(
+        nameof(ShowLms), typeof(bool), typeof(SpectrumChart),
+        new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
+    public bool ShowLms { get => (bool)GetValue(ShowLmsProperty); set => SetValue(ShowLmsProperty, value); }
 
     public static readonly DependencyProperty YAxisConfigurationProperty =
         DependencyProperty.Register(
@@ -96,9 +102,8 @@ public sealed class SpectrumChart : FrameworkElement
         set => SetValue(MeasurementNameProperty, value);
     }
 
-    protected override void OnRender(DrawingContext drawingContext)
+    protected override void DrawContent(DrawingContext drawingContext)
     {
-        base.OnRender(drawingContext);
         var bounds = new Rect(RenderSize);
         if (Measurement is null)
         {
@@ -115,7 +120,8 @@ public sealed class SpectrumChart : FrameworkElement
             YAxisConfiguration,
             _hover,
             VisualTreeHelper.GetDpi(this).PixelsPerDip,
-            MeasurementName);
+            MeasurementName,
+            ShowLms);
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
@@ -148,7 +154,7 @@ public sealed class SpectrumChart : FrameworkElement
     }
 }
 
-public abstract class MeasurementChartElement : FrameworkElement
+public abstract class MeasurementChartElement : ColorManagedChartElement
 {
     protected MeasurementChartElement()
     {
@@ -171,9 +177,8 @@ public abstract class MeasurementChartElement : FrameworkElement
 
 public sealed class CriChart : MeasurementChartElement
 {
-    protected override void OnRender(DrawingContext drawingContext)
+    protected override void DrawContent(DrawingContext drawingContext)
     {
-        base.OnRender(drawingContext);
         ChartDrawing.DrawCri(
             drawingContext,
             new Rect(RenderSize),
@@ -184,9 +189,8 @@ public sealed class CriChart : MeasurementChartElement
 
 public sealed class Tm30VectorChart : MeasurementChartElement
 {
-    protected override void OnRender(DrawingContext drawingContext)
+    protected override void DrawContent(DrawingContext drawingContext)
     {
-        base.OnRender(drawingContext);
         ChartDrawing.DrawTm30Vector(
             drawingContext,
             new Rect(RenderSize),
@@ -197,9 +201,8 @@ public sealed class Tm30VectorChart : MeasurementChartElement
 
 public sealed class RfRgChart : MeasurementChartElement
 {
-    protected override void OnRender(DrawingContext drawingContext)
+    protected override void DrawContent(DrawingContext drawingContext)
     {
-        base.OnRender(drawingContext);
         ChartDrawing.DrawRfRg(
             drawingContext,
             new Rect(RenderSize),
@@ -210,9 +213,8 @@ public sealed class RfRgChart : MeasurementChartElement
 
 public sealed class Tm30SampleChart : MeasurementChartElement
 {
-    protected override void OnRender(DrawingContext drawingContext)
+    protected override void DrawContent(DrawingContext drawingContext)
     {
-        base.OnRender(drawingContext);
         ChartDrawing.DrawTm30Samples(
             drawingContext,
             new Rect(RenderSize),
@@ -223,9 +225,8 @@ public sealed class Tm30SampleChart : MeasurementChartElement
 
 public sealed class LightingHistoryChart : MeasurementChartElement
 {
-    protected override void OnRender(DrawingContext drawingContext)
+    protected override void DrawContent(DrawingContext drawingContext)
     {
-        base.OnRender(drawingContext);
         ChartDrawing.DrawLightingHistoryThumbnail(
             drawingContext,
             new Rect(RenderSize),
@@ -235,19 +236,24 @@ public sealed class LightingHistoryChart : MeasurementChartElement
 
 public sealed class LabABChart : MeasurementChartElement
 {
-    protected override void OnRender(DrawingContext drawingContext)
+    protected override bool ManagesReferenceColors => false;
+    protected override void DrawContent(DrawingContext drawingContext)
     {
-        base.OnRender(drawingContext);
         ChartDrawing.DrawLabAB(
             drawingContext,
             new Rect(RenderSize),
             Measurement,
-            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+            VisualTreeHelper.GetDpi(this).PixelsPerDip,
+            DisplayColorContext.GetContext(this));
     }
 }
 
-public sealed class ReflectanceIlluminantChart : FrameworkElement
+public sealed class ReflectanceIlluminantChart : ColorManagedChartElement
 {
+    public static readonly DependencyProperty ShowLmsProperty = DependencyProperty.Register(
+        nameof(ShowLms), typeof(bool), typeof(ReflectanceIlluminantChart),
+        new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
+    public bool ShowLms { get => (bool)GetValue(ShowLmsProperty); set => SetValue(ShowLmsProperty, value); }
     public ReflectanceIlluminantChart()
     {
         ClipToBounds = true;
@@ -266,13 +272,13 @@ public sealed class ReflectanceIlluminantChart : FrameworkElement
         set => SetValue(ResultProperty, value);
     }
 
-    protected override void OnRender(DrawingContext drawingContext)
+    protected override void DrawContent(DrawingContext drawingContext)
     {
-        base.OnRender(drawingContext);
         ChartDrawing.DrawReflectanceIlluminant(
             drawingContext,
             new Rect(RenderSize),
             Result,
-            VisualTreeHelper.GetDpi(this).PixelsPerDip);
+            VisualTreeHelper.GetDpi(this).PixelsPerDip,
+            ShowLms);
     }
 }

@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [ValidatePattern('^\d+\.\d+(?:\.\d+){0,2}$')]
-    [string] $Version = '1.0.4',
+    [string] $Version = '1.1',
 
     [Parameter(Mandatory = $true)]
     [string] $JamPath,
@@ -246,6 +246,8 @@ try {
         )
     Copy-Item -LiteralPath (Join-Path $windowsRoot 'README.md') `
         -Destination (Join-Path $payloadPath 'README-Windows.md')
+    Copy-Item -LiteralPath (Join-Path $windowsRoot 'DISPLAY_COLOR_MANAGEMENT.md') `
+        -Destination (Join-Path $payloadPath 'DISPLAY_COLOR_MANAGEMENT.md')
 
     $sourceCommit = (& git -C $repositoryRoot rev-parse HEAD).Trim()
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($sourceCommit)) {
@@ -257,6 +259,7 @@ try {
         "Source commit: $sourceCommit"
         "Version: $Version"
         'Helper source: Argyll_V3.5.0 (same repository commit)'
+        'Display color engine: Little CMS 2.19.1 (Windows/ThirdParty/LittleCMS)'
         "Helper SHA-256: $publishedHelperHash"
     )
     [IO.File]::WriteAllLines(

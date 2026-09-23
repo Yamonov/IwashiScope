@@ -1,6 +1,126 @@
 {
   "sourceLanguage" : "ja",
   "strings" : {
+    "明るさ（参考）" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Brightness (ref.)" } } }
+    },
+    "C：色の帯なし。元の候補はPでM/S、DでL/S、TでL/Mを一致させます。表示色はタイプ別の相対輝度を保ち、色域外では彩度を下げます。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "C: no band. Original candidates match M/S for P, L/S for D, and L/M for T. Display colors keep the type-specific relative luminance, reducing chroma outside the display gamut." } } }
+    },
+    "押している間、タイプ別の相対輝度を均一なグレーで表示します。離すとカラーに戻ります。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Hold to show the type-specific relative luminance as a uniform gray. Release to restore color." } } }
+    },
+    "押している間だけ参考グレーを表示" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Hold to show reference gray" } } }
+    },
+    "参考グレー：帯と測定点を同じ相対輝度で表示しています。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Reference gray: the band and marker have the same relative luminance." } } }
+    },
+    "タイプ別の相対輝度を一定にして表示（色域外は彩度を調整）。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Type-specific relative luminance is constant; chroma is reduced outside the display gamut." } } }
+    },
+    "PはM、DはL、TはL/Mの輝度成分をD50白に対して規格化した参考モデルです。主観的な明るさや、実際のモニター上の錐体応答一致を保証するものではありません。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "This reference model normalizes M for P, L for D, and the L/M luminance component for T to D50 white. It does not guarantee subjective brightness or matching cone responses on a real monitor." } } }
+    },
+    "白を超える相対輝度は、画面の表示上限に合わせています。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Relative luminance above white is limited to the display maximum." } } }
+    },
+    "この画面プロファイルでは等輝度表示を計算できません。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Equal-luminance rendering is unavailable for this display profile." } } }
+    },
+    "タイプ別の相対輝度を均一な参考グレーで表示しています。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Type-specific relative luminance is shown as uniform reference gray." } } }
+    },
+    "色覚タイプ" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Color vision type" } } }
+    },
+    "の混同色を表示" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "confusion colors" } } }
+    },
+    "C：色の帯なし。PはM/S、DはL/S、TはL/Mの応答を測定値と一致させます。表示色だけをディスプレイの色域へ補正します。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "C: no color band. P matches M/S, D matches L/S, and T matches L/M to the measurement. Only the display colors are mapped to the display gamut." } } }
+    },
+    "xy色度図" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "xy Chromaticity Diagram" } } }
+    },
+    "測定結果（D50）" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Measurement (D50)" } } }
+    },
+    "混同線" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Confusion lines" } } }
+    },
+    "D50・%@–%@ nmの測定範囲から再計算。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Recalculated under D50 over the measured range of %@–%@ nm." } } }
+    },
+    "測定Labがないため、測定点は輪郭のみで表示します。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "No measured Lab is available; the point is shown as an outline." } } }
+    },
+    "円の色は測定Labの表示色です。座標はRGBから逆算していません。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "The marker uses the measured Lab display color. Its coordinates are not derived from RGB." } } }
+    },
+    "色を優先して明るさを調整（上限2倍・下限0.5倍は再現可能な場合）。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Color takes priority over brightness: maximum 2×, minimum 0.5× when reproducible." } } }
+    },
+    "理論上の応答一致と表示用の制限は別です。画面の再現上限を優先する場合があります。本人の見え方や、実際のモニター上での応答一致を保証するものではありません。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Theoretical response matching and display limits are separate. The display's physical ceiling may take priority. This does not guarantee an individual's appearance or matching responses on a physical monitor." } } }
+    },
+    "CIE2006 LMSに基づく色度図" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Chromaticity diagram based on CIE2006 LMS" } } }
+    },
+    "測定点なし" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "No measurement point" } } }
+    },
+    "測定点 x_F %@、y_F %@。L、M、Sの混同線を表示しています。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Measurement point x_F %@, y_F %@. L, M and S confusion lines are shown." } } }
+    },
+    "色度を計算できないスペクトルです。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Chromaticity cannot be calculated from this spectrum." } } }
+    },
+    "色度の計算に必要な反射スペクトルがありません。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "The reflectance spectrum required to calculate chromaticity is unavailable." } } }
+    },
+    "反射光がゼロのため、色度を定義できません。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Chromaticity is undefined because the reflected light is zero." } } }
+    },
+    "CIE 2006の2°視野・エネルギー基準のLMS感度を参考表示します。各曲線のピークを1とし、測色・色順応の計算には使用しません。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Show CIE 2006 LMS sensitivities for a 2° field, in energy units, as a reference. Each curve peaks at 1. These curves are not used in colorimetric or chromatic adaptation calculations." } } }
+    },
+    "／グレー：CIE 2006 LMS（2°・エネルギー基準）" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : " / Gray: CIE 2006 LMS (2°, energy)" } } }
+    },
+    "CIE 2006 LMSの参考曲線を表示中。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "CIE 2006 LMS reference curves are shown." } } }
+    },
     "色順応" : {
       "extractionState" : "manual",
       "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Chromatic Adaptation" } } }

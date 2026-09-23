@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
+using IwashiScope.App.Wpf.ColorManagement;
 using IwashiScope.App.Wpf.Localization;
 using IwashiScope.App.Wpf.Layout;
 using IwashiScope.Core.Calculations;
@@ -18,6 +19,12 @@ namespace IwashiScope.App.Wpf.ViewModels;
 
 public sealed class HistoryItemViewModel : ObservableObject
 {
+    private DisplayColorContext? _displayColors;
+    public void SetDisplayColors(DisplayColorContext? context)
+    {
+        _displayColors = context;
+        OnPropertyChanged(nameof(SwatchBrush));
+    }
     private readonly Action<Guid, string?> _rename;
     private string _name;
 
@@ -121,6 +128,7 @@ public sealed class HistoryItemViewModel : ObservableObject
             {
                 return Brushes.LightGray;
             }
+            if (_displayColors != null) return _displayColors.LabBrush(lab, Entry.Measurement.LabWhitePoint);
             var color = LabColorConverter.Convert(lab, Entry.Measurement.LabWhitePoint).Srgb;
             return new SolidColorBrush(Color.FromRgb(color.RedByte, color.GreenByte, color.BlueByte));
         }
@@ -155,9 +163,20 @@ public sealed record AppearanceMethodOptionViewModel(ReflectanceAppearanceMethod
 
 public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
 {
+    private DisplayColorContext? _displayColors;
+    public string DisplayColorStatus => _displayColors?.Status(Language == "ja") ?? T("表示色管理：確認中", "Display color: checking");
+    public string DisplayColorDetails => _displayColors?.Details(Language == "ja") ?? string.Empty;
+    public void SetDisplayColors(DisplayColorContext context)
+    {
+        _displayColors = context;
+        foreach (var item in HistoryItems) item.SetDisplayColors(context);
+        foreach (var property in new[] { nameof(SwatchBrush), nameof(MeasuredReflectancePatchBrush),
+            nameof(SimulatedReflectancePatchBrush), nameof(DisplayColorStatus), nameof(DisplayColorDetails) })
+            OnPropertyChanged(property);
+    }
     private readonly LocalizationCatalog _localization = new();
-    private readonly SettingsStore _settingsStore = new();
-    private readonly MeasurementHistoryPersistenceStore _historyPersistenceStore = new();
+    private readonly SettingsStore _settingsStore;
+    private readonly MeasurementHistoryPersistenceStore _historyPersistenceStore;
     private readonly MeasurementSessionController _session;
     private readonly MeasurementSidebarTabCoordinator _sidebarTabCoordinator = new();
     private AppSettings _settings = new();
@@ -187,8 +206,16 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     private string? _lastPersistedHistoryFingerprint;
     private string _historyPersistenceError = string.Empty;
 
-    public MainWindowViewModel()
+    public MainWindowViewModel() : this(new SettingsStore(), new MeasurementHistoryPersistenceStore())
     {
+    }
+
+    internal MainWindowViewModel(SettingsStore settingsStore, MeasurementHistoryPersistenceStore historyPersistenceStore)
+    {
+        ArgumentNullException.ThrowIfNull(settingsStore);
+        ArgumentNullException.ThrowIfNull(historyPersistenceStore);
+        _settingsStore = settingsStore;
+        _historyPersistenceStore = historyPersistenceStore;
         _session = new MeasurementSessionController(LaunchSpec, _mode);
         _session.Changed += SessionChanged;
         _session.Log.Appended += line => Dispatch(() => LogAppended?.Invoke(line));
@@ -386,6 +413,15 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     {
         get => YAxisConfiguration.FixedUpperBound;
         set => YAxisConfiguration = YAxisConfiguration with { FixedUpperBound = value };
+    }
+
+    private bool _showLms;
+    private bool _showIlluminantLms;
+    public bool ShowLms { get => _showLms; set => Set(ref _showLms, value); }
+    public bool ShowIlluminantLms
+    {
+        get => _showIlluminantLms;
+        set { if (Set(ref _showIlluminantLms, value)) OnPropertyChanged(nameof(IlluminantSpectrumScaleDescription)); }
     }
 
     public bool ShowD50
@@ -614,6 +650,13 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public string UvWarningText => T(
         "UVデータを含まない反射測定からの予測です。蛍光増白紙・蛍光インキでは実際の反射光と一致しない場合があります。",
         "This prediction uses a reflectance measurement without UV data. Fluorescent papers or inks may differ from the actual reflected light.");
+    public string IlluminantSpectrumScaleDescription =>
+        (HasReflectanceIlluminantSelection
+            ? T("黒：分光反射率（%）／黄：ピーク100の光源SPD／色付き面：光源SPD × 分光反射率",
+                "Black: spectral reflectance (%) / Yellow: illuminant SPD (peak 100) / Filled area: illuminant SPD × reflectance")
+            : T("縦軸：分光反射率（%）", "Vertical axis: spectral reflectance (%)"))
+        + (ShowIlluminantLms ? T("／グレー：CIE 2006 LMS（2°・エネルギー基準）", " / Gray: CIE 2006 LMS (2°, energy)") : string.Empty);
+
     public string ChromaticAdaptationExplanation => !HasReflectanceIlluminantSelection
         ? T("参考光源を選択すると、選択光源下の見え方とD50基準との差を表示します。",
             "Select an illuminant to predict its color appearance and the difference from the D50 reference.")
@@ -877,21 +920,23 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public string DisplayP3GreenText => RgbComponentText(ColorConversion?.DisplayP3.GreenByte);
     public string DisplayP3BlueText => RgbComponentText(ColorConversion?.DisplayP3.BlueByte);
     public string SrgbGamutWarning => ColorConversion?.Srgb.IsOutOfGamut == true
-        ? T("sRGB色域外（クリップ表示）", "Outside sRGB gamut (clipped)")
+        ? T("sRGB色域外（sRGB数値をクリップ。表示色域とは別の判定）", "Outside sRGB gamut (sRGB values clipped; not a display-gamut test)")
         : string.Empty;
     public bool HasSrgbGamutWarning => !string.IsNullOrEmpty(SrgbGamutWarning);
     public string AdobeGamutWarning => ColorConversion?.AdobeRgb.IsOutOfGamut == true
-        ? T("Adobe RGB (1998)色域外（クリップ表示）", "Outside Adobe RGB (1998) gamut (clipped)")
+        ? T("Adobe RGB (1998)色域外（RGB数値をクリップ。表示色域とは別の判定）", "Outside Adobe RGB (1998) gamut (RGB values clipped; not a display-gamut test)")
         : string.Empty;
     public bool HasAdobeGamutWarning => !string.IsNullOrEmpty(AdobeGamutWarning);
     public string DisplayP3GamutWarning => ColorConversion?.DisplayP3.IsOutOfGamut == true
-        ? T("Display P3色域外（クリップ表示）", "Outside Display P3 gamut (clipped)")
+        ? T("Display P3色域外（RGB数値をクリップ。表示色域とは別の判定）", "Outside Display P3 gamut (RGB values clipped; not a display-gamut test)")
         : string.Empty;
     public bool HasDisplayP3GamutWarning => !string.IsNullOrEmpty(DisplayP3GamutWarning);
     public Brush SwatchBrush
     {
         get
         {
+            if (_displayColors != null && ActiveMeasurement?.Lab is { } lab)
+                return _displayColors.LabBrush(lab, ActiveMeasurement.LabWhitePoint);
             var color = ColorConversion?.Srgb;
             return color is null
                 ? Brushes.Transparent
@@ -1849,6 +1894,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         }
         finally
         {
+            foreach (var item in HistoryItems) item.SetDisplayColors(_displayColors);
             IsRefreshingHistory = false;
         }
 
@@ -2057,6 +2103,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
                      nameof(DeltaBText),
                      nameof(DifferenceAfterAdaptationLabel),
                      nameof(ChromaticAdaptationExplanation),
+                     nameof(IlluminantSpectrumScaleDescription),
                      nameof(HasReflectanceMeasurement),
                      nameof(CanSelectCieIlluminant),
                      nameof(ShowsReferencePatchPlaceholder),
@@ -2097,12 +2144,13 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         }
     }
 
-    private static Brush LabBrush(Vector3? lab)
+    private Brush LabBrush(Vector3? lab)
     {
         if (lab is not { IsFinite: true })
         {
             return Brushes.LightGray;
         }
+        if (_displayColors != null) return _displayColors.LabBrush(lab, "D50");
         var color = LabColorConverter.Convert(lab, "D50").Srgb;
         return new SolidColorBrush(Color.FromRgb(color.RedByte, color.GreenByte, color.BlueByte));
     }

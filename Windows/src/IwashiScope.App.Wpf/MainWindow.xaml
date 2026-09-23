@@ -216,7 +216,7 @@
                                     </Grid.RowDefinitions>
                                     <StackPanel Grid.Row="0"
                                                 Visibility="{Binding ShowsReferenceControls, Converter={StaticResource BoolToVisibility}}">
-                                        <DockPanel Margin="14,10,14,8">
+                                        <WrapPanel Margin="14,10,14,8" AutomationProperties.AutomationId="spectrum-reference-controls">
                                             <TextBlock Text="{Binding ReferenceSpectrumLabel}"
                                                        Foreground="{StaticResource SecondaryTextBrush}"
                                                        Margin="0,0,14,0" />
@@ -224,11 +224,13 @@
                                                       IsChecked="{Binding ShowD50}" />
                                             <CheckBox Content="{Binding D65ReferenceLabel}"
                                                       IsChecked="{Binding ShowD65}" />
+                                            <CheckBox Content="CIE2006LMS" IsChecked="{Binding ShowLms}"
+                                                      AutomationProperties.AutomationId="spectrum-lms-reference" />
                                             <TextBlock Text="{Binding ReferenceNormalizationLabel}"
-                                                       DockPanel.Dock="Right"
+                                                       TextWrapping="Wrap"
                                                        Foreground="{StaticResource SecondaryTextBrush}"
                                                        FontSize="10" />
-                                        </DockPanel>
+                                        </WrapPanel>
                                         <Separator />
                                     </StackPanel>
                                     <controls:SpectrumChart Grid.Row="1" Margin="4,0,7,7"
@@ -236,6 +238,7 @@
                                                             UsePracticalRange="{Binding UsePracticalRange}"
                                                             ShowD50="{Binding ShowD50}"
                                                             ShowD65="{Binding ShowD65}"
+                                                            ShowLms="{Binding ShowLms}"
                                                             YAxisConfiguration="{Binding YAxisConfiguration}"
                                                             MeasurementName="{Binding ActiveMeasurementName}" />
                                     <StackPanel Grid.Row="1" HorizontalAlignment="Center"
@@ -257,7 +260,7 @@
                                 <StackPanel>
                                     <TextBlock Text="{Binding IlluminantComparisonGroupLabel}"
                                                FontWeight="SemiBold" FontSize="14" />
-                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <WrapPanel Margin="0,8,0,0" AutomationProperties.AutomationId="reflectance-illuminant-controls">
                                         <RadioButton IsChecked="{Binding IsCieIlluminantSourceSelected}"
                                                      VerticalAlignment="Center" />
                                         <ComboBox ItemsSource="{Binding CieIlluminantOptions}"
@@ -274,16 +277,23 @@
                                         <RadioButton Content="{Binding UserDefined3Label}"
                                                      IsChecked="{Binding IsUser3IlluminantSourceSelected}"
                                                      IsEnabled="{Binding HasUser3Illuminant}" />
-                                    </StackPanel>
+                                        <CheckBox Content="CIE2006LMS" IsChecked="{Binding ShowIlluminantLms}" Margin="12,0,0,0"
+                                                  AutomationProperties.AutomationId="reflectance-illuminant-lms-reference" />
+                                    </WrapPanel>
                                     <TextBlock Text="{Binding UserIlluminantMetadataText}"
                                                FontSize="11" FontWeight="SemiBold" Margin="0,7,0,0"
                                                Visibility="{Binding ShowsUserIlluminantMetadata, Converter={StaticResource BoolToVisibility}}" />
                                     <Separator Margin="0,9" />
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <WrapPanel Margin="0,0,0,4" AutomationProperties.AutomationId="reflectance-illuminant-legend">
+                                        <StackPanel Orientation="Horizontal">
                                         <Rectangle Width="25" Height="2" Fill="Black" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding MeasuredReflectanceLegendLabel}" Margin="5,0,13,0" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
                                         <Rectangle Width="25" Height="2" Fill="#FFB000" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding SelectedIlluminantLegendLabel}" Margin="5,0,13,0" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
                                         <Rectangle Width="25" Height="8" VerticalAlignment="Center">
                                             <Rectangle.Fill>
                                                 <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
@@ -297,8 +307,19 @@
                                             </Rectangle.Fill>
                                         </Rectangle>
                                         <TextBlock Text="{Binding ReflectedLightLegendLabel}" Margin="5,0,0,0" />
-                                    </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="13,0,0,0"
+                                                    Visibility="{Binding ShowIlluminantLms, Converter={StaticResource BoolToVisibility}}">
+                                            <Rectangle Width="25" Height="2" Fill="#66808080" VerticalAlignment="Center" />
+                                            <TextBlock Text="CIE2006LMS" Margin="5,0,0,0" />
+                                        </StackPanel>
+                                    </WrapPanel>
+                                    <TextBlock Text="{Binding IlluminantSpectrumScaleDescription}"
+                                               FontSize="10" Foreground="{StaticResource SecondaryTextBrush}"
+                                               TextWrapping="Wrap" Margin="0,0,0,4"
+                                               AutomationProperties.AutomationId="reflectance-illuminant-scale-description" />
                                     <controls:ReflectanceIlluminantChart Result="{Binding ReflectanceIlluminantResult}"
+                                                                          ShowLms="{Binding ShowIlluminantLms}"
                                                                           Height="360" />
                                     <Separator Margin="0,9" />
                                     <WrapPanel>
@@ -1109,6 +1130,13 @@
                                             </StackPanel>
                                         </GroupBox>
 
+                                        <TextBlock Text="{Binding DisplayColorStatus}" ToolTip="{Binding DisplayColorDetails}"
+                                                   FontSize="11" TextWrapping="Wrap" Margin="6,0,6,10"
+                                                   AutomationProperties.AutomationId="display-color-status" />
+
+                                        <controls:ReflectanceChromaticityView Measurement="{Binding ActiveMeasurement}" UiLanguage="{Binding Language}"
+                                              Visibility="{Binding IsReflectance, Converter={StaticResource BoolToVisibility}}" />
+
                                         <GroupBox Header="{Binding LightingInformationLabel}" Margin="0,10,0,0"
                                                   Visibility="{Binding HasLightingMetrics, Converter={StaticResource BoolToVisibility}}">
                                             <Grid Margin="8,5">
@@ -1318,11 +1346,14 @@
                                 <CheckBox x:Name="LightingSpectrumPngCheckBox"
                                           Content="{Binding SpectrumPngExportLabel}" IsChecked="True"
                                           IsEnabled="{Binding HasSelectedSpectrum}" />
-                                <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                                <StackPanel Orientation="Horizontal" Margin="20,0,0,0"
+                                            IsEnabled="{Binding IsChecked, ElementName=LightingSpectrumPngCheckBox}">
                                     <CheckBox x:Name="ExportD50CheckBox"
-                                              Content="{Binding D50Label}" IsChecked="False" />
+                                              Content="{Binding D50Label}" IsChecked="False" IsEnabled="{Binding HasSelectedSpectrum}" />
                                     <CheckBox x:Name="ExportD65CheckBox"
-                                              Content="{Binding D65Label}" IsChecked="False" />
+                                              Content="{Binding D65Label}" IsChecked="False" IsEnabled="{Binding HasSelectedSpectrum}" />
+                                    <CheckBox x:Name="ExportLmsCheckBox" Content="CIE2006LMS" IsChecked="False"
+                                              IsEnabled="{Binding HasSelectedSpectrum}" />
                                 </StackPanel>
                                 <CheckBox x:Name="ExportCriPngCheckBox"
                                           Content="{Binding CriPngExportLabel}" IsChecked="False"

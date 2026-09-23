@@ -18,6 +18,10 @@ struct MeasurementDetailsView: View {
 
                     colorimetricGroup(measurement)
 
+                    if measurement.mode == .reflectance {
+                        ReflectanceChromaticityView(measurement: measurement)
+                    }
+
                     if hasLightingMetrics(measurement) {
                         lightingGroup(measurement)
                     }

@@ -16,6 +16,9 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Content Include="Fixtures\mac-cie2006-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Fixtures\mac-build66-golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Fixtures\mac-named-space-transforms.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,6 +7,7 @@ struct MeasurementExportOptions: Equatable, Sendable {
     var spectrumYAxisConfiguration = SpectrumYAxisConfiguration.initial(for: .ambient)
     var includesD50Reference = false
     var includesD65Reference = false
+    var includesCIE2006LMS = false
     var includesCRIImage = false
     var includesTM30Image = false
     var includesCSV = false

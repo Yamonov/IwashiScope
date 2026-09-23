@@ -6,10 +6,13 @@
 ArgyllCMS 3.5.0を改変した同梱コマンド`iwashiscope-spotread`を対話操作し、スペクトルと測色・光源評価値を表示する分光・測色アプリです。macOS版はSwiftUI、Windows版はWPFで実装し、同じ改変ソースから各OS用の`iwashiscope-spotread`をビルドします。
 
 > [!IMPORTANT]
-> macOS版Version 0.9には、Sparkle.frameworkを見つけられず起動できない問題があります。Version 0.9をダウンロードした場合は、署名・公証済みの[IwashiScope 1.0.4](https://github.com/Yamonov/IwashiScope/releases/tag/v1.0.4)を手動でダウンロードして置き換えてください。macOS版・Windows版の配布バイナリに対応する完全なソース一式も、同じReleaseで公開しています。
+> macOS版Version 0.9には、Sparkle.frameworkを見つけられず起動できない問題があります。Version 0.9をダウンロードした場合は、署名・公証済みの[IwashiScope最新版](https://github.com/Yamonov/IwashiScope/releases/latest)を手動でダウンロードして置き換えてください。macOS版・Windows版の配布バイナリに対応する完全なソース一式も、同じReleaseで公開しています。
 
 ## 現在の実装
 
+- Windows版は表示先モニターのICCプロファイルを使用し、測定Labから直接表示色へ変換。数値・保存データ・書き出しとは独立して色管理します。[表示条件と対応範囲](Windows/DISPLAY_COLOR_MANAGEMENT.md)を参照してください。
+- 反射原稿のCIE 2006/2015基準xy色度図でP/D/T型の混同色を確認でき、ボタンを押している間はタイプ別の相対輝度に対応する参考グレーを表示
+- スペクトル図へCIE 2006 LMS参考曲線を重ねて表示でき、通常のPNG書き出しにも対応
 - 起動時に「反射原稿」「環境光」「発光」から測定モードを選択
 - 選択したモードで、IwashiScope用JSONプロトコルを追加した`iwashiscope-spotread`を高解像度・スペクトル出力付きで起動
 - `iwashiscope-spotread`が標準出力へ送るJSON Linesを解析し、機種に応じたキャリブレーション手順、待機中、完了をGUIに表示
@@ -32,7 +35,7 @@ ArgyllCMS 3.5.0を改変した同梱コマンド`iwashiscope-spotread`を対話�
 - 全測定モードでD50 Labと範囲自動調整付きa*b*グラフを表示し、反射原稿では測定スペクトルからCIE標準イルミナントC・CIE 1931 2°標準観測者によるマンセル値を算出
 - CRI R1〜R14は`iwashiscope-spotread`出力を使用し、R15は測定スペクトルを5 nm間隔へ補間してTCS15からCIE 13.3方式で独自計算
 - R1〜R15を試験色に対応した横並びの色付き棒グラフでスペクトル図の下に表示
-- 環境光・発光モードでは、CRIとIES TM-30-15をタブで切り替え、TM-30には16色相ビンの色相グラフ、Rf、Rg、大型Rf–Rgプロット、CCT、Duv、99色評価用試料の試料別忠実度棒グラフを表示
+- 環境光・発光モードでは、CRIとIES TM-30-15を上下に表示し、TM-30には16色相ビンの色相グラフ、Rf、Rg、大型Rf–Rgプロット、CCT、Duv、99色評価用試料の試料別忠実度棒グラフを表示
 - 「spotread詳細ログ」では空白入力を`<SPACE>`として可視化し、送信中・送信済み・送信失敗も区別
 
 R15はArgyllCMS 3.5本来のCRI計算結果には含まれません。アプリ内の計算値であることを画面上に明記しています。
@@ -111,7 +114,7 @@ IwashiScopeのSwift・C#アプリと改変版`iwashiscope-spotread`は、第三�
 
 - ArgyllCMS 3.5.0の原著作権と個別ライセンスは維持されています。
 - IwashiScopeによるArgyllCMSの改変内容は[ARGYLL_CHANGES.md](ARGYLL_CHANGES.md)に記録しています。
-- Sparkle、WinSparkle、CIE標準光源データ、ArgyllCMS内の各構成要素は[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)を参照してください。
+- Sparkle、WinSparkle、Little CMS、CIEデータ、ArgyllCMS内の各構成要素は[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)を参照してください。
 - バイナリの作成・署名・公証・Sparkle配信は[RELEASING.md](RELEASING.md)を参照してください。
 - 更新確認を含む通信とデータの扱いは[PRIVACY.md](PRIVACY.md)を参照してください。
 - 名称とロゴの扱いは[TRADEMARKS.md](TRADEMARKS.md)を参照してください。
