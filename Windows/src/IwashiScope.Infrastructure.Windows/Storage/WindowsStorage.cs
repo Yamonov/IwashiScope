@@ -77,6 +77,7 @@ public sealed record AppSettings
     public bool UsePracticalSpectrumRange { get; init; } = true;
     public bool IncludeD50Reference { get; init; }
     public bool IncludeD65Reference { get; init; }
+    public bool NameMeasurementsAfterCapture { get; init; }
     public int InstrumentIndex { get; init; } = 1;
 }
 
@@ -128,12 +129,21 @@ public sealed class SettingsStore
 
 public sealed class MeasurementHistoryPersistenceStore
 {
+    private readonly string? _legacyPath;
+
     public MeasurementHistoryPersistenceStore(string? path = null)
     {
         Path = path ?? System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "IwashiScope",
-            "MeasurementHistory.json");
+            "Default.iwashiscope");
+        if (path is null)
+        {
+            _legacyPath = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "IwashiScope",
+                "MeasurementHistory.json");
+        }
     }
 
     public string Path { get; }
@@ -141,11 +151,12 @@ public sealed class MeasurementHistoryPersistenceStore
     public async Task<WorkspaceDocument?> LoadAsync(
         CancellationToken cancellationToken = default)
     {
-        if (!File.Exists(Path))
+        var sourcePath = File.Exists(Path) ? Path : _legacyPath;
+        if (sourcePath is null || !File.Exists(sourcePath))
         {
             return null;
         }
-        var json = await File.ReadAllTextAsync(Path, cancellationToken).ConfigureAwait(false);
+        var json = await File.ReadAllTextAsync(sourcePath, cancellationToken).ConfigureAwait(false);
         return WorkspaceSerializer.Deserialize(json);
     }
 

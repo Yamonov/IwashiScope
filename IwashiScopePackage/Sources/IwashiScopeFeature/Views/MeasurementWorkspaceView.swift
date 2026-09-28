@@ -31,6 +31,10 @@ enum MeasurementSidebarTabSelectionPolicy {
 }
 
 struct MeasurementWorkspaceView: View {
+    @AppStorage("namesMeasurementsAfterCapture") private var namesMeasurementsAfterCapture = false
+    @State private var pendingNamingEntryID: MeasurementHistoryEntry.ID?
+    @State private var measurementNameDraft = ""
+    @State private var showsMeasurementNameDialog = false
     @State private var exportErrorMessage = ""
     @State private var showsExportError = false
     @State private var isExporting = false
@@ -48,6 +52,8 @@ struct MeasurementWorkspaceView: View {
     @Binding var selectedSidebarTab: MeasurementSidebarTab
     let onChangeMode: () -> Void
     let onConnectInstrument: () -> Void
+    let onImportHistory: () -> Void
+    let onExportHistory: () -> Void
 
     var body: some View {
         ZStack {
@@ -77,6 +83,18 @@ struct MeasurementWorkspaceView: View {
         } message: {
             Text(exportErrorMessage)
         }
+        .alert("測定後名前を付ける", isPresented: $showsMeasurementNameDialog) {
+            TextField("名前", text: $measurementNameDraft)
+            Button("キャンセル", role: .cancel) {
+                pendingNamingEntryID = nil
+            }
+            Button("OK") {
+                if let pendingNamingEntryID {
+                    historyStore.setName(measurementNameDraft, for: pendingNamingEntryID)
+                }
+                pendingNamingEntryID = nil
+            }
+        }
         .alert(
             pendingHistoryDeletion?.confirmationTitle ?? String(localized: "選択履歴を削除しますか？"),
             isPresented: $showsHistoryDeletionConfirmation,
@@ -103,6 +121,14 @@ struct MeasurementWorkspaceView: View {
                 selectedSidebarTab = tab
             }
         }
+        .onChange(of: session.lastSavedMeasurementEntryID) { _, entryID in
+            guard namesMeasurementsAfterCapture,
+                  let entryID,
+                  historyStore.entry(for: entryID)?.measurement.mode == mode else { return }
+            pendingNamingEntryID = entryID
+            measurementNameDraft = ""
+            showsMeasurementNameDialog = true
+        }
     }
 
     private var workspaceContent: some View {
@@ -110,7 +136,10 @@ struct MeasurementWorkspaceView: View {
             MeasurementHistorySidebar(
                 mode: mode,
                 deletableEntryCount: historyStore.deletableEntryCount(for: mode),
-                onDeleteAll: deleteAllHistoryForCurrentMode
+                historyEntryCount: historyStore.orderedEntries(for: mode).count,
+                onDeleteAll: deleteAllHistoryForCurrentMode,
+                onImportHistory: onImportHistory,
+                onExportHistory: onExportHistory
             ) {
                 measurementHistory
             }
@@ -156,6 +185,7 @@ struct MeasurementWorkspaceView: View {
                         ?? session.instrumentIdentity,
                     usesPracticalSpectrumRange: $usesPracticalSpectrumRange,
                     spectrumYAxisConfiguration: spectrumYAxisConfigurationBinding,
+                    namesMeasurementsAfterCapture: $namesMeasurementsAfterCapture,
                     onConnectInstrument: onConnectInstrument
                 )
                     .padding(16)

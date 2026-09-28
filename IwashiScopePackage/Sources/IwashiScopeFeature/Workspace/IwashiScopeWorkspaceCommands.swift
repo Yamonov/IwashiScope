@@ -9,12 +9,12 @@ public struct IwashiScopeWorkspaceCommands: Commands {
 
     public var body: some Commands {
         CommandGroup(replacing: .saveItem) {
-            Button("ワークスペースを保存...") {
+            Button("ワークスペースを書き出し...") {
                 model.requestWorkspaceSave()
             }
             .keyboardShortcut("s", modifiers: .command)
 
-            Button("ワークスペースを復帰...") {
+            Button("ワークスペースを読み込み...") {
                 model.requestWorkspaceRestore()
             }
         }

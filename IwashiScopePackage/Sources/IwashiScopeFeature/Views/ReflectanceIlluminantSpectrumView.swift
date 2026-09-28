@@ -3,6 +3,7 @@ import SwiftUI
 struct ReflectanceIlluminantSpectrumView: View {
     @State private var selection: ReflectanceIlluminantSelection = .none
     @State private var sourceKind: ReflectanceIlluminantSourceKind = .cie
+    @State private var selectedUserSlot: UserIlluminantSlot?
     @State private var appearanceMethod: ReflectanceAppearanceMethod = .ciecam16
     @State private var showsCIE2006LMS = false
 
@@ -24,7 +25,7 @@ struct ReflectanceIlluminantSpectrumView: View {
                 IlluminantSpectrumDefinition(cie: $0)
             }
         }
-        guard let slot = sourceKind.userSlot else { return nil }
+        guard let slot = selectedUserSlot else { return nil }
         return userIlluminantStore.source(for: slot)
     }
 
@@ -73,11 +74,18 @@ struct ReflectanceIlluminantSpectrumView: View {
         .frame(maxWidth: .infinity)
         .accessibilityIdentifier("reflectance-illuminant-spectrum-group")
         .onChange(of: userIlluminantStore.availableSlots) {
-            guard let slot = sourceKind.userSlot,
-                  userIlluminantStore.hasSpectrum(for: slot) == false else {
-                return
+            if let selectedUserSlot,
+               userIlluminantStore.hasSpectrum(for: selectedUserSlot) == false {
+                self.selectedUserSlot = nil
             }
-            sourceKind = .cie
+            if self.selectedUserSlot == nil {
+                selectedUserSlot = UserIlluminantSlot.allCases.first {
+                    userIlluminantStore.hasSpectrum(for: $0)
+                }
+            }
+            if self.selectedUserSlot == nil {
+                sourceKind = .cie
+            }
         }
     }
 
@@ -85,9 +93,8 @@ struct ReflectanceIlluminantSpectrumView: View {
         HStack(spacing: 6) {
             sourceRadioButton(.cie, showsTitle: false)
             illuminantPicker
-            sourceRadioButton(.user1)
-            sourceRadioButton(.user2)
-            sourceRadioButton(.user3)
+            sourceRadioButton(.user, showsTitle: false)
+            userIlluminantPicker
             Spacer(minLength: 0)
             Toggle(isOn: $showsCIE2006LMS) {
                 Text(verbatim: "CIE2006LMS")
@@ -115,6 +122,11 @@ struct ReflectanceIlluminantSpectrumView: View {
 
         return Button {
             guard isEnabled else { return }
+            if kind == .user && selectedUserSlot == nil {
+                selectedUserSlot = UserIlluminantSlot.allCases.first {
+                    userIlluminantStore.hasSpectrum(for: $0)
+                }
+            }
             sourceKind = kind
         } label: {
             HStack(spacing: 5) {
@@ -166,6 +178,24 @@ struct ReflectanceIlluminantSpectrumView: View {
         .frame(minWidth: 80, idealWidth: 210, maxWidth: 210, alignment: .leading)
         .help("反射光の計算に使用するCIE参考光源を選択します")
         .accessibilityIdentifier("cie-reference-illuminant-picker")
+    }
+
+    private var userIlluminantPicker: some View {
+        Picker("ユーザー定義光源", selection: $selectedUserSlot) {
+            Text("ユーザー定義光源")
+                .tag(nil as UserIlluminantSlot?)
+            ForEach(UserIlluminantSlot.allCases) { slot in
+                let name = userIlluminantStore.source(for: slot)?.userName
+                Text(name.map { "\(slot.title)  [\($0)]" } ?? slot.title)
+                    .tag(slot as UserIlluminantSlot?)
+                    .disabled(userIlluminantStore.hasSpectrum(for: slot) == false)
+            }
+        }
+        .pickerStyle(.menu)
+        .labelsHidden()
+        .disabled(measurement == nil || sourceKind != .user)
+        .frame(minWidth: 80, idealWidth: 210, maxWidth: 210, alignment: .leading)
+        .accessibilityIdentifier("user-illuminant-picker")
     }
 
     private func isSourceKindEnabled(

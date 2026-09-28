@@ -10,6 +10,48 @@ namespace IwashiScope.Tests;
 public sealed class UserIlluminantHistoryTests
 {
     [Fact]
+    public void ImportAddsSelectedModeAndPlacesNewIlluminantsInFirstFreeSlot()
+    {
+        var destination = new MeasurementHistory();
+        var existing = destination.Add(
+            TestMeasurementFactory.Create(MeasurementMode.Ambient, seed: 1), "Existing");
+        Assert.True(destination.RegisterUserIlluminant(existing.Id, UserIlluminantSlot.User1));
+        Assert.True(destination.RegisterUserIlluminant(existing.Id, UserIlluminantSlot.User3));
+
+        var source = new MeasurementHistory();
+        var same = source.Add(existing.Measurement, "Renamed");
+        var different = source.Add(
+            TestMeasurementFactory.Create(MeasurementMode.Ambient, seed: 2), "Different");
+        source.Add(TestMeasurementFactory.Create(MeasurementMode.Reflectance), "Paper");
+        Assert.True(source.RegisterUserIlluminant(same.Id, UserIlluminantSlot.User7));
+        Assert.True(source.RegisterUserIlluminant(different.Id, UserIlluminantSlot.User8));
+        var document = WorkspaceDocument.Create(
+            source, MeasurementMode.Ambient, MeasurementSidebarTab.MeasurementValues);
+        var ambientOnly = document.ContainingOnly(new HashSet<MeasurementMode>
+        {
+            MeasurementMode.Ambient,
+        });
+        Assert.Equal(2, WorkspaceSerializer.Deserialize(
+            WorkspaceSerializer.Serialize(ambientOnly)).Workspace.History.Entries.Count);
+
+        Assert.Equal(2, document.ImportInto(destination, new HashSet<MeasurementMode>
+        {
+            MeasurementMode.Ambient,
+        }));
+        Assert.Equal(3, destination.Ordered(MeasurementMode.Ambient).Count);
+        Assert.Empty(destination.Ordered(MeasurementMode.Reflectance));
+        Assert.Equal("Different", destination.UserIlluminantEntry(UserIlluminantSlot.User2)?.Name);
+        Assert.Null(destination.UserIlluminantEntry(UserIlluminantSlot.User4));
+
+        Assert.Equal(2, document.ImportInto(destination, new HashSet<MeasurementMode>
+        {
+            MeasurementMode.Ambient,
+        }));
+        Assert.Equal(5, destination.Ordered(MeasurementMode.Ambient).Count);
+        Assert.Null(destination.UserIlluminantEntry(UserIlluminantSlot.User4));
+    }
+
+    [Fact]
     public void AmbientAndEmissiveHistoriesCanFillAndMoveSlots()
     {
         var history = new MeasurementHistory();
@@ -19,12 +61,13 @@ public sealed class UserIlluminantHistoryTests
 
         Assert.True(history.RegisterUserIlluminant(ambient.Id, UserIlluminantSlot.User1));
         Assert.True(history.RegisterUserIlluminant(ambient.Id, UserIlluminantSlot.User3));
+        Assert.True(history.RegisterUserIlluminant(ambient.Id, UserIlluminantSlot.User10));
         Assert.Equal(
-            [UserIlluminantSlot.User1, UserIlluminantSlot.User3],
+            [UserIlluminantSlot.User1, UserIlluminantSlot.User3, UserIlluminantSlot.User10],
             history.UserIlluminantSlotsFor(ambient.Id));
 
         Assert.True(history.RegisterUserIlluminant(emissive.Id, UserIlluminantSlot.User1));
-        Assert.Equal([UserIlluminantSlot.User3], history.UserIlluminantSlotsFor(ambient.Id));
+        Assert.Equal([UserIlluminantSlot.User3, UserIlluminantSlot.User10], history.UserIlluminantSlotsFor(ambient.Id));
         Assert.Equal([UserIlluminantSlot.User1], history.UserIlluminantSlotsFor(emissive.Id));
         Assert.False(history.RegisterUserIlluminant(reflectance.Id, UserIlluminantSlot.User2));
 
@@ -33,7 +76,7 @@ public sealed class UserIlluminantHistoryTests
             history.UserIlluminantEntry(UserIlluminantSlot.User1)!,
             japanese: true);
         Assert.NotNull(source);
-        Assert.Equal("User定義１", source.DisplayName);
+        Assert.Equal("ユーザー定義光源1", source.DisplayName);
         Assert.Equal("Emitter", source.UserName);
         Assert.Equal(emissive.Measurement.CapturedAt, source.MeasuredAt);
     }
@@ -64,7 +107,7 @@ public sealed class UserIlluminantHistoryTests
     {
         var history = new MeasurementHistory();
         var ambient = history.Add(TestMeasurementFactory.Create(MeasurementMode.Ambient));
-        Assert.True(history.RegisterUserIlluminant(ambient.Id, UserIlluminantSlot.User2));
+        Assert.True(history.RegisterUserIlluminant(ambient.Id, UserIlluminantSlot.User10));
         var document = WorkspaceDocument.Create(
             history,
             MeasurementMode.Ambient,
@@ -73,7 +116,7 @@ public sealed class UserIlluminantHistoryTests
         var json = WorkspaceSerializer.Serialize(document);
         var restored = new MeasurementHistory();
         WorkspaceSerializer.Deserialize(json).RestoreInto(restored);
-        Assert.Equal(ambient.Id, restored.UserIlluminantEntryId(UserIlluminantSlot.User2));
+        Assert.Equal(ambient.Id, restored.UserIlluminantEntryId(UserIlluminantSlot.User10));
         Assert.True(restored.IsDeletionProtected(ambient.Id));
 
         var legacyNode = JsonNode.Parse(json)!.AsObject();

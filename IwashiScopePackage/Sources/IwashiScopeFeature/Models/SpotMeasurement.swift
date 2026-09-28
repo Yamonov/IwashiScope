@@ -105,6 +105,22 @@ enum LightingMetricIssue: String, Codable, Hashable, Sendable {
     case invalidCCT
     case invalidPlanckianTemperature
     case invalidDaylightTemperature
+
+    init(from decoder: Decoder) throws {
+        let value = try decoder.singleValueContainer().decode(String.self)
+        guard let issue = Self(rawValue: value == "invalidCct" ? "invalidCCT" : value) else {
+            throw DecodingError.dataCorruptedError(
+                in: try decoder.singleValueContainer(),
+                debugDescription: "Unknown lighting metric issue"
+            )
+        }
+        self = issue
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 struct SpotMeasurement: Codable, Equatable, Sendable {

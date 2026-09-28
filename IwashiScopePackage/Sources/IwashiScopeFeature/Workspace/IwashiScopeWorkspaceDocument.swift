@@ -25,6 +25,31 @@ struct MeasurementHistorySnapshot: Codable, Equatable, Sendable {
         self.userIlluminantRegistrations = userIlluminantRegistrations
     }
 
+    func containingOnly(_ includedModes: Set<MeasurementMode>) -> Self {
+        let includedEntries = entries.filter { includedModes.contains($0.measurement.mode) }
+        let includedIDs = Set(includedEntries.map(\.id))
+        return Self(
+            entries: includedEntries,
+            modes: modes.map { state in
+                let selectedIDs = state.selectedEntryIDs.intersection(includedIDs)
+                return ModeState(
+                    mode: state.mode,
+                    presentationOrder: state.presentationOrder.filter(includedIDs.contains),
+                    selectedEntryIDs: selectedIDs,
+                    activeEntryID: state.activeEntryID.flatMap {
+                        selectedIDs.contains($0) ? $0 : nil
+                    },
+                    selectionAnchorID: state.selectionAnchorID.flatMap {
+                        includedIDs.contains($0) ? $0 : nil
+                    }
+                )
+            },
+            userIlluminantRegistrations: userIlluminantRegistrations.filter {
+                includedIDs.contains($0.entryID)
+            }
+        )
+    }
+
     struct Entry: Codable, Equatable, Sendable {
         let id: UUID
         let name: String?
@@ -229,14 +254,71 @@ struct IwashiScopeWorkspaceDocument: FileDocument {
 
     private static var encoder: JSONEncoder {
         let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
+        encoder.dateEncodingStrategy = .custom { date, encoder in
+            var wholeSeconds = floor(date.timeIntervalSince1970)
+            var fractionalTicks = Int(
+                ((date.timeIntervalSince1970 - wholeSeconds) * 10_000_000).rounded()
+            )
+            if fractionalTicks == 10_000_000 {
+                wholeSeconds += 1
+                fractionalTicks = 0
+            }
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime]
+            let prefix = formatter.string(
+                from: Date(timeIntervalSince1970: wholeSeconds)
+            ).dropLast()
+            var container = encoder.singleValueContainer()
+            try container.encode(
+                "\(prefix).\(String(format: "%07d", fractionalTicks))Z"
+            )
+        }
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         return encoder
     }
 
     private static var decoder: JSONDecoder {
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
+        decoder.keyDecodingStrategy = .custom { codingPath in
+            let key = codingPath.last!.stringValue
+            let normalized: String
+            switch key {
+            case "selectedEntryIds": normalized = "selectedEntryIDs"
+            case "activeEntryId": normalized = "activeEntryID"
+            case "selectionAnchorId": normalized = "selectionAnchorID"
+            case "entryId": normalized = "entryID"
+            default: normalized = key
+            }
+            return WorkspaceCodingKey(stringValue: normalized)!
+        }
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let value = try decoder.singleValueContainer().decode(String.self)
+            let fractional = ISO8601DateFormatter()
+            fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = fractional.date(from: value) { return date }
+            let wholeSeconds = ISO8601DateFormatter()
+            wholeSeconds.formatOptions = [.withInternetDateTime]
+            guard let date = wholeSeconds.date(from: value) else {
+                throw DecodingError.dataCorruptedError(
+                    in: try decoder.singleValueContainer(),
+                    debugDescription: "Invalid ISO 8601 date"
+                )
+            }
+            return date
+        }
         return decoder
+    }
+}
+
+private struct WorkspaceCodingKey: CodingKey {
+    let stringValue: String
+    let intValue: Int? = nil
+
+    init?(stringValue: String) {
+        self.stringValue = stringValue
+    }
+
+    init?(intValue: Int) {
+        return nil
     }
 }

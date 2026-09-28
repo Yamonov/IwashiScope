@@ -15,6 +15,8 @@ using IwashiScope.App.Wpf.ViewModels;
 using IwashiScope.Core.Calculations;
 using IwashiScope.Core.Models;
 using IwashiScope.Core.History;
+using IwashiScope.Core.Workspace;
+using IwashiScope.Infrastructure.Windows.Storage;
 using IwashiScope.Core.Export;
 using Microsoft.Win32;
 
@@ -32,6 +34,7 @@ public partial class MainWindow : Window
     private Point _dragStart;
     private bool _isApplyingSelection;
     private bool _shutdownApproved;
+    private bool _shutdownInProgress;
     private readonly HashSet<(MeasurementMode Mode, string Date)> _collapsedHistoryDates = [];
     private HistoryDragContext? _activeHistoryDrag;
 
@@ -58,6 +61,8 @@ public partial class MainWindow : Window
         _viewModel.LogAppended += AppendLog;
         _viewModel.LogReset += ResetLog;
         _viewModel.HistoryRefreshed += ApplyHistorySelection;
+        _viewModel.NameMeasurementRequested += entryId =>
+            Dispatcher.BeginInvoke(new Action(() => ShowMeasurementNameDialog(entryId)));
         _viewModel.PropertyChanged += ViewModel_PropertyChanged;
         Loaded += MainWindow_Loaded;
         PreviewMouseLeftButtonUp += (_, _) =>
@@ -119,15 +124,10 @@ public partial class MainWindow : Window
 
     private async void OpenWorkspace_Click(object sender, RoutedEventArgs e)
     {
-        if (!ConfirmDiscardUnsaved())
-        {
-            return;
-        }
-
         var dialog = new OpenFileDialog
         {
-            Title = _viewModel.OpenWorkspaceLabel,
-            Filter = "IwashiScope Workspace (*.iwashiscope)|*.iwashiscope|JSON (*.json)|*.json|All files (*.*)|*.*",
+            Title = _viewModel.ImportWorkspaceLabel,
+            Filter = "IwashiScope Workspace (*.iwashiscope)|*.iwashiscope",
             CheckFileExists = true,
         };
         if (dialog.ShowDialog(this) != true)
@@ -137,7 +137,14 @@ public partial class MainWindow : Window
 
         try
         {
-            await _viewModel.RestoreWorkspaceAsync(dialog.FileName);
+            var document = WorkspaceSerializer.Deserialize(
+                await File.ReadAllTextAsync(dialog.FileName));
+            var availableModes = document.Workspace.History.Entries
+                .Select(entry => entry.Measurement.Mode).ToHashSet();
+            var selectedModes = SelectWorkspaceModes(
+                _viewModel.ImportWorkspaceLabel, availableModes, isImport: true);
+            if (selectedModes is not null)
+                _viewModel.ImportWorkspaceHistory(document, selectedModes);
         }
         catch (Exception exception)
         {
@@ -152,14 +159,20 @@ public partial class MainWindow : Window
 
     private async void SaveWorkspace_Click(object sender, RoutedEventArgs e)
     {
-        await SaveWorkspaceWithDialogAsync();
+        var selectedModes = SelectWorkspaceModes(
+            _viewModel.ExportWorkspaceLabel,
+            Enum.GetValues<MeasurementMode>().ToHashSet(),
+            isImport: false);
+        if (selectedModes is not null)
+            await SaveWorkspaceWithDialogAsync(selectedModes);
     }
 
-    private async Task<bool> SaveWorkspaceWithDialogAsync()
+    private async Task<bool> SaveWorkspaceWithDialogAsync(
+        IReadOnlySet<MeasurementMode> modes)
     {
         var dialog = new SaveFileDialog
         {
-            Title = _viewModel.SaveWorkspaceLabel,
+            Title = _viewModel.ExportWorkspaceLabel,
             Filter = "IwashiScope Workspace (*.iwashiscope)|*.iwashiscope",
             DefaultExt = ".iwashiscope",
             AddExtension = true,
@@ -172,7 +185,9 @@ public partial class MainWindow : Window
 
         try
         {
-            await _viewModel.SaveWorkspaceAsync(dialog.FileName);
+            var document = _viewModel.CreateWorkspaceDocumentForModes(modes);
+            await AtomicFile.WriteAllTextAsync(
+                dialog.FileName, WorkspaceSerializer.Serialize(document));
             return true;
         }
         catch (Exception exception)
@@ -185,6 +200,109 @@ public partial class MainWindow : Window
                 MessageBoxImage.Error);
             return false;
         }
+    }
+
+    private HashSet<MeasurementMode>? SelectWorkspaceModes(
+        string title,
+        IReadOnlySet<MeasurementMode> availableModes,
+        bool isImport)
+    {
+        var dialog = new Window
+        {
+            Title = title,
+            Owner = this,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            SizeToContent = SizeToContent.Height,
+            Width = 340,
+            ResizeMode = ResizeMode.NoResize,
+            ShowInTaskbar = false,
+        };
+        var content = new StackPanel { Margin = new Thickness(18) };
+        var checkBoxes = new Dictionary<MeasurementMode, CheckBox>();
+        foreach (var mode in Enum.GetValues<MeasurementMode>())
+        {
+            var label = mode switch
+            {
+                MeasurementMode.Reflectance => _viewModel.ReflectanceTitle,
+                MeasurementMode.Ambient => _viewModel.AmbientTitle,
+                _ => _viewModel.EmissiveTitle,
+            };
+            var available = availableModes.Contains(mode);
+            var checkBox = new CheckBox
+            {
+                Content = label,
+                IsChecked = available,
+                IsEnabled = !isImport || available,
+                Margin = new Thickness(0, 0, 0, 9),
+            };
+            checkBoxes[mode] = checkBox;
+            content.Children.Add(checkBox);
+        }
+        var buttons = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(0, 7, 0, 0),
+        };
+        var cancel = new Button
+        {
+            Content = _viewModel.MeasurementNameCancelLabel,
+            MinWidth = 80,
+            IsCancel = true,
+        };
+        var confirm = new Button
+        {
+            Content = "OK",
+            MinWidth = 80,
+            IsDefault = true,
+            Margin = new Thickness(8, 0, 0, 0),
+        };
+        void UpdateConfirmState() => confirm.IsEnabled =
+            checkBoxes.Values.Any(checkBox => checkBox.IsChecked == true);
+        foreach (var checkBox in checkBoxes.Values)
+        {
+            checkBox.Checked += (_, _) => UpdateConfirmState();
+            checkBox.Unchecked += (_, _) => UpdateConfirmState();
+        }
+        UpdateConfirmState();
+        cancel.Click += (_, _) => dialog.DialogResult = false;
+        confirm.Click += (_, _) => dialog.DialogResult = true;
+        buttons.Children.Add(cancel);
+        buttons.Children.Add(confirm);
+        content.Children.Add(buttons);
+        dialog.Content = content;
+        return dialog.ShowDialog() == true
+            ? checkBoxes.Where(pair => pair.Value.IsChecked == true)
+                .Select(pair => pair.Key).ToHashSet()
+            : null;
+    }
+
+    private async void ImportModeHistory_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = _viewModel.ImportHistoryLabel,
+            Filter = "IwashiScope Workspace (*.iwashiscope)|*.iwashiscope",
+            CheckFileExists = true,
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try
+        {
+            var document = WorkspaceSerializer.Deserialize(
+                await File.ReadAllTextAsync(dialog.FileName));
+            _viewModel.ImportWorkspaceHistory(
+                document, new HashSet<MeasurementMode> { _viewModel.Mode });
+        }
+        catch (Exception exception)
+        {
+            MessageBox.Show(this, exception.Message, "IwashiScope",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private async void ExportModeHistory_Click(object sender, RoutedEventArgs e)
+    {
+        await SaveWorkspaceWithDialogAsync(new HashSet<MeasurementMode> { _viewModel.Mode });
     }
 
     private async void Export_Click(object sender, RoutedEventArgs e)
@@ -446,8 +564,7 @@ public partial class MainWindow : Window
             return false;
         }
         return Dispatcher.Invoke(() =>
-            !_historyDragCoordinator.IsBusy && UpdateShutdownPolicy.CanShutdown(
-                _viewModel.HasUnsavedChanges,
+            !_shutdownInProgress && !_historyDragCoordinator.IsBusy && UpdateShutdownPolicy.CanShutdown(
                 _viewModel.IsBusy));
     }
 
@@ -466,10 +583,7 @@ public partial class MainWindow : Window
         {
             return;
         }
-        _shutdownApproved = true;
-        _dragExportCache.Dispose();
-        await _viewModel.DisposeAsync();
-        Close();
+        await SaveAndCloseAsync();
     }
 
     private void HistoryList_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -702,6 +816,80 @@ public partial class MainWindow : Window
         }
     }
 
+    private void RegisterUserIlluminantMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        if (!ReferenceEquals(sender, e.OriginalSource)) return;
+        if (sender is not MenuItem { DataContext: HistoryItemViewModel item } menu) return;
+        menu.Items.Clear();
+        var slots = Enum.GetValues<UserIlluminantSlot>();
+        for (var start = 0; start < slots.Length; start += 10)
+        {
+            var group = new MenuItem
+            {
+                Header = $"{start + 1}–{Math.Min(start + 10, slots.Length)}",
+            };
+            foreach (var slot in slots.Skip(start).Take(10))
+            {
+                var option = new MenuItem
+                {
+                    Header = UserIlluminantSlots.Title(slot, item.IsJapanese),
+                    Tag = slot.ToString(),
+                    DataContext = item,
+                };
+                option.Click += RegisterUserIlluminant_Click;
+                group.Items.Add(option);
+            }
+            menu.Items.Add(group);
+        }
+    }
+
+    private void ShowMeasurementNameDialog(Guid entryId)
+    {
+        var dialog = new Window
+        {
+            Title = _viewModel.NameMeasurementsAfterCaptureLabel,
+            Owner = this,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            SizeToContent = SizeToContent.Height,
+            Width = 380,
+            ResizeMode = ResizeMode.NoResize,
+            ShowInTaskbar = false,
+        };
+        var content = new StackPanel { Margin = new Thickness(18) };
+        content.Children.Add(new TextBlock { Text = _viewModel.MeasurementNameLabel });
+        var nameEditor = new TextBox { Margin = new Thickness(0, 7, 0, 16) };
+        content.Children.Add(nameEditor);
+        var buttons = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+        };
+        var cancel = new Button
+        {
+            Content = _viewModel.MeasurementNameCancelLabel,
+            MinWidth = 80,
+            IsCancel = true,
+        };
+        cancel.Click += (_, _) => dialog.DialogResult = false;
+        var confirm = new Button
+        {
+            Content = "OK",
+            MinWidth = 80,
+            Margin = new Thickness(8, 0, 0, 0),
+            IsDefault = true,
+        };
+        confirm.Click += (_, _) => dialog.DialogResult = true;
+        buttons.Children.Add(cancel);
+        buttons.Children.Add(confirm);
+        content.Children.Add(buttons);
+        dialog.Content = content;
+        dialog.Loaded += (_, _) => nameEditor.Focus();
+        if (dialog.ShowDialog() == true)
+        {
+            _viewModel.SetMeasurementName(entryId, nameEditor.Text);
+        }
+    }
+
     private void RemoveUserIlluminant_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuItem { DataContext: HistoryItemViewModel item })
@@ -737,34 +925,28 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (_viewModel.HasUnsavedChanges)
+        e.Cancel = true;
+        await SaveAndCloseAsync();
+    }
+
+    private async Task SaveAndCloseAsync()
+    {
+        if (_shutdownInProgress) return;
+        _shutdownInProgress = true;
+        try
         {
-            var result = MessageBox.Show(
-                this,
-                "保存していない測定結果があります。終了前に保存しますか？\n" +
-                "There are unsaved measurements. Save before closing?",
-                "IwashiScope",
-                MessageBoxButton.YesNoCancel,
-                MessageBoxImage.Warning);
-            if (result == MessageBoxResult.Cancel)
-            {
-                e.Cancel = true;
-                return;
-            }
-            if (result == MessageBoxResult.Yes)
-            {
-                e.Cancel = true;
-                if (!await SaveWorkspaceWithDialogAsync())
-                {
-                    return;
-                }
-            }
+            await _viewModel.DisposeAsync();
+        }
+        catch (Exception exception)
+        {
+            _shutdownInProgress = false;
+            MessageBox.Show(this, exception.Message, "IwashiScope",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
         }
 
-        e.Cancel = true;
         _shutdownApproved = true;
         _dragExportCache.Dispose();
-        await _viewModel.DisposeAsync();
         Close();
     }
 
@@ -832,21 +1014,6 @@ public partial class MainWindow : Window
             }
             e.Handled = true;
         }
-    }
-
-    private bool ConfirmDiscardUnsaved()
-    {
-        if (!_viewModel.HasUnsavedChanges)
-        {
-            return true;
-        }
-        return MessageBox.Show(
-                   this,
-                   "保存していない変更は、ワークスペースを復帰すると失われます。\n" +
-                   "Unsaved changes will be lost when restoring a workspace.",
-                   "IwashiScope",
-                   MessageBoxButton.OKCancel,
-                   MessageBoxImage.Warning) == MessageBoxResult.OK;
     }
 
     private MeasurementExportOptions CurrentExportOptions() =>

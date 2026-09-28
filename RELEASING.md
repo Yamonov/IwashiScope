@@ -211,7 +211,7 @@ ProductVersion/FileVersion、HTTPS URL、`windows-x64`、重複version、履歴i
 署名のないitemを`docs/appcast-windows.xml`へ公開してはいけません。
 
 最後に1つ前のWindows公開版から、手動更新確認、EdDSA検証、installer起動、
-未保存workspaceがある場合の終了拒否、更新後の再起動を実機確認します。
+終了時のデフォルトワークスペース自動保存、更新後の再起動を実機確認します。
 
 MacとWindowsは同じrepositoryとGitHub Pagesを使いますが、feedは
 `docs/appcast.xml`と`docs/appcast-windows.xml`に分けます。したがって片方だけを

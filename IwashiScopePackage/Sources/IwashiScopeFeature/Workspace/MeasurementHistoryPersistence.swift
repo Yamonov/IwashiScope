@@ -22,6 +22,31 @@ struct MeasurementHistoryPersistence: Sendable {
 
     static let disabled = Self(fileURL: nil)
 
+    private var defaultWorkspaceURL: URL? {
+        fileURL?.deletingLastPathComponent()
+            .appendingPathComponent("Default.iwashiscope", isDirectory: false)
+    }
+
+    func loadDefaultWorkspace() throws -> IwashiScopeWorkspaceState? {
+        guard let defaultWorkspaceURL,
+              FileManager.default.fileExists(atPath: defaultWorkspaceURL.path) else {
+            return nil
+        }
+        return try IwashiScopeWorkspaceDocument(
+            data: Data(contentsOf: defaultWorkspaceURL)
+        ).archive.workspace
+    }
+
+    func saveDefaultWorkspace(_ state: IwashiScopeWorkspaceState) throws {
+        guard let defaultWorkspaceURL else { return }
+        let document = try IwashiScopeWorkspaceDocument(workspace: state)
+        try FileManager.default.createDirectory(
+            at: defaultWorkspaceURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try document.encodedData().write(to: defaultWorkspaceURL, options: .atomic)
+    }
+
     func load() throws -> MeasurementHistorySnapshot? {
         guard let fileURL else { return nil }
 
@@ -114,6 +139,15 @@ actor MeasurementHistoryPersistenceWriter {
     func save(_ history: MeasurementHistorySnapshot) -> String? {
         do {
             try persistence.save(history)
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
+    func saveDefaultWorkspace(_ state: IwashiScopeWorkspaceState) -> String? {
+        do {
+            try persistence.saveDefaultWorkspace(state)
             return nil
         } catch {
             return error.localizedDescription

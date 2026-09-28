@@ -52,6 +52,14 @@ enum MeasurementHistorySelectionAction: Equatable, Sendable {
     case range(additive: Bool)
 }
 
+enum UserIlluminantImportError: LocalizedError {
+    case noFreeSlot
+
+    var errorDescription: String? {
+        String(localized: "ユーザー定義光源の登録枠（100件）が足りないため、読み込みませんでした。")
+    }
+}
+
 @MainActor
 @Observable
 final class MeasurementHistoryStore {
@@ -252,6 +260,68 @@ final class MeasurementHistoryStore {
                 }
             }
         )
+    }
+
+    @discardableResult
+    func importEntries(
+        from snapshot: MeasurementHistorySnapshot,
+        modes: Set<MeasurementMode>
+    ) throws -> Int {
+        try snapshot.validate()
+        let importedEntries = snapshot.entries.filter {
+            modes.contains($0.measurement.mode)
+        }
+        let importedByID = Dictionary(uniqueKeysWithValues: importedEntries.map {
+            ($0.id, $0)
+        })
+        let existingSources = userIlluminantEntryIDBySlot.values.compactMap(entry(for:))
+        var newSources: [MeasurementHistorySnapshot.Entry] = []
+        for registration in snapshot.userIlluminantRegistrations.sorted(by: {
+            $0.slot.number < $1.slot.number
+        }) {
+            guard let source = importedByID[registration.entryID] else { continue }
+            if existingSources.contains(where: {
+                Self.isSameIlluminant($0.measurement, source.measurement)
+            }) || newSources.contains(where: {
+                Self.isSameIlluminant($0.measurement, source.measurement)
+            }) {
+                continue
+            }
+            newSources.append(source)
+        }
+        let freeSlots = UserIlluminantSlot.allCases.filter {
+            userIlluminantEntryIDBySlot[$0] == nil
+        }
+        guard newSources.count <= freeSlots.count else {
+            throw UserIlluminantImportError.noFreeSlot
+        }
+
+        var addedIDs: [UUID: UUID] = [:]
+        for entry in importedEntries {
+            let added = append(
+                entry.measurement,
+                instrumentIdentity: entry.instrumentIdentity
+            )
+            addedIDs[entry.id] = added.id
+            if let name = entry.name {
+                setName(name, for: added.id)
+            }
+        }
+        for (source, slot) in zip(newSources, freeSlots) {
+            if let entryID = addedIDs[source.id] {
+                registerUserIlluminant(entryID: entryID, for: slot)
+            }
+        }
+        return importedEntries.count
+    }
+
+    private static func isSameIlluminant(
+        _ first: SpotMeasurement,
+        _ second: SpotMeasurement
+    ) -> Bool {
+        first.mode == second.mode
+            && abs(first.capturedAt.timeIntervalSince(second.capturedAt)) < 0.001
+            && first.spectrum == second.spectrum
     }
 
     func restore(from snapshot: MeasurementHistorySnapshot) throws {

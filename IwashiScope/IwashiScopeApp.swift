@@ -17,8 +17,9 @@ private final class IwashiScopeAppDelegate: NSObject, NSApplicationDelegate {
 
         isPreparingForTermination = true
         Task { @MainActor [weak self] in
-            await self?.model?.prepareForApplicationTermination()
-            sender.reply(toApplicationShouldTerminate: true)
+            let canTerminate = await self?.model?.prepareForApplicationTermination() ?? true
+            self?.isPreparingForTermination = false
+            sender.reply(toApplicationShouldTerminate: canTerminate)
         }
         return .terminateLater
     }

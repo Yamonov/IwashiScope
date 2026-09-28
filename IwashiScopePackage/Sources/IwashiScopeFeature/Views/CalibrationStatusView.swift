@@ -7,6 +7,7 @@ struct CalibrationStatusView: View {
     let displayedInstrumentIdentity: SpotreadInstrumentIdentity?
     @Binding var usesPracticalSpectrumRange: Bool
     @Binding var spectrumYAxisConfiguration: SpectrumYAxisConfiguration
+    @Binding var namesMeasurementsAfterCapture: Bool
     let onConnectInstrument: () -> Void
 
     var body: some View {
@@ -150,23 +151,27 @@ struct CalibrationStatusView: View {
                 .controlSize(.small)
 
         case .ready:
-            EqualWidthControlGroup {
-                Button {
-                    session.takeReading()
-                } label: {
-                    Label("測定", systemImage: "record.circle")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .keyboardShortcut(.defaultAction)
+            VStack(alignment: .leading, spacing: 8) {
+                EqualWidthControlGroup {
+                    Button {
+                        session.takeReading()
+                    } label: {
+                        Label("測定", systemImage: "record.circle")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.defaultAction)
 
-                Button {
-                    session.beginCalibration()
-                } label: {
-                    Label("再キャリブレーション", systemImage: "arrow.clockwise")
-                        .frame(maxWidth: .infinity)
+                    Button {
+                        session.beginCalibration()
+                    } label: {
+                        Label("再キャリブレーション", systemImage: "arrow.clockwise")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .buttonStyle(.bordered)
+                Toggle("測定後名前を付ける", isOn: $namesMeasurementsAfterCapture)
+                    .toggleStyle(.checkbox)
             }
 
         case .retryAvailable:

@@ -14,35 +14,21 @@ enum ReflectanceIlluminantSelection: Hashable, Sendable {
 
 enum ReflectanceIlluminantSourceKind: String, CaseIterable, Identifiable, Sendable {
     case cie
-    case user1
-    case user2
-    case user3
+    case user
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .cie: "CIE参考光源"
-        case .user1: UserIlluminantSlot.user1.title
-        case .user2: UserIlluminantSlot.user2.title
-        case .user3: UserIlluminantSlot.user3.title
-        }
-    }
-
-    var userSlot: UserIlluminantSlot? {
-        switch self {
-        case .cie: nil
-        case .user1: .user1
-        case .user2: .user2
-        case .user3: .user3
+        case .user: "ユーザー定義光源"
         }
     }
 
     func isAvailable(
         userSlots: Set<UserIlluminantSlot>
     ) -> Bool {
-        guard let userSlot else { return true }
-        return userSlots.contains(userSlot)
+        self == .cie || userSlots.isEmpty == false
     }
 }
 

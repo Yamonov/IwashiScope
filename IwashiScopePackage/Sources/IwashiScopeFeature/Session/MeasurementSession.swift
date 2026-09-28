@@ -75,6 +75,7 @@ final class MeasurementSession {
     private(set) var instrumentIdentity: SpotreadInstrumentIdentity?
     private(set) var latestMeasurement: SpotMeasurement?
     private(set) var measurementCount = 0
+    private(set) var lastSavedMeasurementEntryID: MeasurementHistoryEntry.ID?
     private(set) var executablePath: String?
     @ObservationIgnored private(set) var transcript = ""
     @ObservationIgnored private(set) var interactions: [SpotreadInteraction] = []
@@ -669,10 +670,10 @@ final class MeasurementSession {
                 .replacingAveragedMeasurementMetadata(finalizedMetadata)
             latestMeasurement = finalizedMeasurement
             measurementCount += 1
-            historyStore.append(
+            lastSavedMeasurementEntryID = historyStore.append(
                 finalizedMeasurement,
                 instrumentIdentity: instrumentIdentity
-            )
+            ).id
             pendingSpectrumAnalysisRequest = nil
             shouldAutomaticallyOutputAverage = false
             resetAveragingMeasurement(
@@ -685,10 +686,10 @@ final class MeasurementSession {
 
         guard averagingOperationPhase == .collecting else {
             measurementCount += 1
-            historyStore.append(
+            lastSavedMeasurementEntryID = historyStore.append(
                 measurement,
                 instrumentIdentity: instrumentIdentity
-            )
+            ).id
             return
         }
 

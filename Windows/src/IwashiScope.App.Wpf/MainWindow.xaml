@@ -58,9 +58,9 @@
         <Menu Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderBrush}"
               BorderThickness="0,0,0,1">
             <MenuItem Header="{Binding FileLabel}">
-                <MenuItem Header="{Binding OpenWorkspaceLabel}" InputGestureText="Ctrl+O"
+                <MenuItem Header="{Binding ImportWorkspaceLabel}" InputGestureText="Ctrl+O"
                           Click="OpenWorkspace_Click" />
-                <MenuItem Header="{Binding SaveWorkspaceLabel}" InputGestureText="Ctrl+S"
+                <MenuItem Header="{Binding ExportWorkspaceLabel}" InputGestureText="Ctrl+S"
                           Click="SaveWorkspace_Click" />
                 <Separator />
                 <MenuItem Header="{Binding ExportLabel}" InputGestureText="Ctrl+E"
@@ -268,15 +268,20 @@
                                                   DisplayMemberPath="DisplayName"
                                                   IsEnabled="{Binding CanSelectCieIlluminant}"
                                                   Width="225" Margin="4,0,10,0" />
-                                        <RadioButton Content="{Binding UserDefined1Label}"
-                                                     IsChecked="{Binding IsUser1IlluminantSourceSelected}"
-                                                     IsEnabled="{Binding HasUser1Illuminant}" Margin="0,0,9,0" />
-                                        <RadioButton Content="{Binding UserDefined2Label}"
-                                                     IsChecked="{Binding IsUser2IlluminantSourceSelected}"
-                                                     IsEnabled="{Binding HasUser2Illuminant}" Margin="0,0,9,0" />
-                                        <RadioButton Content="{Binding UserDefined3Label}"
-                                                     IsChecked="{Binding IsUser3IlluminantSourceSelected}"
-                                                     IsEnabled="{Binding HasUser3Illuminant}" />
+                                        <RadioButton IsChecked="{Binding IsUserIlluminantSourceSelected}"
+                                                     IsEnabled="{Binding HasUserIlluminants}"
+                                                     VerticalAlignment="Center" />
+                                        <ComboBox ItemsSource="{Binding UserIlluminantOptions}"
+                                                  SelectedItem="{Binding SelectedUserIlluminantOption}"
+                                                  DisplayMemberPath="DisplayName"
+                                                  IsEnabled="{Binding CanSelectUserIlluminant}"
+                                                  Width="225" Margin="4,0,10,0">
+                                            <ComboBox.ItemContainerStyle>
+                                                <Style TargetType="ComboBoxItem">
+                                                    <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
+                                                </Style>
+                                            </ComboBox.ItemContainerStyle>
+                                        </ComboBox>
                                         <CheckBox Content="CIE2006LMS" IsChecked="{Binding ShowIlluminantLms}" Margin="12,0,0,0"
                                                   AutomationProperties.AutomationId="reflectance-illuminant-lms-reference" />
                                     </WrapPanel>
@@ -589,13 +594,8 @@
                                                               Visibility="{Binding IsReflectance, Converter={StaticResource BoolToVisibility}}" />
                                                     <Separator Visibility="{Binding IsLighting, Converter={StaticResource BoolToVisibility}}" />
                                                     <MenuItem Header="{Binding RegisterUserIlluminantLabel}"
+                                                              SubmenuOpened="RegisterUserIlluminantMenu_Opened"
                                                               Visibility="{Binding IsLighting, Converter={StaticResource BoolToVisibility}}">
-                                                        <MenuItem Header="{Binding UserDefined1Label}" Tag="User1"
-                                                                  Click="RegisterUserIlluminant_Click" />
-                                                        <MenuItem Header="{Binding UserDefined2Label}" Tag="User2"
-                                                                  Click="RegisterUserIlluminant_Click" />
-                                                        <MenuItem Header="{Binding UserDefined3Label}" Tag="User3"
-                                                                  Click="RegisterUserIlluminant_Click" />
                                                     </MenuItem>
                                                     <MenuItem Header="{Binding RemoveUserIlluminantLabel}"
                                                               IsEnabled="{Binding HasUserIlluminantRegistration}"
@@ -706,6 +706,13 @@
                                            Foreground="#B33A2B" TextWrapping="Wrap"
                                            FontSize="10" Margin="0,0,0,5"
                                            Visibility="{Binding HasHistoryPersistenceError, Converter={StaticResource BoolToVisibility}}" />
+                                <Button Content="{Binding ImportHistoryLabel}"
+                                        Click="ImportModeHistory_Click"
+                                        Padding="8,5" Margin="0,0,0,7" />
+                                <Button Content="{Binding ExportHistoryLabel}"
+                                        IsEnabled="{Binding HasModeHistory}"
+                                        Click="ExportModeHistory_Click"
+                                        Padding="8,5" Margin="0,0,0,7" />
                                 <Button Content="{Binding DeleteHistoryLabel}"
                                         IsEnabled="{Binding HasDeletableHistory}"
                                         Click="DeleteAllHistory_Click"
@@ -761,6 +768,10 @@
                                 <Button Content="{Binding RecalibrateLabel}"
                                         Command="{Binding CalibrateCommand}" Margin="7,0,0,0" />
                             </StackPanel>
+                            <CheckBox Content="{Binding NameMeasurementsAfterCaptureLabel}"
+                                      IsChecked="{Binding NameMeasurementsAfterCapture}"
+                                      Margin="0,5,0,0"
+                                      Visibility="{Binding ShowsMeasureControls, Converter={StaticResource BoolToVisibility}}" />
                             <Grid Margin="0,8,0,0"
                                   Visibility="{Binding ShowsAveragingControls, Converter={StaticResource BoolToVisibility}}">
                                 <Grid.RowDefinitions>

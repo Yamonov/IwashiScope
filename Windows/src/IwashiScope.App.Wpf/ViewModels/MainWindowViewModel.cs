@@ -94,9 +94,6 @@ public sealed class HistoryItemViewModel : ObservableObject
         ? "ユーザー定義光源から削除"
         : "Remove from User Illuminants";
     public string RenameLabel => IsJapanese ? "名前を付ける" : "Rename";
-    public string UserDefined1Label => UserIlluminantSlots.Title(UserIlluminantSlot.User1, IsJapanese);
-    public string UserDefined2Label => UserIlluminantSlots.Title(UserIlluminantSlot.User2, IsJapanese);
-    public string UserDefined3Label => UserIlluminantSlots.Title(UserIlluminantSlot.User3, IsJapanese);
     public double ItemWidth => IsAveragingStack ? HistoryCardLayout.Width + 9 : HistoryCardLayout.Width;
     public double ItemHeight => IsAveragingStack ? HistoryCardLayout.Height + 8 : HistoryCardLayout.Height;
     public bool ShowsAverageBadge =>
@@ -150,14 +147,17 @@ public sealed class HistoryItemViewModel : ObservableObject
 public enum ReflectanceIlluminantSourceKind
 {
     Cie,
-    User1,
-    User2,
-    User3,
+    User,
 }
 
 public sealed record CieIlluminantOptionViewModel(
     CieReferenceIlluminant? Illuminant,
     string DisplayName);
+
+public sealed record UserIlluminantOptionViewModel(
+    UserIlluminantSlot? Slot,
+    string DisplayName,
+    bool IsEnabled);
 
 public sealed record AppearanceMethodOptionViewModel(ReflectanceAppearanceMethod Method, string Title);
 
@@ -187,6 +187,8 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         SpectrumYAxisConfiguration.ForMeasurementMode(MeasurementMode.Reflectance);
     private bool _showD50;
     private bool _showD65;
+    private bool _nameMeasurementsAfterCapture;
+    private Guid? _lastObservedSavedMeasurementEntryId;
     private int _instrumentIndex = 1;
     private string _errorMessage = string.Empty;
     private bool _isBrowsingRestoredWorkspace;
@@ -197,6 +199,8 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     private ReflectanceIlluminantSourceKind _reflectanceIlluminantSourceKind =
         ReflectanceIlluminantSourceKind.Cie;
     private CieIlluminantOptionViewModel? _selectedCieIlluminantOption;
+    private UserIlluminantOptionViewModel? _selectedUserIlluminantOption;
+    private bool _isRefreshingUserIlluminantOptions;
     private ReflectanceAppearanceMethod _appearanceMethod = ReflectanceAppearanceMethod.CieCam16;
     private ReflectanceIlluminantColorComparisonResult? _appearanceComparison;
     private Vector3? _appearanceReferenceLab;
@@ -205,6 +209,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     private Task _historyPersistenceTask = Task.CompletedTask;
     private string? _lastPersistedHistoryFingerprint;
     private string _historyPersistenceError = string.Empty;
+    private bool _defaultWorkspaceLoadFailed;
 
     public MainWindowViewModel() : this(new SettingsStore(), new MeasurementHistoryPersistenceStore())
     {
@@ -258,10 +263,12 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         DeselectAllCommand = new RelayCommand(_ => DeselectAll(), _ => SelectedCount > 0);
         ClearLogCommand = new RelayCommand(_ => _session.Log.Clear());
         RefreshCieIlluminantOptions();
+        RefreshUserIlluminantOptions();
     }
 
     public ObservableCollection<HistoryItemViewModel> HistoryItems { get; } = [];
     public ObservableCollection<CieIlluminantOptionViewModel> CieIlluminantOptions { get; } = [];
+    public ObservableCollection<UserIlluminantOptionViewModel> UserIlluminantOptions { get; } = [];
     public AsyncRelayCommand MeasureCommand { get; }
     public AsyncRelayCommand AverageMeasurementCommand { get; }
     public AsyncRelayCommand CalibrateCommand { get; }
@@ -284,6 +291,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public event Action<string>? LogAppended;
     public event Action<string>? LogReset;
     public event Action? HistoryRefreshed;
+    public event Action<Guid>? NameMeasurementRequested;
     public bool IsRefreshingHistory { get; private set; }
 
     public MeasurementMode Mode
@@ -350,6 +358,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public bool HasSelectedTm30 => SelectedEntries().Any(entry => entry.Measurement.Tm30 is not null);
     public bool CanExportSelection => SelectedCount > 0;
     public bool HasMeasurements => HistoryItems.Count > 0;
+    public bool HasModeHistory => _session.History.Ordered(Mode).Count > 0;
     public int DeletableHistoryCount => _session.History.DeletableCount(Mode);
     public bool HasDeletableHistory => DeletableHistoryCount > 0;
     public bool IsBrowsingRestoredWorkspace
@@ -470,9 +479,19 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             _localization.SetLanguage(value);
             SaveSettingsSoon();
             RefreshCieIlluminantOptions();
+            RefreshUserIlluminantOptions();
             RefreshHistory();
             RaiseReflectanceIlluminantProperties();
             OnPropertyChanged(string.Empty);
+        }
+    }
+
+    public bool NameMeasurementsAfterCapture
+    {
+        get => _nameMeasurementsAfterCapture;
+        set
+        {
+            if (Set(ref _nameMeasurementsAfterCapture, value)) SaveSettingsSoon();
         }
     }
 
@@ -509,39 +528,32 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         }
     }
 
-    public bool IsUser1IlluminantSourceSelected
+    public bool IsUserIlluminantSourceSelected
     {
-        get => _reflectanceIlluminantSourceKind == ReflectanceIlluminantSourceKind.User1;
+        get => _reflectanceIlluminantSourceKind == ReflectanceIlluminantSourceKind.User;
         set
         {
-            if (value) SelectReflectanceIlluminantSource(ReflectanceIlluminantSourceKind.User1);
+            if (value) SelectReflectanceIlluminantSource(ReflectanceIlluminantSourceKind.User);
         }
     }
 
-    public bool IsUser2IlluminantSourceSelected
+    public UserIlluminantOptionViewModel? SelectedUserIlluminantOption
     {
-        get => _reflectanceIlluminantSourceKind == ReflectanceIlluminantSourceKind.User2;
+        get => _selectedUserIlluminantOption;
         set
         {
-            if (value) SelectReflectanceIlluminantSource(ReflectanceIlluminantSourceKind.User2);
+            if (_isRefreshingUserIlluminantOptions) return;
+            if (value is { IsEnabled: false }) return;
+            if (Set(ref _selectedUserIlluminantOption, value))
+            {
+                RaiseReflectanceIlluminantProperties();
+            }
         }
     }
 
-    public bool IsUser3IlluminantSourceSelected
-    {
-        get => _reflectanceIlluminantSourceKind == ReflectanceIlluminantSourceKind.User3;
-        set
-        {
-            if (value) SelectReflectanceIlluminantSource(ReflectanceIlluminantSourceKind.User3);
-        }
-    }
-
-    public bool HasUser1Illuminant =>
-        _session.History.UserIlluminantEntry(UserIlluminantSlot.User1) is not null;
-    public bool HasUser2Illuminant =>
-        _session.History.UserIlluminantEntry(UserIlluminantSlot.User2) is not null;
-    public bool HasUser3Illuminant =>
-        _session.History.UserIlluminantEntry(UserIlluminantSlot.User3) is not null;
+    public bool HasUserIlluminants => Enum.GetValues<UserIlluminantSlot>()
+        .Any(slot => _session.History.UserIlluminantEntry(slot) is not null);
+    public bool CanSelectUserIlluminant => HasReflectanceMeasurement && IsUserIlluminantSourceSelected;
 
     public ReflectanceAppearanceMethod AppearanceMethod
     {
@@ -572,12 +584,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
                     ? IlluminantSpectrumDefinition.Cie(illuminant)
                     : null;
             }
-            var slot = _reflectanceIlluminantSourceKind switch
-            {
-                ReflectanceIlluminantSourceKind.User1 => UserIlluminantSlot.User1,
-                ReflectanceIlluminantSourceKind.User2 => UserIlluminantSlot.User2,
-                _ => UserIlluminantSlot.User3,
-            };
+            if (SelectedUserIlluminantOption?.Slot is not { } slot) return null;
             return _session.History.UserIlluminantEntry(slot) is { } entry
                 ? IlluminantSpectrumDefinition.User(
                     slot,
@@ -628,15 +635,6 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public string DeltaBText => SignedDifference(ReflectanceColorComparisonResult?.DeltaB);
 
     public string CieReferenceIlluminantLabel => T("CIE参考光源", "CIE Reference Illuminant");
-    public string UserDefined1Label => UserIlluminantSlots.Title(
-        UserIlluminantSlot.User1,
-        _localization.Language == "ja");
-    public string UserDefined2Label => UserIlluminantSlots.Title(
-        UserIlluminantSlot.User2,
-        _localization.Language == "ja");
-    public string UserDefined3Label => UserIlluminantSlots.Title(
-        UserIlluminantSlot.User3,
-        _localization.Language == "ja");
     public string IlluminantComparisonGroupLabel => T(
         "光源による反射光スペクトル",
         "Reflected Spectrum by Illuminant");
@@ -725,6 +723,8 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         }
     }
     public string DeleteHistoryLabel => T("履歴を削除", "Delete History");
+    public string ImportHistoryLabel => T("履歴読み込み", "Import History");
+    public string ExportHistoryLabel => T("履歴書き出し", "Export History");
     public string DeleteHistoryConfirmationTitle => T(
         $"{ModeTitle}の履歴を削除しますか？",
         $"Delete {ModeTitle} History?");
@@ -1422,6 +1422,8 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         "Check for Updates…");
     public string OpenWorkspaceLabel => T("ワークスペースを復帰...", "Restore Workspace...");
     public string SaveWorkspaceLabel => T("ワークスペースを保存...", "Save Workspace...");
+    public string ImportWorkspaceLabel => T("ワークスペースを読み込み...", "Import Workspace...");
+    public string ExportWorkspaceLabel => T("ワークスペースを書き出し...", "Export Workspace...");
     public string ExportLabel => T("書き出し...", "Export...");
     public string ExportActionLabel => T("書き出し", "Export");
     public string SwatchExportLabel => T("スウォッチ", "Swatch");
@@ -1445,6 +1447,9 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public string AveragedConvergenceLabel => T("収束度", "Convergence");
     public string CalibrateLabel => T("キャリブレーション", "Calibrate");
     public string RecalibrateLabel => T("再キャリブレーション", "Recalibrate");
+    public string NameMeasurementsAfterCaptureLabel => T("測定後名前を付ける", "Name after measurement");
+    public string MeasurementNameLabel => T("名前", "Name");
+    public string MeasurementNameCancelLabel => T("キャンセル", "Cancel");
     public string ContinueLabel => T("キャリブレーション", "Calibrate");
     public string SkipLabel => T("今回はスキップ", "Skip This Time");
     public string RetryLabel => T("再試行", "Retry");
@@ -1520,12 +1525,21 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             if (await _historyPersistenceStore.LoadAsync() is { } persistedHistory)
             {
                 persistedHistory.RestoreInto(_session.History);
+                if (persistedHistory.Workspace.SelectedMode is { } savedMode)
+                {
+                    _mode = savedMode;
+                    _selectedTabIndex = persistedHistory.Workspace.SelectedSidebarTab ==
+                        MeasurementSidebarTab.SpotreadLog ? 1 : 0;
+                    _isModeSelectionVisible = false;
+                    _isBrowsingRestoredWorkspace = true;
+                }
                 _lastPersistedHistoryFingerprint = HistoryPersistenceFingerprint(
                     persistedHistory);
             }
         }
         catch (Exception exception)
         {
+            _defaultWorkspaceLoadFailed = true;
             HistoryPersistenceError = T(
                 $"保存された測定履歴を読み込めませんでした。{exception.Message}",
                 $"Unable to load saved measurement history. {exception.Message}");
@@ -1533,6 +1547,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         _usePracticalRange = true;
         _showD50 = false;
         _showD65 = false;
+        _nameMeasurementsAfterCapture = _settings.NameMeasurementsAfterCapture;
         _instrumentIndex = _settings.InstrumentIndex;
         _session.InstrumentIndex = _instrumentIndex;
         RefreshCieIlluminantOptions();
@@ -1652,6 +1667,19 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
                 ? MeasurementSidebarTab.SpotreadLog
                 : MeasurementSidebarTab.MeasurementValues);
 
+    public WorkspaceDocument CreateWorkspaceDocumentForModes(
+        IReadOnlySet<MeasurementMode> modes) =>
+        CreateWorkspaceDocument().ContainingOnly(modes);
+
+    public int ImportWorkspaceHistory(
+        WorkspaceDocument document,
+        IReadOnlySet<MeasurementMode> modes)
+    {
+        var count = document.ImportInto(_session.History, modes);
+        if (count > 0) RefreshHistory();
+        return count;
+    }
+
     public async Task SaveWorkspaceAsync(string path)
     {
         var document = CreateWorkspaceDocument();
@@ -1696,6 +1724,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        await _session.StopAsync();
         _historyPersistenceCancellation?.Cancel();
         await _historyPersistenceTask;
         await SaveCurrentHistoryAsync();
@@ -1793,6 +1822,11 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
 
     private void RefreshFromSession(string? operationError = null)
     {
+        var savedEntryId = _session.LastSavedMeasurementEntryId;
+        var shouldRequestName = savedEntryId is not null
+            && savedEntryId != _lastObservedSavedMeasurementEntryId
+            && NameMeasurementsAfterCapture;
+        _lastObservedSavedMeasurementEntryId = savedEntryId;
         var currentSidebarTab = SelectedTabIndex == 1
             ? MeasurementSidebarTab.SpotreadLog
             : MeasurementSidebarTab.MeasurementValues;
@@ -1809,6 +1843,10 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             _session.State.CurrentIssue,
             operationError);
         RefreshHistory();
+        if (shouldRequestName && savedEntryId is { } entryId)
+        {
+            NameMeasurementRequested?.Invoke(entryId);
+        }
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(StatusTitle));
         OnPropertyChanged(nameof(StatusDetail));
@@ -1905,6 +1943,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         OnPropertyChanged(nameof(SelectedCount));
         OnPropertyChanged(nameof(ActiveMeasurementName));
         OnPropertyChanged(nameof(HasMeasurements));
+        OnPropertyChanged(nameof(HasModeHistory));
         OnPropertyChanged(nameof(DeletableHistoryCount));
         OnPropertyChanged(nameof(HasDeletableHistory));
         OnPropertyChanged(nameof(DeleteHistoryConfirmationTitle));
@@ -1934,6 +1973,13 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         RaiseReflectanceIlluminantProperties();
         ScheduleHistoryPersistence();
         OnPropertyChanged(nameof(HasUnsavedChanges));
+    }
+
+    public void SetMeasurementName(Guid entryId, string? name)
+    {
+        if (_session.History.Entry(entryId) is null) return;
+        Rename(entryId, name);
+        RefreshHistory();
     }
 
     private void MoveSelection(bool up)
@@ -2039,16 +2085,40 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             option.Illuminant == selectedIlluminant) ?? CieIlluminantOptions[0];
     }
 
+    private void RefreshUserIlluminantOptions()
+    {
+        if (_isRefreshingUserIlluminantOptions) return;
+        var selectedSlot = _selectedUserIlluminantOption?.Slot;
+        var options = new List<UserIlluminantOptionViewModel>
+        {
+            new(null, T("ユーザー定義光源", "User Defined Illuminant"), true),
+        };
+        foreach (var slot in Enum.GetValues<UserIlluminantSlot>())
+        {
+            var entry = _session.History.UserIlluminantEntry(slot);
+            var name = entry is null ? null : MeasurementHistoryEntry.NormalizeName(entry.Name);
+            var title = UserIlluminantSlots.Title(slot, _localization.Language == "ja");
+            options.Add(new UserIlluminantOptionViewModel(
+                slot,
+                name is null ? title : $"{title}  [{name}]",
+                entry is not null));
+        }
+        if (UserIlluminantOptions.SequenceEqual(options)) return;
+        _isRefreshingUserIlluminantOptions = true;
+        UserIlluminantOptions.Clear();
+        foreach (var option in options) UserIlluminantOptions.Add(option);
+        _selectedUserIlluminantOption = UserIlluminantOptions.FirstOrDefault(option =>
+            option.Slot == selectedSlot && option.IsEnabled)
+            ?? UserIlluminantOptions.FirstOrDefault(option => option.Slot is not null && option.IsEnabled)
+            ?? UserIlluminantOptions[0];
+        _isRefreshingUserIlluminantOptions = false;
+        OnPropertyChanged(nameof(SelectedUserIlluminantOption));
+    }
+
     private void SelectReflectanceIlluminantSource(
         ReflectanceIlluminantSourceKind sourceKind)
     {
-        var isAvailable = sourceKind switch
-        {
-            ReflectanceIlluminantSourceKind.User1 => HasUser1Illuminant,
-            ReflectanceIlluminantSourceKind.User2 => HasUser2Illuminant,
-            ReflectanceIlluminantSourceKind.User3 => HasUser3Illuminant,
-            _ => true,
-        };
+        var isAvailable = sourceKind == ReflectanceIlluminantSourceKind.Cie || HasUserIlluminants;
         if (!isAvailable || _reflectanceIlluminantSourceKind == sourceKind)
         {
             return;
@@ -2059,13 +2129,8 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
 
     private void EnsureSelectedUserIlluminantRemainsAvailable()
     {
-        var isAvailable = _reflectanceIlluminantSourceKind switch
-        {
-            ReflectanceIlluminantSourceKind.User1 => HasUser1Illuminant,
-            ReflectanceIlluminantSourceKind.User2 => HasUser2Illuminant,
-            ReflectanceIlluminantSourceKind.User3 => HasUser3Illuminant,
-            _ => true,
-        };
+        var isAvailable = _reflectanceIlluminantSourceKind == ReflectanceIlluminantSourceKind.Cie
+            || HasUserIlluminants;
         if (!isAvailable)
         {
             _reflectanceIlluminantSourceKind = ReflectanceIlluminantSourceKind.Cie;
@@ -2074,17 +2139,15 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
 
     private void RaiseReflectanceIlluminantProperties()
     {
+        RefreshUserIlluminantOptions();
         EnsureSelectedUserIlluminantRemainsAvailable();
         RefreshAppearanceComparison();
         foreach (var property in new[]
                  {
                      nameof(IsCieIlluminantSourceSelected),
-                     nameof(IsUser1IlluminantSourceSelected),
-                     nameof(IsUser2IlluminantSourceSelected),
-                     nameof(IsUser3IlluminantSourceSelected),
-                     nameof(HasUser1Illuminant),
-                     nameof(HasUser2Illuminant),
-                     nameof(HasUser3Illuminant),
+                     nameof(IsUserIlluminantSourceSelected),
+                     nameof(HasUserIlluminants),
+                     nameof(CanSelectUserIlluminant),
                      nameof(SelectedIlluminantSource),
                      nameof(ReflectanceIlluminantResult),
                      nameof(ReflectanceColorComparisonResult),
@@ -2159,13 +2222,11 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         value?.ToString("+0.00;-0.00;0.00", CultureInfo.InvariantCulture) ?? "—";
 
     private WorkspaceDocument CreateHistoryPersistenceDocument() =>
-        WorkspaceDocument.Create(
-            _session.History,
-            null,
-            MeasurementSidebarTab.MeasurementValues);
+        CreateWorkspaceDocument();
 
     private void ScheduleHistoryPersistence()
     {
+        if (_defaultWorkspaceLoadFailed) return;
         var document = CreateHistoryPersistenceDocument();
         var fingerprint = HistoryPersistenceFingerprint(document);
         if (fingerprint == _lastPersistedHistoryFingerprint)
@@ -2211,6 +2272,10 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
 
     private async Task SaveCurrentHistoryAsync()
     {
+        if (_defaultWorkspaceLoadFailed)
+        {
+            throw new InvalidOperationException(HistoryPersistenceError);
+        }
         try
         {
             var document = CreateHistoryPersistenceDocument();
@@ -2223,6 +2288,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             HistoryPersistenceError = T(
                 $"測定履歴を保存できませんでした。{exception.Message}",
                 $"Unable to save measurement history. {exception.Message}");
+            throw;
         }
     }
 
@@ -2239,6 +2305,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
             UsePracticalSpectrumRange = UsePracticalRange,
             IncludeD50Reference = ShowD50,
             IncludeD65Reference = ShowD65,
+            NameMeasurementsAfterCapture = NameMeasurementsAfterCapture,
             InstrumentIndex = InstrumentIndex,
         };
         return _settingsStore.SaveAsync(_settings);

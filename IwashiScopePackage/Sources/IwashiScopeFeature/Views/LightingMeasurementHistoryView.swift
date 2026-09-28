@@ -146,21 +146,25 @@ struct LightingMeasurementHistoryView: View {
                         Divider()
 
                         Menu {
-                            ForEach(UserIlluminantSlot.allCases) { slot in
-                                Button {
-                                    historyStore.registerUserIlluminant(
-                                        entryID: entry.id,
-                                        for: slot
-                                    )
-                                } label: {
-                                    Label(
-                                        slot.title,
-                                        systemImage: historyStore.userIlluminantEntryID(
-                                            for: slot
-                                        ) == entry.id
-                                            ? "checkmark"
-                                            : "circle"
-                                    )
+                            ForEach(0..<10, id: \.self) { groupIndex in
+                                Menu("\(groupIndex * 10 + 1)–\((groupIndex + 1) * 10)") {
+                                    ForEach(UserIlluminantSlot.allCases[(groupIndex * 10)..<((groupIndex + 1) * 10)]) { slot in
+                                        Button {
+                                            historyStore.registerUserIlluminant(
+                                                entryID: entry.id,
+                                                for: slot
+                                            )
+                                        } label: {
+                                            Label(
+                                                slot.title,
+                                                systemImage: historyStore.userIlluminantEntryID(
+                                                    for: slot
+                                                ) == entry.id
+                                                    ? "checkmark"
+                                                    : "circle"
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         } label: {

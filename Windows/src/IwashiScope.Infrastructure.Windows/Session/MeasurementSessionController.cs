@@ -61,6 +61,7 @@ public sealed class MeasurementSessionController : IAsyncDisposable
     public bool CalibrationCompleted { get; private set; }
     public bool SupportsSpectrumAnalysis { get; private set; }
     public SpotMeasurement? LatestMeasurement { get; private set; }
+    public Guid? LastSavedMeasurementEntryId { get; private set; }
     public AveragingMeasurementAccumulator AveragingAccumulator { get; private set; } = new();
     public AveragingOperationPhase AveragingPhase { get; private set; } =
         AveragingOperationPhase.Inactive;
@@ -431,7 +432,8 @@ public sealed class MeasurementSessionController : IAsyncDisposable
                 AveragedMeasurement = finalizedMetadata,
             };
             LatestMeasurement = finalizedMeasurement;
-            History.Add(finalizedMeasurement, instrumentIdentity: State.Instrument);
+            LastSavedMeasurementEntryId = History.Add(
+                finalizedMeasurement, instrumentIdentity: State.Instrument).Id;
             _pendingSpectrumAnalysisRequest = null;
             _shouldAutomaticallyOutputAverage = false;
             ResetAveragingMeasurement(
@@ -443,7 +445,8 @@ public sealed class MeasurementSessionController : IAsyncDisposable
 
         if (AveragingPhase != AveragingOperationPhase.Collecting)
         {
-            History.Add(measurement, instrumentIdentity: State.Instrument);
+            LastSavedMeasurementEntryId = History.Add(
+                measurement, instrumentIdentity: State.Instrument).Id;
             return;
         }
 

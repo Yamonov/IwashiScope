@@ -11,7 +11,11 @@ public final class IwashiScopeApplicationModel {
     private(set) var lastSavedWorkspaceState: IwashiScopeWorkspaceState?
     private(set) var isBrowsingRestoredWorkspace = false
     private(set) var historyPersistenceErrorMessage: String?
+    private(set) var initialWorkspaceState: IwashiScopeWorkspaceState?
+    private var currentMode: MeasurementMode?
+    private var currentSidebarTab: MeasurementSidebarTab = .measurementValues
     @ObservationIgnored private let historyPersistenceWriter: MeasurementHistoryPersistenceWriter
+    @ObservationIgnored private let defaultWorkspaceLoadFailed: Bool
     @ObservationIgnored private var historyPersistenceTask: Task<Void, Never>?
 
     public convenience init() {
@@ -24,12 +28,18 @@ public final class IwashiScopeApplicationModel {
             persistence: historyPersistence
         )
         var persistenceErrorMessage: String?
+        var defaultWorkspaceState: IwashiScopeWorkspaceState?
+        var loadFailed = false
 
         do {
-            if let snapshot = try historyPersistence.load() {
-                try historyStore.restore(from: snapshot)
+            if let state = try historyPersistence.loadDefaultWorkspace() {
+                try historyStore.restore(from: state.history)
+                defaultWorkspaceState = state
+            } else if let legacySnapshot = try historyPersistence.load() {
+                try historyStore.restore(from: legacySnapshot)
             }
         } catch {
+            loadFailed = true
             persistenceErrorMessage = Self.persistenceErrorMessage(
                 prefix: String(localized: "保存された測定履歴を読み込めませんでした。"),
                 errorDescription: error.localizedDescription
@@ -40,29 +50,52 @@ public final class IwashiScopeApplicationModel {
         self.session = MeasurementSession(historyStore: historyStore)
         self.userIlluminantStore = UserIlluminantStore(historyStore: historyStore)
         self.historyPersistenceWriter = historyPersistenceWriter
+        self.defaultWorkspaceLoadFailed = loadFailed
         self.historyPersistenceErrorMessage = persistenceErrorMessage
+        self.initialWorkspaceState = defaultWorkspaceState
+        self.currentMode = defaultWorkspaceState?.selectedMode
+        self.currentSidebarTab = defaultWorkspaceState?.selectedSidebarTab ?? .measurementValues
+
+        if let mode = defaultWorkspaceState?.selectedMode {
+            isBrowsingRestoredWorkspace = true
+            presentRestoredWorkspace(mode: mode)
+        }
 
         historyStore.setPersistentChangeHandler { [weak self] in
             self?.scheduleHistoryPersistence()
         }
     }
 
-    public func prepareForApplicationTermination() async {
+    @discardableResult
+    public func prepareForApplicationTermination() async -> Bool {
+        guard defaultWorkspaceLoadFailed == false else { return false }
+        let state = workspaceState(
+            selectedMode: currentMode,
+            selectedSidebarTab: currentSidebarTab
+        )
         session.stopForApplicationTermination()
         historyPersistenceTask?.cancel()
 
-        if let errorDescription = await historyPersistenceWriter.save(
-            historyStore.workspaceSnapshot()
-        ) {
+        if let errorDescription = await historyPersistenceWriter.saveDefaultWorkspace(state) {
             historyPersistenceErrorMessage = Self.persistenceErrorMessage(
                 prefix: String(localized: "測定履歴を保存できませんでした。"),
                 errorDescription: errorDescription
             )
+            return false
         }
+        return true
     }
 
     func dismissHistoryPersistenceError() {
         historyPersistenceErrorMessage = nil
+    }
+
+    func setCurrentWorkspaceSelection(
+        mode: MeasurementMode?,
+        sidebarTab: MeasurementSidebarTab
+    ) {
+        currentMode = mode
+        currentSidebarTab = sidebarTab
     }
 
     func requestWorkspaceSave() {
@@ -121,8 +154,12 @@ public final class IwashiScopeApplicationModel {
     }
 
     private func scheduleHistoryPersistence() {
+        guard defaultWorkspaceLoadFailed == false else { return }
         historyPersistenceTask?.cancel()
-        let snapshot = historyStore.workspaceSnapshot()
+        let state = workspaceState(
+            selectedMode: currentMode,
+            selectedSidebarTab: currentSidebarTab
+        )
         let writer = historyPersistenceWriter
 
         historyPersistenceTask = Task { [weak self] in
@@ -133,7 +170,7 @@ public final class IwashiScopeApplicationModel {
             }
             guard Task.isCancelled == false else { return }
 
-            if let errorDescription = await writer.save(snapshot) {
+            if let errorDescription = await writer.saveDefaultWorkspace(state) {
                 self?.historyPersistenceErrorMessage = Self.persistenceErrorMessage(
                     prefix: String(localized: "測定履歴を保存できませんでした。"),
                     errorDescription: errorDescription

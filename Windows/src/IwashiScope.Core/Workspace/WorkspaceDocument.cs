@@ -75,6 +75,44 @@ public sealed record WorkspaceDocument
         return document;
     }
 
+    public WorkspaceDocument ContainingOnly(IReadOnlySet<MeasurementMode> includedModes)
+    {
+        var entries = Workspace.History.Entries
+            .Where(entry => includedModes.Contains(entry.Measurement.Mode))
+            .ToArray();
+        var entryIds = entries.Select(entry => entry.Id).ToHashSet();
+        var modes = Workspace.History.Modes.Select(state =>
+        {
+            var selectedIds = state.SelectedEntryIds.Where(entryIds.Contains).ToHashSet();
+            return state with
+            {
+                PresentationOrder = state.PresentationOrder.Where(entryIds.Contains).ToArray(),
+                SelectedEntryIds = selectedIds,
+                ActiveEntryId = state.ActiveEntryId is { } active && selectedIds.Contains(active)
+                    ? active : null,
+                SelectionAnchorId = state.SelectionAnchorId is { } anchor && entryIds.Contains(anchor)
+                    ? anchor : null,
+            };
+        }).ToArray();
+        var registrations = Workspace.History.UserIlluminantRegistrations
+            .Where(registration => entryIds.Contains(registration.EntryId))
+            .ToArray();
+        var filtered = this with
+        {
+            Workspace = Workspace with
+            {
+                History = Workspace.History with
+                {
+                    Entries = entries,
+                    Modes = modes,
+                    UserIlluminantRegistrations = registrations,
+                },
+            },
+        };
+        WorkspaceSerializer.Validate(filtered);
+        return filtered;
+    }
+
     public void RestoreInto(MeasurementHistory history)
     {
         WorkspaceSerializer.Validate(this);
@@ -88,6 +126,59 @@ public sealed record WorkspaceDocument
                 mode.SelectionAnchorId)),
             Workspace.History.UserIlluminantRegistrations);
     }
+
+    public int ImportInto(
+        MeasurementHistory history,
+        IReadOnlySet<MeasurementMode> selectedModes)
+    {
+        WorkspaceSerializer.Validate(this);
+        var entries = Workspace.History.Entries
+            .Where(entry => selectedModes.Contains(entry.Measurement.Mode))
+            .ToArray();
+        var entriesById = entries.ToDictionary(entry => entry.Id);
+        var existingSources = history.SnapshotUserIlluminants()
+            .Select(registration => history.UserIlluminantEntry(registration.Slot))
+            .OfType<MeasurementHistoryEntry>()
+            .ToArray();
+        var newSources = new List<MeasurementHistoryEntry>();
+        foreach (var registration in Workspace.History.UserIlluminantRegistrations
+                     .OrderBy(registration => registration.Slot))
+        {
+            if (!entriesById.TryGetValue(registration.EntryId, out var source)) continue;
+            if (existingSources.Any(existing => SameIlluminant(existing.Measurement, source.Measurement)) ||
+                newSources.Any(existing => SameIlluminant(existing.Measurement, source.Measurement)))
+            {
+                continue;
+            }
+            newSources.Add(source);
+        }
+        var occupied = history.AvailableUserIlluminantSlots;
+        var freeSlots = Enum.GetValues<UserIlluminantSlot>()
+            .Where(slot => !occupied.Contains(slot)).ToArray();
+        if (newSources.Count > freeSlots.Length)
+        {
+            throw new InvalidDataException(
+                "The 100 user illuminant slots are full. No history was imported.");
+        }
+
+        var addedIds = new Dictionary<Guid, Guid>();
+        foreach (var entry in entries)
+        {
+            var added = history.Add(entry.Measurement, entry.Name, entry.InstrumentIdentity);
+            addedIds[entry.Id] = added.Id;
+        }
+        for (var index = 0; index < newSources.Count; index++)
+        {
+            history.RegisterUserIlluminant(
+                addedIds[newSources[index].Id], freeSlots[index]);
+        }
+        return entries.Length;
+    }
+
+    private static bool SameIlluminant(SpotMeasurement first, SpotMeasurement second) =>
+        first.Mode == second.Mode &&
+        Math.Abs((first.CapturedAt - second.CapturedAt).TotalMilliseconds) < 1 &&
+        first.Spectrum.SequenceEqual(second.Spectrum);
 }
 
 public static class WorkspaceSerializer
@@ -195,6 +286,7 @@ public static class WorkspaceSerializer
         var options = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true,
             DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true,
         };
