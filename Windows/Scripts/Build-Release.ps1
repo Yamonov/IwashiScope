@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [ValidatePattern('^\d+\.\d+(?:\.\d+){0,2}$')]
-    [string] $Version = '1.2',
+    [string] $Version = '1.2.1',
 
     [Parameter(Mandatory = $true)]
     [string] $JamPath,

@@ -635,6 +635,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     public string DeltaBText => SignedDifference(ReflectanceColorComparisonResult?.DeltaB);
 
     public string CieReferenceIlluminantLabel => T("CIE参考光源", "CIE Reference Illuminant");
+    public string UserIlluminantPlaceholderLabel => T("ユーザー定義光源", "User Defined Illuminant");
     public string IlluminantComparisonGroupLabel => T(
         "光源による反射光スペクトル",
         "Reflected Spectrum by Illuminant");
@@ -2089,19 +2090,17 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     {
         if (_isRefreshingUserIlluminantOptions) return;
         var selectedSlot = _selectedUserIlluminantOption?.Slot;
-        var options = new List<UserIlluminantOptionViewModel>
-        {
-            new(null, T("ユーザー定義光源", "User Defined Illuminant"), true),
-        };
+        var options = new List<UserIlluminantOptionViewModel>();
         foreach (var slot in Enum.GetValues<UserIlluminantSlot>())
         {
             var entry = _session.History.UserIlluminantEntry(slot);
-            var name = entry is null ? null : MeasurementHistoryEntry.NormalizeName(entry.Name);
+            if (entry is null) continue;
+            var name = MeasurementHistoryEntry.NormalizeName(entry.Name);
             var title = UserIlluminantSlots.Title(slot, _localization.Language == "ja");
             options.Add(new UserIlluminantOptionViewModel(
                 slot,
                 name is null ? title : $"{title}  [{name}]",
-                entry is not null));
+                true));
         }
         if (UserIlluminantOptions.SequenceEqual(options)) return;
         _isRefreshingUserIlluminantOptions = true;
@@ -2109,8 +2108,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         foreach (var option in options) UserIlluminantOptions.Add(option);
         _selectedUserIlluminantOption = UserIlluminantOptions.FirstOrDefault(option =>
             option.Slot == selectedSlot && option.IsEnabled)
-            ?? UserIlluminantOptions.FirstOrDefault(option => option.Slot is not null && option.IsEnabled)
-            ?? UserIlluminantOptions[0];
+            ?? UserIlluminantOptions.FirstOrDefault();
         _isRefreshingUserIlluminantOptions = false;
         OnPropertyChanged(nameof(SelectedUserIlluminantOption));
     }

@@ -107,7 +107,7 @@ public sealed class WinSparkleIntegrationTests
             "IwashiScopeInstallerCore.cs"));
 
         Assert.Contains("Build-WindowsInstaller.ps1", releaseScript);
-        Assert.Contains("[string] $Version = '1.2'", releaseScript);
+        Assert.Contains("[string] $Version = '1.2.1'", releaseScript);
         Assert.Contains("Windows-x64-Setup.exe", releaseScript);
         Assert.Contains("Release = $true", releaseScript);
         Assert.Contains("--no-incremental", releaseScript);
@@ -128,7 +128,7 @@ public sealed class WinSparkleIntegrationTests
         Assert.Contains("/experimental:deterministic", helperBuildScript);
         Assert.Contains("/pathmap:$projectRoot=.", helperBuildScript);
         Assert.Contains("Remove-Item Env:CL", helperBuildScript);
-        Assert.Contains("[string] $Version = '1.2'", installerScript);
+        Assert.Contains("[string] $Version = '1.2.1'", installerScript);
         Assert.Contains("Compress-Archive -Path (Join-Path $payloadFull '*')", installerScript);
         Assert.Contains("Test-WindowsInstaller.ps1", installerScript);
         Assert.Contains("/platform:x64", installerScript);

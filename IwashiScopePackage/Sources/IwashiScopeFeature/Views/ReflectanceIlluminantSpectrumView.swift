@@ -73,7 +73,7 @@ struct ReflectanceIlluminantSpectrumView: View {
         }
         .frame(maxWidth: .infinity)
         .accessibilityIdentifier("reflectance-illuminant-spectrum-group")
-        .onChange(of: userIlluminantStore.availableSlots) {
+        .onChange(of: userIlluminantStore.availableSlots, initial: true) {
             if let selectedUserSlot,
                userIlluminantStore.hasSpectrum(for: selectedUserSlot) == false {
                 self.selectedUserSlot = nil
@@ -94,7 +94,13 @@ struct ReflectanceIlluminantSpectrumView: View {
             sourceRadioButton(.cie, showsTitle: false)
             illuminantPicker
             sourceRadioButton(.user, showsTitle: false)
-            userIlluminantPicker
+            if registeredUserSlots.isEmpty {
+                Text("ユーザー定義光源")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 210, alignment: .leading)
+            } else {
+                userIlluminantPicker
+            }
             Spacer(minLength: 0)
             Toggle(isOn: $showsCIE2006LMS) {
                 Text(verbatim: "CIE2006LMS")
@@ -182,13 +188,10 @@ struct ReflectanceIlluminantSpectrumView: View {
 
     private var userIlluminantPicker: some View {
         Picker("ユーザー定義光源", selection: $selectedUserSlot) {
-            Text("ユーザー定義光源")
-                .tag(nil as UserIlluminantSlot?)
-            ForEach(UserIlluminantSlot.allCases) { slot in
+            ForEach(registeredUserSlots) { slot in
                 let name = userIlluminantStore.source(for: slot)?.userName
                 Text(name.map { "\(slot.title)  [\($0)]" } ?? slot.title)
                     .tag(slot as UserIlluminantSlot?)
-                    .disabled(userIlluminantStore.hasSpectrum(for: slot) == false)
             }
         }
         .pickerStyle(.menu)
@@ -196,6 +199,11 @@ struct ReflectanceIlluminantSpectrumView: View {
         .disabled(measurement == nil || sourceKind != .user)
         .frame(minWidth: 80, idealWidth: 210, maxWidth: 210, alignment: .leading)
         .accessibilityIdentifier("user-illuminant-picker")
+    }
+
+    private var registeredUserSlots: [UserIlluminantSlot] {
+        let available = userIlluminantStore.availableSlots
+        return UserIlluminantSlot.allCases.filter(available.contains)
     }
 
     private func isSourceKindEnabled(
