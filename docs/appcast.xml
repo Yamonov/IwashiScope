@@ -6,6 +6,28 @@
         <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
         <item>
+            <title>1.2</title>
+            <pubDate>Mon, 28 Sep 2026 05:21:39 +0000</pubDate>
+            <link>https://github.com/Yamonov/IwashiScope/releases/tag/v1.2</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v1.2</sparkle:fullReleaseNotesLink>
+            <sparkle:version>68</sparkle:version>
+            <sparkle:shortVersionString>1.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+            <description><![CDATA[<ul>
+<li>ユーザー定義光源を100件まで登録できるようにし、反射光の選択をプルダウンに変更しました。</li>
+<li>測定後の名前入力と、モード別の履歴読み込み・書き出しに対応しました。</li>
+<li>デフォルトワークスペースの自動保存と、モードを選択して読み込むワークスペースファイルに対応しました。</li>
+<li>Windows版は終了時に確認を求めず、デフォルトワークスペースと設定を保存して閉じるようにしました。</li>
+</ul>]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v1.2/IwashiScope-1.2.zip"
+                length="7064813"
+                type="application/octet-stream"
+                sparkle:os="macos"
+                sparkle:edSignature="w2zrLmjKn05LBTJ3ITt0SRXtGESnH5Cs3yYT9Qet6GCNT6zOROi4++DsLAStt0S1giWr0VCFFxS7Qu8XDE94Dg=="
+            />
+        </item>
+        <item>
             <title>1.1</title>
             <pubDate>Wed, 23 Sep 2026 15:00:23 +0000</pubDate>
             <link>https://github.com/Yamonov/IwashiScope/releases/tag/v1.1</link>
