@@ -2078,7 +2078,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         {
             CieIlluminantOptions.Add(new CieIlluminantOptionViewModel(
                 illuminant,
-                CieReferenceIlluminants.DisplayName(
+                CieReferenceIlluminants.MenuDisplayName(
                     illuminant,
                     _localization.Language == "ja")));
         }

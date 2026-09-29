@@ -116,6 +116,62 @@ enum CIEReferenceIlluminant: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    func menuDisplayName(japanese: Bool) -> String {
+        let descriptions: (ja: String, en: String) = switch self {
+        case .a: ("白熱電球・約2856 K", "Tungsten incandescent · approx. 2856 K")
+        case .c: ("旧来の昼光・約6800 K", "Legacy daylight · approx. 6800 K")
+        case .d50: ("印刷・写真の昼光・約5000 K", "Graphic arts daylight · approx. 5000 K")
+        case .d55: ("昼光・約5500 K", "Daylight · approx. 5500 K")
+        case .d65: ("代表的な屋外昼光・約6500 K", "Average outdoor daylight · approx. 6500 K")
+        case .d75: ("昼光・約7500 K", "Daylight · approx. 7500 K")
+        case .id50: ("屋内昼光・約5000 K", "Indoor daylight · approx. 5000 K")
+        case .id65: ("屋内昼光・約6500 K", "Indoor daylight · approx. 6500 K")
+        case .fl1: ("標準型・約6430 K・Ra 76", "Standard fluorescent · approx. 6430 K · Ra 76")
+        case .fl2: ("標準型・約4230 K・Ra 64", "Standard fluorescent · approx. 4230 K · Ra 64")
+        case .fl3: ("標準型・約3450 K・Ra 57", "Standard fluorescent · approx. 3450 K · Ra 57")
+        case .fl4: ("標準型・約2940 K・Ra 51", "Standard fluorescent · approx. 2940 K · Ra 51")
+        case .fl5: ("標準型・約6350 K・Ra 72", "Standard fluorescent · approx. 6350 K · Ra 72")
+        case .fl6: ("標準型・約4150 K・Ra 59", "Standard fluorescent · approx. 4150 K · Ra 59")
+        case .fl7: ("広帯域型・D65模擬・約6500 K", "Broadband D65 simulator · approx. 6500 K")
+        case .fl8: ("広帯域型・D50模擬・約5000 K", "Broadband D50 simulator · approx. 5000 K")
+        case .fl9: ("広帯域型・約4150 K・Ra 90", "Broadband fluorescent · approx. 4150 K · Ra 90")
+        case .fl10: ("狭帯域型・約5000 K・Ra 81", "Narrowband fluorescent · approx. 5000 K · Ra 81")
+        case .fl11: ("狭帯域型・約4000 K・Ra 83", "Narrowband fluorescent · approx. 4000 K · Ra 83")
+        case .fl12: ("狭帯域型・約3000 K・Ra 83", "Narrowband fluorescent · approx. 3000 K · Ra 83")
+        case .fl3_1: ("ハロリン酸塩型・約2932 K・Ra 51", "Halophosphate · approx. 2932 K · Ra 51")
+        case .fl3_2: ("ハロリン酸塩型・約3965 K・Ra 70", "Halophosphate · approx. 3965 K · Ra 70")
+        case .fl3_3: ("ハロリン酸塩型・約6280 K・Ra 72", "Halophosphate · approx. 6280 K · Ra 72")
+        case .fl3_4: ("高演色型・約2904 K・Ra 87", "DeLuxe fluorescent · approx. 2904 K · Ra 87")
+        case .fl3_5: ("高演色型・約4086 K・Ra 95", "DeLuxe fluorescent · approx. 4086 K · Ra 95")
+        case .fl3_6: ("高演色型・約4894 K・Ra 96", "DeLuxe fluorescent · approx. 4894 K · Ra 96")
+        case .fl3_7: ("3波長型・約2979 K・Ra 82", "Three-band fluorescent · approx. 2979 K · Ra 82")
+        case .fl3_8: ("3波長型・約4006 K・Ra 79", "Three-band fluorescent · approx. 4006 K · Ra 79")
+        case .fl3_9: ("3波長型・約4853 K・Ra 79", "Three-band fluorescent · approx. 4853 K · Ra 79")
+        case .fl3_10: ("3波長型・約5000 K・Ra 88", "Three-band fluorescent · approx. 5000 K · Ra 88")
+        case .fl3_11: ("3波長型・約5854 K・Ra 78", "Three-band fluorescent · approx. 5854 K · Ra 78")
+        case .fl3_12: ("多波長型・約2984 K・Ra 93", "Multi-band fluorescent · approx. 2984 K · Ra 93")
+        case .fl3_13: ("多波長型・約3896 K・Ra 96", "Multi-band fluorescent · approx. 3896 K · Ra 96")
+        case .fl3_14: ("多波長型・約5045 K・Ra 95", "Multi-band fluorescent · approx. 5045 K · Ra 95")
+        case .fl3_15: ("D65模擬・約6509 K・Ra 98", "D65 fluorescent simulator · approx. 6509 K · Ra 98")
+        case .hp1: ("標準型高圧ナトリウム・約1959 K・Ra 8", "Standard high-pressure sodium · approx. 1959 K · Ra 8")
+        case .hp2: ("演色改善型高圧ナトリウム・約2506 K・Ra 83", "Colour-enhanced high-pressure sodium · approx. 2506 K · Ra 83")
+        case .hp3: ("メタルハライド・約3144 K・Ra 83", "Metal halide · approx. 3144 K · Ra 83")
+        case .hp4: ("メタルハライド・約4002 K・Ra 74", "Metal halide · approx. 4002 K · Ra 74")
+        case .hp5: ("メタルハライド・約4039 K・Ra 87", "Metal halide · approx. 4039 K · Ra 87")
+        case .ledB1: ("青色励起・蛍光体型・約2733 K", "Blue-pumped phosphor LED · approx. 2733 K")
+        case .ledB2: ("青色励起・蛍光体型・約2998 K", "Blue-pumped phosphor LED · approx. 2998 K")
+        case .ledB3: ("青色励起・蛍光体型・約4103 K", "Blue-pumped phosphor LED · approx. 4103 K")
+        case .ledB4: ("青色励起・蛍光体型・約5109 K", "Blue-pumped phosphor LED · approx. 5109 K")
+        case .ledB5: ("青色励起・蛍光体型・約6598 K", "Blue-pumped phosphor LED · approx. 6598 K")
+        case .ledBH1: ("複合型・約2851 K", "Hybrid LED · approx. 2851 K")
+        case .ledRGB1: ("RGB混色型・約2840 K", "RGB LED · approx. 2840 K")
+        case .ledV1: ("紫色励起・蛍光体型・約2724 K", "Violet-pumped phosphor LED · approx. 2724 K")
+        case .ledV2: ("紫色励起・蛍光体型・約4070 K", "Violet-pumped phosphor LED · approx. 4070 K")
+        case .l41: ("LED測定向け測光器校正・約4100 K", "Photometer calibration for LEDs · approx. 4100 K")
+        }
+        return "\(rawValue) — \(japanese ? descriptions.ja : descriptions.en)"
+    }
+
     var samples: [SpectralSample] {
         CIEReferenceIlluminantSpectrum.samples(for: self)
     }

@@ -4,7 +4,7 @@ param(
     [string] $PayloadPath,
 
     [ValidatePattern('^\d+\.\d+(?:\.\d+){0,2}$')]
-    [string] $Version = '1.2.1',
+    [string] $Version = '1.2.2',
 
     [string] $OutputRoot,
 

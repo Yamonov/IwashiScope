@@ -27,6 +27,24 @@ public sealed class ReflectanceIlluminantTests
     }
 
     [Fact]
+    public void MenuDescribesEveryReferenceIlluminant()
+    {
+        foreach (var illuminant in Enum.GetValues<CieReferenceIlluminant>())
+        {
+            foreach (var japanese in new[] { true, false })
+            {
+                var label = CieReferenceIlluminants.MenuDisplayName(illuminant, japanese);
+                Assert.StartsWith($"{CieReferenceIlluminants.RawValue(illuminant)} — ", label);
+                Assert.Contains("K", label);
+            }
+        }
+        Assert.Equal("ID50 — 屋内昼光・約5000 K",
+            CieReferenceIlluminants.MenuDisplayName(CieReferenceIlluminant.ID50, true));
+        Assert.Equal("ID65 — 屋内昼光・約6500 K",
+            CieReferenceIlluminants.MenuDisplayName(CieReferenceIlluminant.ID65, true));
+    }
+
+    [Fact]
     public void SelectedIlluminantIsPeakNormalizedAndMultipliedByReflectance()
     {
         var result = ReflectanceIlluminantSpectrumCalculator.Calculate(

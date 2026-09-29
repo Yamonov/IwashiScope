@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ReflectanceIlluminantSpectrumView: View {
+    @Environment(\.locale) private var locale
     @State private var selection: ReflectanceIlluminantSelection = .none
     @State private var sourceKind: ReflectanceIlluminantSourceKind = .cie
     @State private var selectedUserSlot: UserIlluminantSlot?
@@ -172,7 +173,9 @@ struct ReflectanceIlluminantSpectrumView: View {
             ForEach(CIEIlluminantCategory.allCases) { category in
                 Section(category.title) {
                     ForEach(illuminants(in: category)) { illuminant in
-                        Text(illuminant.displayName)
+                        Text(verbatim: illuminant.menuDisplayName(
+                            japanese: locale.language.languageCode?.identifier == "ja"
+                        ))
                             .tag(ReflectanceIlluminantSelection.cie(illuminant))
                     }
                 }
