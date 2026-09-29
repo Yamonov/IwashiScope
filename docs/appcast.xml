@@ -6,6 +6,28 @@
         <description>IwashiScopeの署名済みアップデート情報</description>
         <language>ja</language>
         <item>
+            <title>1.2.2</title>
+            <pubDate>Tue, 29 Sep 2026 09:17:12 +0000</pubDate>
+            <link>https://github.com/Yamonov/IwashiScope/releases/tag/v1.2.2</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v1.2.2</sparkle:fullReleaseNotesLink>
+            <sparkle:version>72</sparkle:version>
+            <sparkle:shortVersionString>1.2.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+            <description xml:lang="en"><![CDATA[<ul>
+<li>Adjusted the UI and added descriptions for light sources.</li>
+</ul>]]></description>
+            <description xml:lang="ja"><![CDATA[<ul>
+<li>UIを微調整し、光源に説明を追加しました</li>
+</ul>]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v1.2.2/IwashiScope-1.2.2.zip"
+                length="7073768"
+                type="application/octet-stream"
+                sparkle:os="macos"
+                sparkle:edSignature="6Pb7+kXI6S2r/ClFhnDZFww0H4uzsbzEJ9A0lYpsmb92gQA3ehHe2O2brekfn8todP7sP//lc7y9JVISX6egBw=="
+            />
+        </item>
+        <item>
             <title>1.2.1</title>
             <pubDate>Mon, 28 Sep 2026 07:04:29 +0000</pubDate>
             <link>https://github.com/Yamonov/IwashiScope/releases/tag/v1.2.1</link>
