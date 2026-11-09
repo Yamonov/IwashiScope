@@ -11,6 +11,32 @@
           Each enclosure must set sparkle:os="windows-x64".
         -->
         <item>
+            <title>IwashiScope 1.2.3 for Windows</title>
+            <pubDate>Mon, 09 Nov 2026 07:10:08 +0000</pubDate>
+            <link>https://github.com/Yamonov/IwashiScope/releases/tag/v1.2.3</link>
+            <sparkle:releaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v1.2.3</sparkle:releaseNotesLink>
+            <sparkle:version>1.2.3.90</sparkle:version>
+            <sparkle:shortVersionString>1.2.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>10.0</sparkle:minimumSystemVersion>
+            <description xml:lang="en"><![CDATA[<ul>
+<li>Load Lab swatches from ACO and ACB files to find up to six colors close to a reflective measurement.</li>
+<li>Use Standard or Color Tone First on the right side of the panel to change the sort order.</li>
+<li>The app can start with defaults when its settings file cannot be read.</li>
+</ul>]]></description>
+            <description xml:lang="ja"><![CDATA[<ul>
+<li>ACO・ACB形式のLabスウォッチを読み込み、測定色に近い色を最大6件表示できます。</li>
+<li>パネル右端の「標準」「色み優先」で並び順を切り替えられます。</li>
+<li>設定ファイルを読み込めない場合も、初期値で起動できるようにしました。</li>
+</ul>]]></description>
+            <enclosure
+                url="https://github.com/Yamonov/IwashiScope/releases/download/v1.2.3/IwashiScope-1.2.3-Windows-x64-Setup.exe"
+                length="68770816"
+                type="application/octet-stream"
+                sparkle:os="windows-x64"
+                sparkle:edSignature="oAJ3H3kkn56GXGnrrlSAGJrUrFI/FJJ2d09S2zI3r28Z67One1yC8QTEaMPTSExhivPglksAY8CtMddIUY6jAw=="
+            />
+        </item>
+        <item>
             <title>IwashiScope 1.2.2 for Windows</title>
             <pubDate>Tue, 29 Sep 2026 09:17:12 +0000</pubDate>
             <sparkle:releaseNotesLink>https://github.com/Yamonov/IwashiScope/releases/tag/v1.2.2</sparkle:releaseNotesLink>
