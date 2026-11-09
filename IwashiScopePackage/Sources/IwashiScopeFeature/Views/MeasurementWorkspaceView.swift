@@ -166,6 +166,7 @@ struct MeasurementWorkspaceView: View {
                             usesPracticalSpectrumRange: usesPracticalSpectrumRange,
                             userIlluminantStore: userIlluminantStore
                         )
+                        ReflectanceSimilarSwatchesView(measurement: displayedMeasurement)
                     } else {
                         LightingRenderingStackView(measurement: displayedMeasurement)
                     }

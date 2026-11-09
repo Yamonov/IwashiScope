@@ -16,11 +16,11 @@ public sealed class ReleaseMetadataTests
             .GetCustomAttribute<AssemblyFileVersionAttribute>()?
             .Version;
 
-        Assert.Equal("1.2.2", informationalVersion);
+        Assert.Equal("1.2.3", informationalVersion);
         var build = int.Parse(assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
             .Single(item => item.Key == "BuildNumber").Value!);
         Assert.InRange(build, 85, ushort.MaxValue - 1);
-        Assert.Equal($"1.2.2.{build}", fileVersion);
+        Assert.Equal($"1.2.3.{build}", fileVersion);
         Assert.Equal(new Version(1, 2, 2, build), assembly.GetName().Version);
     }
 }

@@ -427,6 +427,134 @@
                                 </StackPanel>
                             </Border>
 
+                            <Border Style="{StaticResource CardBorder}" Margin="0,16,0,0" Padding="12"
+                                    Visibility="{Binding IsReflectance, Converter={StaticResource BoolToVisibility}}">
+                                <StackPanel DataContext="{Binding SimilarSwatches}">
+                                    <StackPanel.Resources>
+                                        <Style x:Key="SwatchMetricLabel" TargetType="TextBlock">
+                                            <Setter Property="FontSize" Value="10" />
+                                            <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}" />
+                                        </Style>
+                                        <Style x:Key="SwatchMetricValue" TargetType="TextBlock">
+                                            <Setter Property="FontSize" Value="11" />
+                                            <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
+                                        </Style>
+                                        <Style x:Key="SwatchRankingOption" TargetType="RadioButton">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="RadioButton">
+                                                        <Border x:Name="OptionBorder" Padding="10,5" CornerRadius="4"
+                                                                BorderThickness="1" BorderBrush="Transparent"
+                                                                Background="Transparent">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="OptionBorder" Property="BorderBrush"
+                                                                        Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                                                            </Trigger>
+                                                            <Trigger Property="IsChecked" Value="True">
+                                                                <Setter TargetName="OptionBorder" Property="Background"
+                                                                        Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                                                <Setter Property="Foreground"
+                                                                        Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </StackPanel.Resources>
+                                    <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"
+                                               AutomationProperties.AutomationId="similar-swatches-title" />
+                                    <ScrollViewer Margin="0,8,0,0" HorizontalContentAlignment="Stretch"
+                                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Button Content="{Binding LoadLabel}" IsEnabled="{Binding CanLoad}"
+                                                    Click="OpenSwatches_Click" AutomationProperties.AutomationId="load-similar-swatches" />
+                                            <Border Grid.Column="2" Margin="8,0,0,0" Padding="2" CornerRadius="6"
+                                                    VerticalAlignment="Center"
+                                                    Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+                                                    TextElement.Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}">
+                                                <StackPanel Orientation="Horizontal" AutomationProperties.Name="{Binding RankingLabel}">
+                                                    <RadioButton GroupName="SwatchRanking" Style="{StaticResource SwatchRankingOption}"
+                                                                 Content="{Binding StandardLabel}" IsChecked="{Binding IsStandard}"
+                                                                 AutomationProperties.AutomationId="swatch-ranking-standard" />
+                                                    <RadioButton GroupName="SwatchRanking" Style="{StaticResource SwatchRankingOption}"
+                                                                 Content="{Binding ColorToneFirstLabel}" IsChecked="{Binding IsColorToneFirst}"
+                                                                 AutomationProperties.AutomationId="swatch-ranking-color-tone-first" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+                                    </ScrollViewer>
+                                    <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,8,0,0"
+                                               Foreground="{StaticResource SecondaryTextBrush}"
+                                               Visibility="{Binding ShowsStatus, Converter={StaticResource BoolToVisibility}}"
+                                               AutomationProperties.AutomationId="similar-swatches-status" />
+                                    <ItemsControl ItemsSource="{Binding Cards}" Margin="0,10,0,0">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Width="275" Height="110" Margin="0,0,12,12"
+                                                        BorderThickness="1" BorderBrush="{StaticResource BorderBrush}"
+                                                        CornerRadius="10" ToolTip="{Binding Name}">
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="75" />
+                                                            <RowDefinition Height="*" />
+                                                        </Grid.RowDefinitions>
+                                                        <Border Background="{Binding SwatchBrush}" CornerRadius="9,9,0,0">
+                                                            <Border Margin="6,0,6,3" Padding="4,1" Height="20"
+                                                                    Background="#80FFFFFF" CornerRadius="6"
+                                                                    VerticalAlignment="Bottom">
+                                                                <TextBlock Text="{Binding Name}" Foreground="Black"
+                                                                           FontSize="12" TextAlignment="Center"
+                                                                           TextTrimming="CharacterEllipsis"
+                                                                           AutomationProperties.AutomationId="similar-swatch-name" />
+                                                            </Border>
+                                                        </Border>
+                                                        <UniformGrid Grid.Row="1" Columns="5" Margin="6,2">
+                                                            <StackPanel>
+                                                                <TextBlock Text="L*" Style="{StaticResource SwatchMetricLabel}" />
+                                                                <TextBlock Text="{Binding Lab.First, StringFormat={}{0:0.0}}" Style="{StaticResource SwatchMetricValue}" />
+                                                            </StackPanel>
+                                                            <StackPanel>
+                                                                <TextBlock Text="a*" Style="{StaticResource SwatchMetricLabel}" />
+                                                                <TextBlock Text="{Binding Lab.Second, StringFormat={}{0:0.0}}" Style="{StaticResource SwatchMetricValue}" />
+                                                            </StackPanel>
+                                                            <StackPanel>
+                                                                <TextBlock Text="b*" Style="{StaticResource SwatchMetricLabel}" />
+                                                                <TextBlock Text="{Binding Lab.Third, StringFormat={}{0:0.0}}" Style="{StaticResource SwatchMetricValue}" />
+                                                            </StackPanel>
+                                                            <StackPanel>
+                                                                <TextBlock Text="ΔE00" Style="{StaticResource SwatchMetricLabel}" />
+                                                                <TextBlock Text="{Binding DeltaE2000, StringFormat={}{0:0.00}}" Style="{StaticResource SwatchMetricValue}"
+                                                                           AutomationProperties.AutomationId="similar-swatch-delta-e00" />
+                                                            </StackPanel>
+                                                            <StackPanel>
+                                                                <TextBlock Text="ΔE76" Style="{StaticResource SwatchMetricLabel}" />
+                                                                <TextBlock Text="{Binding DeltaE76, StringFormat={}{0:0.00}}" Style="{StaticResource SwatchMetricValue}"
+                                                                           AutomationProperties.AutomationId="similar-swatch-delta-e76" />
+                                                            </StackPanel>
+                                                        </UniformGrid>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
                             <StackPanel Margin="0,16,0,0"
                                         Visibility="{Binding ShowsLightingRenderingTabs, Converter={StaticResource BoolToVisibility}}">
                                 <Border Style="{StaticResource CardBorder}" Padding="0"

@@ -523,7 +523,9 @@ public static class CieColorDifference
         return Math.Sqrt(deltaL * deltaL + deltaA * deltaA + deltaB * deltaB);
     }
 
-    public static double DeltaE2000(Vector3 first, Vector3 second)
+    public static double DeltaE2000(Vector3 first, Vector3 second) => DeltaE2000(first, second, 1);
+
+    internal static double DeltaE2000(Vector3 first, Vector3 second, double lightnessFactor)
     {
         const double pi = 3.14159265358979;
         const double radiansToDegrees = 180 / pi;
@@ -580,7 +582,7 @@ public static class CieColorDifference
         var meanCPrime7 = Math.Pow(meanCPrime, 7);
         var rC = 2 * Math.Sqrt(meanCPrime7 / (meanCPrime7 + 6_103_515_625));
         var rT = -Math.Sin(2 * hueRotation * degreesToRadians) * rC;
-        var lightnessTerm = deltaLPrime / sL;
+        var lightnessTerm = deltaLPrime / (lightnessFactor * sL);
         var chromaTerm = deltaCPrime / sC;
         var hueTerm = deltaHPrime / sH;
         var squared = lightnessTerm * lightnessTerm +

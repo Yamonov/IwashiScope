@@ -16,9 +16,9 @@ public sealed class LocalizationCatalog
     public string Language { get; private set; } = "ja";
     public event Action? LanguageChanged;
 
-    public void SetLanguage(string language)
+    public void SetLanguage(string? language)
     {
-        var normalized = language.StartsWith("en", StringComparison.OrdinalIgnoreCase)
+        var normalized = language?.StartsWith("en", StringComparison.OrdinalIgnoreCase) == true
             ? "en"
             : "ja";
         if (Language == normalized)

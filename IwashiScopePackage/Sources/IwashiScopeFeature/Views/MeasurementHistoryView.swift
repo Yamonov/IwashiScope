@@ -5,6 +5,8 @@ import UniformTypeIdentifiers
 enum MeasurementHistoryCardMetrics {
     static let size = CGSize(width: 110, height: 110)
     static let colorAreaHeight = 75.0
+    static let nameFieldHeight = 20.0
+    static let nameFieldBottomPadding = 3.0
 }
 
 struct MeasurementHistoryView: View {
@@ -434,11 +436,10 @@ struct MeasurementHistoryDragState: Equatable {
 
 private struct MeasurementHistoryCard: View {
     private static let colorAreaHeight = MeasurementHistoryCardMetrics.colorAreaHeight
-    private static let nameFieldHeight = 20.0
-    private static let nameFieldBottomPadding = 3.0
+    private static let nameFieldHeight = MeasurementHistoryCardMetrics.nameFieldHeight
 
     private static var nameFieldTopPadding: Double {
-        colorAreaHeight - nameFieldHeight - nameFieldBottomPadding
+        colorAreaHeight - nameFieldHeight - MeasurementHistoryCardMetrics.nameFieldBottomPadding
     }
 
     @Binding var editingName: String
@@ -536,7 +537,7 @@ private struct MeasurementHistoryCard: View {
     private var cardSurface: some View {
         VStack(spacing: 0) {
             colorSwatch
-            labValues
+            MeasurementCardLabValues(lab: entry.measurement.lab)
         }
         .frame(
             width: width,
@@ -590,29 +591,6 @@ private struct MeasurementHistoryCard: View {
     private var cardColor: Color {
         colorConversion.map { Color(cgColor: $0.managedColor) }
             ?? Color.secondary.opacity(0.15)
-    }
-
-    private var labValues: some View {
-        Grid(horizontalSpacing: 4, verticalSpacing: 1) {
-            GridRow {
-                labMetric("L*", entry.measurement.lab?.first)
-                labMetric("a*", entry.measurement.lab?.second)
-                labMetric("b*", entry.measurement.lab?.third)
-            }
-        }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
-    }
-
-    private func labMetric(_ label: String, _ value: Double?) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            Text(value?.formatted(.number.precision(.fractionLength(1))) ?? "—")
-                .font(.caption.monospacedDigit())
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var accessibilityLabel: String {

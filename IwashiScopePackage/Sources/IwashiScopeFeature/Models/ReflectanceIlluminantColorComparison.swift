@@ -239,8 +239,8 @@ enum CIEColorDifference {
         )
     }
 
-    /// CIEDE2000 with unit parametric factors, following Sharma, Wu, and Dalal (2005).
-    static func deltaE2000(_ first: Vector3, _ second: Vector3) -> Double {
+    /// CIEDE2000 following Sharma, Wu, and Dalal (2005). A higher kL reduces the lightness contribution.
+    static func deltaE2000(_ first: Vector3, _ second: Vector3, lightnessFactor: Double = 1) -> Double {
         let pi = 3.14159265358979
         let radiansToDegrees = 180 / pi
         let degreesToRadians = pi / 180
@@ -302,7 +302,7 @@ enum CIEColorDifference {
         let rC = 2 * sqrt(meanCPrime7 / (meanCPrime7 + 6_103_515_625))
         let rT = -sin((2 * hueRotation) * degreesToRadians) * rC
 
-        let lightnessTerm = deltaLPrime / sL
+        let lightnessTerm = deltaLPrime / (lightnessFactor * sL)
         let chromaTerm = deltaCPrime / sC
         let hueTerm = deltaHPrime / sH
         let squaredDifference = pow(lightnessTerm, 2)

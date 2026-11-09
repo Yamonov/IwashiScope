@@ -157,6 +157,19 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OpenSwatches_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = _viewModel.SimilarSwatches.LoadLabel,
+            Filter = "Adobe Swatches (*.aco;*.acb)|*.aco;*.acb",
+            CheckFileExists = true,
+            Multiselect = false,
+        };
+        if (dialog.ShowDialog(this) == true)
+            await _viewModel.SimilarSwatches.LoadAsync(dialog.FileName);
+    }
+
     private async void SaveWorkspace_Click(object sender, RoutedEventArgs e)
     {
         var selectedModes = SelectWorkspaceModes(
@@ -946,6 +959,7 @@ public partial class MainWindow : Window
         }
 
         _shutdownApproved = true;
+        _viewModel.SimilarSwatches.CancelPendingWork();
         _dragExportCache.Dispose();
         Close();
     }

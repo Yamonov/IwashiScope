@@ -170,6 +170,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     {
         _displayColors = context;
         foreach (var item in HistoryItems) item.SetDisplayColors(context);
+        SimilarSwatches.RefreshDisplayColors();
         foreach (var property in new[] { nameof(SwatchBrush), nameof(MeasuredReflectancePatchBrush),
             nameof(SimulatedReflectancePatchBrush), nameof(DisplayColorStatus), nameof(DisplayColorDetails) })
             OnPropertyChanged(property);
@@ -210,6 +211,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     private string? _lastPersistedHistoryFingerprint;
     private string _historyPersistenceError = string.Empty;
     private bool _defaultWorkspaceLoadFailed;
+    private bool _settingsLoadFailed;
 
     public MainWindowViewModel() : this(new SettingsStore(), new MeasurementHistoryPersistenceStore())
     {
@@ -221,6 +223,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(historyPersistenceStore);
         _settingsStore = settingsStore;
         _historyPersistenceStore = historyPersistenceStore;
+        SimilarSwatches = new(_localization, LabBrush);
         _session = new MeasurementSessionController(LaunchSpec, _mode);
         _session.Changed += SessionChanged;
         _session.Log.Appended += line => Dispatch(() => LogAppended?.Invoke(line));
@@ -267,6 +270,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
     }
 
     public ObservableCollection<HistoryItemViewModel> HistoryItems { get; } = [];
+    public SimilarSwatchesViewModel SimilarSwatches { get; }
     public ObservableCollection<CieIlluminantOptionViewModel> CieIlluminantOptions { get; } = [];
     public ObservableCollection<UserIlluminantOptionViewModel> UserIlluminantOptions { get; } = [];
     public AsyncRelayCommand MeasureCommand { get; }
@@ -329,6 +333,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         {
             if (Set(ref _activeMeasurement, value))
             {
+                SimilarSwatches.SetMeasurement(value);
                 RaiseMeasurementProperties();
                 RaiseReflectanceIlluminantProperties();
             }
@@ -1519,7 +1524,17 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
 
     public async Task InitializeAsync()
     {
-        _settings = await _settingsStore.LoadAsync();
+        try
+        {
+            _settings = await _settingsStore.LoadAsync();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            _settingsLoadFailed = true;
+            ErrorMessage = T(
+                $"設定を読み込めなかったため、初期値を使用します。{exception.Message}",
+                $"Unable to read settings. Defaults will be used. {exception.Message}");
+        }
         _localization.SetLanguage(_settings.Language);
         try
         {
@@ -1549,7 +1564,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
         _showD50 = false;
         _showD65 = false;
         _nameMeasurementsAfterCapture = _settings.NameMeasurementsAfterCapture;
-        _instrumentIndex = _settings.InstrumentIndex;
+        _instrumentIndex = Math.Clamp(_settings.InstrumentIndex, 1, 32);
         _session.InstrumentIndex = _instrumentIndex;
         RefreshCieIlluminantOptions();
         RefreshHistory();
@@ -2297,6 +2312,7 @@ public sealed class MainWindowViewModel : ObservableObject, IAsyncDisposable
 
     private Task SaveSettingsAsync()
     {
+        if (_settingsLoadFailed) return Task.CompletedTask;
         _settings = new AppSettings
         {
             Language = _localization.Language,

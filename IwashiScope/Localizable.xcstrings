@@ -1,6 +1,54 @@
 {
   "sourceLanguage" : "ja",
   "strings" : {
+    "近似色" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Similar Colors" } } }
+    },
+    "%@ の近似色" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Similar Colors in %@" } } }
+    },
+    "%@ の近似色（色み優先順）" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Similar Colors in %@ (Color Tone First)" } } }
+    },
+    "近似色の並び順" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Similar Color Ranking" } } }
+    },
+    "標準" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Standard" } } }
+    },
+    "色み優先" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Color Tone First" } } }
+    },
+    "スウォッチファイルを読み込む" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Load Swatch File" } } }
+    },
+    "比較する反射原稿の測定結果を選んでください。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Select a reflectance measurement to compare." } } }
+    },
+    "ACOまたはACB形式のスウォッチファイルを選んでください。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose an ACO or ACB swatch file." } } }
+    },
+    "スウォッチファイルの形式が正しくないか、データが途中で途切れています。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "The swatch file is invalid or incomplete." } } }
+    },
+    "このファイルには読み込めるLabスウォッチがありません。" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "This file does not contain any usable Lab swatches." } } }
+    },
+    "スウォッチ %lld" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Swatch %lld" } } }
+    },
     "明るさ（参考）" : {
       "extractionState" : "manual",
       "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Brightness (ref.)" } } }
